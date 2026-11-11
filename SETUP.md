@@ -43,8 +43,7 @@ Done. A ruleset named **Protect main** (Settings → Rules → Rulesets) blocks 
 Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers and deploy from GitHub.
 
 1. Sign in with GitHub and import the repo.
-2. Production branch: `main`. Build command: none for now (it's static); output folder: `/`.
-   Update both once the stack is chosen.
+2. Production branch: `main`. Build command: none (plain static files); output folder: `/` (repo root).
 3. Optional: turn on **preview deployments** for branches, so a big change on a branch gets its own test link.
 4. Invite your friend to the hosting team/project. (Vercel's free Hobby plan is single-user;
    Netlify and Cloudflare Pages let you add members free.)
@@ -64,4 +63,5 @@ Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers a
 ## 7. Fill in the blanks
 
 - [ ] Add each person's area to the ownership table in `AGENTS.md`
-- [ ] Choose a stack together and update `AGENTS.md`
+- [x] Stack chosen: plain HTML, CSS and JavaScript (see `AGENTS.md`)
+- [ ] Add a backend for the fleet board (see `src/game/fleet.js`)

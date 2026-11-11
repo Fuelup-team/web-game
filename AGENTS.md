@@ -6,21 +6,37 @@ file wins. Agree changes to these rules with each other before pushing them.
 
 ## Project
 
-- A web game plus its website, built by two maintainers who are both admins.
-- **Stack: not decided yet.** Until it is, don't add a framework, bundler or package manager on your own.
-  Agree the choice together, then update this section first.
+- **Fuelup**: a daily trivia game. Seven timed "burns" per UTC day; rarer answers score more and fly the
+  rocket higher. 820 points reaches the Moon. Rebuilt from Eeli's Grok demo.
+- **Stack: plain HTML, CSS and JavaScript (ES modules). No framework, no build step, no npm.**
+  `index.html` loads `src/ui/app.js` directly. Don't add a framework, bundler or package manager
+  without agreeing it together first.
 - Live site deploys automatically from `main`.
+- Run locally with any static server from the repo root, e.g. `python3 -m http.server 5173`, then open
+  http://localhost:5173. (Opening `index.html` as a file won't work: browsers block modules from `file://`.)
 
 ## Structure
 
 Keep to this layout so the two maintainers rarely edit the same files:
 
-| Folder | What lives there | Main owner |
+| Path | What lives there | Main owner |
 |---|---|---|
-| `src/game/` | Game logic: loop, state, physics, rules, input | _fill in_ |
-| `src/ui/` | Menus, HUD, website pages, styles | _fill in_ |
-| `public/` | Static assets: images, sounds, fonts | shared |
+| `src/game/data.js` | All questions and answers with their rarity tiers | _fill in_ |
+| `src/game/engine.js` | Rules: matching answers, scoring, daily flight, altitude | _fill in_ |
+| `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board API | _fill in_ |
+| `src/ui/` | Screens (`app.js`), rocket backdrop (`stage.js`), `styles.css` | _fill in_ |
+| `public/` | Art, favicon, share image | shared |
 | `docs/` | Design notes and decisions | shared |
+
+### Game rules to keep intact
+
+- `engine.js` must stay free of DOM code, so it can also run on a server to re-score flights.
+- The daily flight is seeded from the date. Changing `buildFlight`, the order of rounds in `data.js`, or
+  the random picker changes everyone's flight for that day — do it deliberately.
+- `engine.js` validates `data.js` on load (duplicate answers, missing gem, etc.). If the page goes blank
+  after editing questions, check the browser console.
+- Tiers, most common to rarest: `vapor`, `burn`, `cruise`, `orbit`, `fuelup`. Every list and single
+  round needs a `gem` that is one of its answers.
 
 Anyone can edit any folder. If you change the other person's area, mention it in the commit message.
 
