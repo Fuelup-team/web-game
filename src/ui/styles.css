@@ -289,23 +289,60 @@ input:focus {
   font-style: normal;
   display: flex;
 }
-.tier-vapor {
-  color: #8a7762;
-}
-.tier-burn {
-  color: #c45b4a;
-}
-.tier-cruise {
-  color: #b85e22;
+/* Rarity levels: the farther out, the rarer. Colors read on the cream card. */
+.tier-sky {
+  color: #7a6a58;
 }
 .tier-orbit {
-  color: #1f6f86;
+  color: #23707a;
 }
-.tier-fuelup {
-  color: #8a6a12;
+.tier-deepspace {
+  color: #2d559a;
+}
+.tier-nebula {
+  color: #7a3f9e;
+}
+.tier-galaxy {
+  color: #9a6400;
 }
 .tier-drift {
-  color: #8d4d68;
+  color: #a24a3d;
+}
+.chip[class*="tier-"] {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+.chip .chip-level {
+  opacity: 0.85;
+}
+.level-table {
+  width: 100%;
+  margin: 0.5rem 0 0.7rem;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.level-table td {
+  padding: 0.28rem 0;
+  border-bottom: 1px solid #e4d3b8;
+}
+.level-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.level-table .level-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.level-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .flight {
   grid-template-rows: 240px minmax(0, 1fr);

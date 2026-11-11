@@ -2,18 +2,42 @@
 // Ported from the Grok demo. Pure functions only — no DOM here.
 import { LIST_ROUNDS, SINGLE_ROUNDS, GAUGE_ROUNDS } from "./data.js";
 
-/** Points per tier on a single-answer burn. */
-export const SINGLE_POINTS = { drift: 8, vapor: 20, burn: 40, cruise: 60, orbit: 80, fuelup: 100 };
-/** Points per tier on a list ("stack") burn. */
-export const LIST_POINTS = { drift: 4, vapor: 8, burn: 16, cruise: 26, orbit: 36, fuelup: 48 };
+/**
+ * Rarity levels, from most common to rarest. The farther the answer flies,
+ * the rarer it is. One price list: a level is worth the same in every burn.
+ */
+export const LEVELS = [
+  { id: "sky", name: "Sky", rarity: "Common", points: 10 },
+  { id: "orbit", name: "Orbit", rarity: "Uncommon", points: 25 },
+  { id: "deepspace", name: "Deep Space", rarity: "Rare", points: 50 },
+  { id: "nebula", name: "Nebula", rarity: "Very rare", points: 75 },
+  { id: "galaxy", name: "Galaxy", rarity: "Ultra rare", points: 100 },
+];
+/** Gauge burns only: an answer that is way off the target. */
+export const OFF_COURSE = { id: "drift", name: "Off course", rarity: "Way off", points: 5 };
+
+const LEVEL_BY_ID = Object.fromEntries([OFF_COURSE, ...LEVELS].map((l) => [l.id, l]));
+
+/** Level info for a tier id. Unknown ids (e.g. old saved flights) fall back to Sky. */
+export function levelOf(tier) {
+  return LEVEL_BY_ID[tier] ?? LEVELS[0];
+}
+
+/** Points for a tier id. */
+export function pointsFor(tier) {
+  return levelOf(tier).points;
+}
+
+/** The rarest level: finding one counts as finding the far answer. */
+export const TOP_LEVEL = "galaxy";
 /** A list burn never scores more than this. */
-export const LIST_CAP = 160;
-/** Score of a perfect flight. */
-export const PERFECT_SCORE = 820;
+export const LIST_CAP = 250;
+/** Score of a perfect flight: 4 singles (100) + 1 gauge (100) + 2 lists (250). */
+export const PERFECT_SCORE = 1000;
 /** Distance to the Moon, reached by a perfect flight. */
 export const MOON_KM = 384400;
 /** Tier ranking, for picking the best hit. */
-export const TIER_RANK = { drift: 0, vapor: 1, burn: 2, cruise: 3, orbit: 4, fuelup: 5 };
+export const TIER_RANK = { drift: 0, sky: 1, orbit: 2, deepspace: 3, nebula: 4, galaxy: 5 };
 /** Flight 1 was on this day. */
 const FIRST_FLIGHT = Date.UTC(2026, 0, 1);
 const DAY_MS = 86400000;
@@ -142,7 +166,7 @@ function spellings(items) {
       const key = normalize(spelling);
       if (key && !seen.has(key)) {
         seen.add(key);
-        out.push({ canonical: item.name, tier: item.tier ?? "vapor", key, value: item.value });
+        out.push({ canonical: item.name, tier: item.tier ?? "sky", key, value: item.value });
       }
     }
   }
@@ -206,16 +230,25 @@ export function suggest(items, input, limit = 5) {
 
 // ---------- Scoring ----------
 
-/** Score a gauge answer by how close its value is to the target, on a ratio. */
+/**
+ * Gauge closeness, on a ratio (twice as far misses as badly as half as far).
+ * Each band uses the same level and points as the rarity price list.
+ */
+export const GAUGE_BANDS = [
+  { tier: "galaxy", within: 1.025, label: "within 2.5%" },
+  { tier: "nebula", within: 1.07, label: "within 7%" },
+  { tier: "deepspace", within: 1.16, label: "within 16%" },
+  { tier: "orbit", within: 1.35, label: "within 35%" },
+  { tier: "sky", within: 1.9, label: "within 90%" },
+];
+
+/** Score a gauge answer by how close its value is to the target. */
 export function gaugeScore(value, target) {
   const deltaPct = ((value - target) / target) * 100;
   const ratio = Math.max(value, target) / Math.max(1e-9, Math.min(value, target));
-  if (ratio <= 1.025) return { tier: "fuelup", points: 100, deltaPct };
-  if (ratio <= 1.07) return { tier: "orbit", points: 80, deltaPct };
-  if (ratio <= 1.16) return { tier: "cruise", points: 60, deltaPct };
-  if (ratio <= 1.35) return { tier: "burn", points: 40, deltaPct };
-  if (ratio <= 1.9) return { tier: "vapor", points: 20, deltaPct };
-  return { tier: "drift", points: 8, deltaPct };
+  const band = GAUGE_BANDS.find((b) => ratio <= b.within);
+  const tier = band ? band.tier : OFF_COURSE.id;
+  return { tier, points: pointsFor(tier), deltaPct };
 }
 
 /** The item on the chart nearest the target. */
@@ -226,7 +259,7 @@ function closestItem(items, target) {
 
 function foundGem(hits, gem) {
   const key = normalize(gem);
-  return hits.some((h) => h.tier === "fuelup" || normalize(h.canonical) === key);
+  return hits.some((h) => h.tier === TOP_LEVEL || normalize(h.canonical) === key);
 }
 
 /**
@@ -250,8 +283,7 @@ export function tryAnswer(round, input, alreadyLogged) {
   const m = matchAnswer(round.answers, text);
   if (!m) return { ok: false, reason: "Not on the chart. Spell it again, or burn a different answer." };
   if (alreadyLogged.includes(m.canonical)) return { ok: false, reason: `${m.canonical} is already on the stack.` };
-  const points = (round.kind === "list" ? LIST_POINTS : SINGLE_POINTS)[m.tier];
-  return { ok: true, hit: { input: text, canonical: m.canonical, tier: m.tier, points, via: m.via } };
+  return { ok: true, hit: { input: text, canonical: m.canonical, tier: m.tier, points: pointsFor(m.tier), via: m.via } };
 }
 
 /** Final result of a burn, from the canonical names the player logged. */
@@ -280,20 +312,19 @@ export function scoreRound(round, inputs) {
       points: hit?.points ?? 0,
       gem: best.name,
       gemDetail: `${best.name} · ${formatValue(round.unit, best.value)}`,
-      gemHit: !!hit && (hit.tier === "fuelup" || normalize(hit.canonical) === normalize(best.name)),
+      gemHit: !!hit && (hit.tier === TOP_LEVEL || normalize(hit.canonical) === normalize(best.name)),
       aside: round.aside,
       capped: false,
     };
   }
 
-  const table = round.kind === "list" ? LIST_POINTS : SINGLE_POINTS;
   const hits = [];
   const seen = new Set();
   for (const input of inputs) {
     const m = matchAnswer(round.answers, input);
     if (!m || seen.has(m.canonical)) continue;
     seen.add(m.canonical);
-    hits.push({ input, canonical: m.canonical, tier: m.tier, points: table[m.tier], via: m.via });
+    hits.push({ input, canonical: m.canonical, tier: m.tier, points: pointsFor(m.tier), via: m.via });
     if (round.kind === "rare") break;
   }
   const total = hits.reduce((sum, h) => sum + h.points, 0);
@@ -437,6 +468,7 @@ function validate() {
   for (const round of [...LIST_ROUNDS, ...SINGLE_ROUNDS]) {
     const keys = new Set();
     for (const a of round.answers) {
+      if (!LEVELS.some((l) => l.id === a.tier)) throw new Error(`Unknown level "${a.tier}" for ${a.name} in ${round.id}`);
       for (const s of [a.name, ...(a.aliases ?? [])]) {
         const k = normalize(s);
         if (!k) throw new Error(`Empty answer in ${round.id}`);

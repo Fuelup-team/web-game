@@ -5,7 +5,14 @@ import {
   todayUtc, flightNumber, formatDay, formatKm, formatDelta,
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
   burnLabel, bestAnswerLabel, splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, MOON_KM,
+  LEVELS, OFF_COURSE, GAUGE_BANDS, levelOf,
 } from "../game/engine.js";
+
+/** "Galaxy · Ultra rare · +100" */
+function levelLine(tier, points = levelOf(tier).points) {
+  const level = levelOf(tier);
+  return `${level.name} · ${level.rarity} · +${points}`;
+}
 import { loadProfile, saveProfile, logFlight } from "../game/storage.js";
 import { audio, playHit, playMiss } from "../game/sound.js";
 import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
@@ -162,12 +169,10 @@ function checkEntries(round, text, current) {
   const last = hits[hits.length - 1];
   const note =
     round.kind === "list"
-      ? added === 1 && last?.via === "fuzzy"
-        ? `Logged as ${last.canonical}.`
-        : `${added} on the stack.`
-      : last?.via === "fuzzy"
-        ? `Locked as ${last.canonical}.`
-        : `${last?.canonical} locked.`;
+      ? added === 1
+        ? `${last.via === "fuzzy" ? "Logged as " : ""}${last.canonical} · ${levelLine(last.tier)}`
+        : `${added} logged · ${Math.min(LIST_CAP, sum(hits))} of ${LIST_CAP} points on this stack`
+      : `${last.via === "fuzzy" ? "Locked as " : ""}${last.canonical} · ${levelLine(last.tier, last.points)}`;
   return { hits, note, bad: false, best };
 }
 
@@ -267,20 +272,24 @@ function stat(label, value, detail) {
 function rules() {
   return h("div", { className: "rules" },
     h("p", {}, "Each flight is seven timed burns, about half a minute to fifty seconds. The clock does not pause."),
-    h("ol", {},
-      h("li", {}, "Stack burns want as many correct names as you can type. Rarer names are worth more, and the burn caps at 160."),
-      h("li", {}, "Single burns want one answer. You can retry until one locks. A common answer still lifts. A rare one goes farther."),
-      h("li", {}, "Gauge burns want the closest thing on the chart. Twice as far misses as badly as half as far."),
+    h("p", {}, "Every answer has a rarity. The rarer it is, the farther it flies, and the more points it scores. Same price in every burn:"),
+    h("table", { className: "level-table" },
+      h("tbody", {}, LEVELS.map((l) =>
+        h("tr", { className: `tier-${l.id}` },
+          h("td", { className: "level-name" }, l.name),
+          h("td", {}, l.rarity),
+          h("td", {}, `${l.points} pts`),
+        ),
+      )),
     ),
-    h("p", { className: "tier-legend" },
-      h("i", { className: "tier-vapor" }, "Vapor 20"),
-      h("i", { className: "tier-burn" }, "Burn 40"),
-      h("i", { className: "tier-cruise" }, "Cruise 60"),
-      h("i", { className: "tier-orbit" }, "Orbit 80"),
-      h("i", { className: "tier-fuelup" }, "Fuelup 100"),
+    h("ol", {},
+      h("li", {}, `Single burns want one answer. You can retry until one locks. Up to 100 points.`),
+      h("li", {}, `Stack burns want as many correct names as you can type. Each one adds its points, up to ${LIST_CAP}.`),
+      h("li", {},
+        `Gauge burns want the closest thing on the chart. Closeness uses the same levels: ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}. Further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
     ),
     h("p", { className: "fine" },
-      `After the flight, tap any burn. It opens the best answer on that chart and a short fact. A perfect flight, ${PERFECT_SCORE} points, meets the Moon at ${formatKm(MOON_KM)}.`),
+      `After the flight, tap any burn. It opens the best answer on that chart and a short fact. A perfect flight, ${PERFECT_SCORE.toLocaleString("en-US")} points, meets the Moon at ${formatKm(MOON_KM)}.`),
   );
 }
 
@@ -345,7 +354,7 @@ function renderPad() {
       rulesBtn,
       state.rulesOpen && rules(),
       h("p", { className: "fine" },
-        `Same seven burns for every pilot on this UTC day. A perfect flight, ${PERFECT_SCORE} points, meets the Moon at ${formatKm(MOON_KM)}.`),
+        `Same seven burns for every pilot on this UTC day. A perfect flight, ${PERFECT_SCORE.toLocaleString("en-US")} points, meets the Moon at ${formatKm(MOON_KM)}.`),
     ),
   );
 }
@@ -420,8 +429,8 @@ function renderBurn() {
   }
 
   function defaultNote() {
-    const fuel = Math.min(round.kind === "list" ? LIST_CAP : 999, sum(burn.hits));
-    return round.kind === "list" ? `${fuel} fuel on this stack` : "A wrong try does not end the burn.";
+    const points = Math.min(LIST_CAP, sum(burn.hits));
+    return round.kind === "list" ? `${points} of ${LIST_CAP} points on this stack` : "A wrong try does not end the burn.";
   }
 
   function drawChips() {
@@ -429,7 +438,7 @@ function renderBurn() {
     chips.hidden = burn.hits.length === 0;
     mount(chips, burn.hits.map((hit) =>
       h("li", { className: `chip tier-${hit.tier}` },
-        h("span", {}, hit.canonical, h("small", {}, ` ${hit.points}`)),
+        h("span", {}, hit.canonical, h("small", { className: "chip-level" }, ` ${levelOf(hit.tier).name} +${hit.points}`)),
         h("button", {
           attrs: { type: "button", "aria-label": `Remove ${hit.canonical}` },
           onClick: () => {
@@ -551,12 +560,6 @@ function startBurnClock() {
 
 // ----- Between burns -----
 
-function tierTitle(tier) {
-  if (tier === "drift") return "Drift";
-  if (tier === "fuelup") return "Fuelup";
-  return tier[0].toUpperCase() + tier.slice(1);
-}
-
 function renderBetween() {
   const s = state.screen;
   const just = s.just;
@@ -564,19 +567,28 @@ function renderBetween() {
   betweenTimer = setTimeout(() => nextBurn(s), 2800);
 
   let title;
-  if (just.kind === "list") title = h("h2", {}, `${just.hits.length} logged`, h("span", {}, ` ${just.points} fuel`));
-  else if (first) title = h("h2", { className: `tier-${first.tier}` }, tierTitle(first.tier), h("span", {}, ` ${just.points}`));
-  else title = h("h2", { className: "tier-vapor" }, "No burn", h("span", {}, " 0"));
+  let badge = null;
+  if (just.kind === "list") {
+    title = h("h2", {}, `${just.hits.length} logged`, h("span", {}, ` +${just.points}`));
+    if (just.capped) badge = h("p", { className: "level-badge" }, `Stack full · ${LIST_CAP} max`);
+  } else if (first) {
+    const level = levelOf(first.tier);
+    title = h("h2", { className: `tier-${first.tier}` }, level.name, h("span", {}, ` +${just.points}`));
+    badge = h("p", { className: `level-badge tier-${first.tier}` }, just.kind === "closest" ? `Closeness · ${level.name}` : level.rarity);
+  } else {
+    title = h("h2", { className: "tier-drift" }, "No answer", h("span", {}, " +0"));
+  }
 
   return h("article", { className: "folio reveal" },
     h("p", { className: "kicker" }, `Burn ${s.index + 1} sealed`),
     title,
+    badge,
     first && just.kind !== "list" &&
       h("p", { className: "reveal-name" }, first.canonical, first.deltaPct != null && first.value != null ? ` · ${formatDelta(first.deltaPct)}` : ""),
     just.kind === "list" && just.hits.length > 0 &&
       h("p", { className: "reveal-name" }, [...just.hits].sort((a, b) => b.points - a.points).slice(0, 3).map((x) => x.canonical).join(" · ")),
-    h("p", { className: "aside" }, just.gemHit ? "You found a far burn." : `A farther burn: ${just.gemDetail}.`, " ", just.aside),
-    h("p", { className: "running" }, `Flight fuel ${sum(s.results)}`),
+    h("p", { className: "aside" }, just.gemHit ? "You reached the Galaxy." : `Farthest answer: ${just.gemDetail}.`, " ", just.aside),
+    h("p", { className: "running" }, `Flight total ${sum(s.results)} of ${PERFECT_SCORE.toLocaleString("en-US")}`),
     h("button", { className: "btn btn-primary", attrs: { type: "button" }, onClick: () => nextBurn(s) },
       s.index === 6 ? "Read the ascent" : "Next burn"),
   );
@@ -623,7 +635,7 @@ function renderReport() {
               h("p", { className: "burn-prompt" }, r.prompt),
               h("p", { className: "burn-answer" },
                 names || "No answer",
-                r.hits[0] && h("em", { className: `tier-${r.hits[0].tier}` }, ` ${r.hits.length === 1 ? r.hits[0].tier : ""}`),
+                r.hits.length === 1 && h("em", { className: `tier-${r.hits[0].tier}` }, ` ${levelOf(r.hits[0].tier).name}`),
               ),
             ),
           ),
@@ -655,7 +667,7 @@ function renderReport() {
     h("p", { className: "altitude" }, formatKm(flight.altitudeKm)),
     h("p", { className: "zone-detail" }, flight.zone.detail),
     h("div", { className: "stat-row" },
-      stat(callsignLabel(), `${flight.score}`, `of ${PERFECT_SCORE} fuel`),
+      stat(callsignLabel(), `${flight.score}`, `of ${PERFECT_SCORE.toLocaleString("en-US")} points`),
       stat("Fleet today", state.fleetError || average == null ? "—" : `${average}`, fleetDetail),
     ),
     !practice && state.profile.streak > 1 && h("p", { className: "streak" }, `${state.profile.streak} day streak`),

@@ -28,12 +28,12 @@ function tone(freq, seconds, type, volume, delay = 0) {
 /** Chime for a logged answer; rarer tiers sound brighter. */
 export function playHit(tier, muted) {
   if (muted) return;
-  if (tier === "fuelup") {
+  if (tier === "galaxy") {
     tone(523, 0.12, "triangle", 0.05);
     tone(659, 0.14, "triangle", 0.05, 0.08);
     tone(784, 0.22, "triangle", 0.06, 0.16);
-  } else if (tier === "orbit" || tier === "cruise") {
-    tone(tier === "orbit" ? 620 : 480, 0.12, "sine", 0.04);
+  } else if (tier === "nebula" || tier === "deepspace") {
+    tone(tier === "nebula" ? 620 : 480, 0.12, "sine", 0.04);
   } else {
     tone(360, 0.08, "sine", 0.03);
   }

@@ -7,7 +7,7 @@ file wins. Agree changes to these rules with each other before pushing them.
 ## Project
 
 - **Fuelup**: a daily trivia game. Seven timed "burns" per UTC day; rarer answers score more and fly the
-  rocket higher. 820 points reaches the Moon. Rebuilt from Eeli's Grok demo.
+  rocket higher. 1,000 points reaches the Moon. Rebuilt from Eeli's Grok demo.
 - **Stack: plain HTML, CSS and JavaScript (ES modules). No framework, no build step, no npm.**
   `index.html` loads `src/ui/app.js` directly. Don't add a framework, bundler or package manager
   without agreeing it together first.
@@ -35,8 +35,11 @@ Keep to this layout so the two maintainers rarely edit the same files:
   the random picker changes everyone's flight for that day — do it deliberately.
 - `engine.js` validates `data.js` on load (duplicate answers, missing gem, etc.). If the page goes blank
   after editing questions, check the browser console.
-- Tiers, most common to rarest: `vapor`, `burn`, `cruise`, `orbit`, `fuelup`. Every list and single
-  round needs a `gem` that is one of its answers.
+- Rarity levels, most common to rarest, with the same points in every burn:
+  `sky` Sky (Common, 10) · `orbit` Orbit (Uncommon, 25) · `deepspace` Deep Space (Rare, 50) ·
+  `nebula` Nebula (Very rare, 75) · `galaxy` Galaxy (Ultra rare, 100). Defined in `LEVELS` in `engine.js`.
+- List burns cap at 250. A perfect flight is 1,000 points and reaches the Moon.
+- Every list and single round needs a `gem` that is one of its answers.
 
 Anyone can edit any folder. If you change the other person's area, mention it in the commit message.
 

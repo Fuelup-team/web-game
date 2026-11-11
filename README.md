@@ -1,7 +1,7 @@
 # Fuelup
 
 A daily trivia game. Seven timed burns, the same for every pilot on a UTC day. The obvious answer still
-lifts; the rare one goes farther. A perfect flight, 820 points, meets the Moon.
+lifts; the rare one goes farther. A perfect flight, 1,000 points, meets the Moon.
 
 - **Rules for humans and AI assistants:** [AGENTS.md](AGENTS.md)
 - **One-time setup (GitHub, hosting):** [SETUP.md](SETUP.md)
@@ -14,11 +14,28 @@ python3 -m http.server 5173
 
 Then open http://localhost:5173. No install or build step needed.
 
+## Scoring
+
+Every answer has a rarity level. Same points in every burn:
+
+| Level | Rarity | Points |
+|---|---|---|
+| Sky | Common | 10 |
+| Orbit | Uncommon | 25 |
+| Deep Space | Rare | 50 |
+| Nebula | Very rare | 75 |
+| Galaxy | Ultra rare | 100 |
+
 ## Burn types
 
-- **Stack**: name as many as you can (elements, dog breeds, Shakespeare plays…). Capped at 160.
-- **Single burn**: one answer. Retry until one locks. Rarer answers score up to 100.
-- **Gauge**: name the thing whose number is closest to a target (mountain height, river length…).
+- **Single burn** (4 per flight): one answer. Retry until one locks. Up to 100.
+- **Stack** (2 per flight): name as many as you can (elements, dog breeds…). Each answer adds its
+  points, up to 250.
+- **Gauge** (1 per flight): name the thing whose number is closest to a target (mountain height, river
+  length…). Closeness uses the same levels: Galaxy within 2.5%, Nebula 7%, Deep Space 16%, Orbit 35%,
+  Sky 90%, otherwise Off course (5).
+
+Perfect flight: 4 × 100 + 100 + 2 × 250 = 1,000.
 
 Questions and answers live in [src/game/data.js](src/game/data.js).
 
