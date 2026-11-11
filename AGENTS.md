@@ -2,13 +2,13 @@
 
 This file is the single source of truth for how AI coding assistants (Claude Code, Grok, or any other)
 work in this repo. Both maintainers use it. If a rule here conflicts with an assistant's defaults, this
-file wins. Change these rules only through a pull request that both people see.
+file wins. Agree changes to these rules with each other before pushing them.
 
 ## Project
 
 - A web game plus its website, built by two maintainers who are both admins.
 - **Stack: not decided yet.** Until it is, don't add a framework, bundler or package manager on your own.
-  Propose the choice in a PR that updates this section first.
+  Agree the choice together, then update this section first.
 - Live site deploys automatically from `main`.
 
 ## Structure
@@ -22,15 +22,19 @@ Keep to this layout so the two maintainers rarely edit the same files:
 | `public/` | Static assets: images, sounds, fonts | shared |
 | `docs/` | Design notes and decisions | shared |
 
-The owner reviews PRs that touch their folder. Anyone can edit any folder, but say so in the PR.
+Anyone can edit any folder. If you change the other person's area, mention it in the commit message.
 
 ## Git workflow
 
-1. `git pull origin main` before starting.
-2. Work on a branch: `daniel/<short-topic>` or `<friend>/<short-topic>`. Never commit directly to `main`.
-3. Keep PRs small and focused on one thing. Pull `main` into your branch often.
-4. Open a pull request. The **other** person reviews and merges it.
-5. Delete the branch after merging.
+Both maintainers push straight to `main` — no pull requests or approvals needed. Every push to `main`
+deploys the live site, so:
+
+1. `git pull --rebase origin main` before starting and again right before pushing.
+2. Make small commits that each leave the game working.
+3. `git push origin main`. If the push is rejected, pull with `--rebase`, fix any conflicts, and push again.
+4. Never force-push (`--force`) — GitHub blocks it on `main` anyway, because it would erase the other
+   person's work.
+5. For a big or risky change, use a branch (`daniel/<topic>` or `eeli/<topic>`) and merge it when ready.
 
 Commit messages: short imperative summary line, e.g. `Add jump physics`, `Fix score reset on restart`.
 
@@ -44,20 +48,20 @@ Commit messages: short imperative summary line, e.g. `Add jump physics`, `Fix sc
 ## Code style
 
 - Readable over clever. Small functions, descriptive names.
-- No new dependency without saying why in the PR description.
+- No new dependency without saying why in the commit message.
 - Don't reformat or rename code outside the task: it causes merge conflicts for the other person.
 - Keep the game playable on phones and desktops.
 
-## Before opening a PR
+## Before pushing to main
 
 - The game runs locally without console errors.
 - Tests and lint pass (once the stack adds them).
-- The PR description says what changed, why, and how to test it.
+- You pulled the latest `main` first.
 
 ## For AI assistants specifically
 
 - Read this file at the start of each session.
-- Don't push to `main`, force-push, or merge PRs unless your human explicitly asks.
+- Commit and push to `main` only when your human asks. Never force-push or rewrite history.
 - Don't edit files outside the task's scope.
-- When a decision affects both maintainers (stack, structure, dependencies), propose it in a PR
-  instead of just doing it.
+- When a decision affects both maintainers (stack, structure, dependencies), tell your human so they
+  can agree it with the other maintainer first.

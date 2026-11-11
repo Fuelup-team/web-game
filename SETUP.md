@@ -35,15 +35,8 @@ instructions if it doesn't pick the file up automatically).
 
 ## 3. Branch protection on `main`
 
-Repo → **Settings → Rules → Rulesets** (or **Branches → Add rule**) for `main`:
-
-- [ ] Require a pull request before merging
-- [ ] Require 1 approval
-- [ ] Block force pushes
-- [ ] Block deletions
-- [ ] Require status checks to pass (add once there's a build or test check)
-
-Admins can bypass by default. Leave bypass off if you want the rule to apply to both of you.
+Done. A ruleset named **Protect main** (Settings → Rules → Rulesets) blocks force pushes and deleting
+`main`. Both of you can push directly, with no pull requests or approvals.
 
 ## 4. Hosting with auto-deploy
 
@@ -52,7 +45,7 @@ Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers a
 1. Sign in with GitHub and import the repo.
 2. Production branch: `main`. Build command: none for now (it's static); output folder: `/`.
    Update both once the stack is chosen.
-3. Turn on **preview deployments** for pull requests, so each PR gets its own test link.
+3. Optional: turn on **preview deployments** for branches, so a big change on a branch gets its own test link.
 4. Invite your friend to the hosting team/project. (Vercel's free Hobby plan is single-user;
    Netlify and Cloudflare Pages let you add members free.)
 
@@ -71,4 +64,4 @@ Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers a
 ## 7. Fill in the blanks
 
 - [ ] Add each person's area to the ownership table in `AGENTS.md`
-- [ ] Choose a stack and update `AGENTS.md` in a PR
+- [ ] Choose a stack together and update `AGENTS.md`
