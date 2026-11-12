@@ -47,9 +47,10 @@ export function createStage() {
   let flame = null;
   let lastFlame = 0;
   let frame = 0;
+  let ceiling = 0;
 
   function paint(cam) {
-    const rocketBottom = 8 + cam * 64;
+    const rocketBottom = Math.min(40, 8 + cam * 64);
     ship.style.bottom = `${rocketBottom}%`;
     sky.style.objectPosition = `center ${84 - cam * 58}%`;
     sky.style.transform = "none";
@@ -117,9 +118,9 @@ export function createStage() {
    */
   function boost(tier = "sky") {
     const key = tier === true ? "galaxy" : tier === false || !tier ? "sky" : tier;
-    const next = heightFor(key);
-    const goingDown = next < shown - 0.04;
-    launch(next, next, CLIMB_MS, goingDown ? null : key);
+    const next = Math.max(ceiling, heightFor(key));
+    ceiling = next;
+    launch(next, next, CLIMB_MS, key);
     rocket.classList.remove("is-burning");
     void rocket.offsetWidth;
     rocket.classList.add("is-burning");
