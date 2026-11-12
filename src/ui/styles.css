@@ -7,8 +7,11 @@
  *   Color: navy night, off-white text, ONE accent (Galaxy gold). The five
  *          rarity levels each have their own color, used wherever that level
  *          appears (chips, tags, lamp, scores, reveal border).
- *   Type:  "Press Start 2P" for the logo, numbers and tiny labels only;
- *          "Pixelify Sans" for everything people read.
+ *   Type:  "Press Start 2P" for the logo, numbers and tiny labels only.
+ *          "Lexend" (made for readability) for everything big or bold:
+ *          headings, questions, answer names, buttons. Bold pixel letters
+ *          smear together, so the pixel body font is only used at regular
+ *          weight for sentences.
  *   Theme: dark only. It's a night sky.
  */
 
@@ -43,6 +46,7 @@
 
   --font-pixel: "Press Start 2P", ui-monospace, monospace;
   --font-body: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Lexend", ui-sans-serif, system-ui, sans-serif;
 
   --px: 4px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -105,9 +109,37 @@ button {
 h1,
 h2,
 h3 {
+  font-family: var(--font-display);
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   text-wrap: balance;
+}
+/* Anything bold uses the readable display font, not the pixel font. */
+b,
+strong,
+.btn,
+.btn-text,
+.btn-menu,
+.stat-label,
+.field-label,
+.kind-badge,
+.chip-name,
+.level-tag,
+.top-label,
+.top-answers ul li,
+.you-said,
+.burn-row-answer,
+.climb-stage,
+.note[class*="tier-"],
+.note.is-bad,
+.board li,
+.lineup li,
+.levels li b,
+.menu-row-text b,
+.reveal-sub,
+.report-stage {
+  font-family: var(--font-display);
 }
 p {
   text-wrap: pretty;
@@ -231,7 +263,7 @@ p {
   padding: 10px 20px 12px;
   background: var(--btn-bg);
   color: var(--btn-ink);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -401,9 +433,8 @@ p {
   text-transform: uppercase;
 }
 .pad-panel h1 {
-  font-size: clamp(32px, 4.6vw, 46px);
-  letter-spacing: -0.01em;
-  max-width: 16ch;
+  font-size: clamp(30px, 4.2vw, 42px);
+  max-width: 17ch;
 }
 .lead {
   margin-top: -8px;
@@ -737,7 +768,7 @@ p {
 }
 .prompt {
   margin: 24px 0 10px;
-  font-size: clamp(26px, 3.4vw, 34px);
+  font-size: clamp(24px, 3vw, 30px);
 }
 .hint {
   color: var(--dim);
@@ -932,7 +963,7 @@ p {
   color: var(--lv);
 }
 .reveal-title {
-  font-size: clamp(36px, 6vw, 52px);
+  font-size: clamp(32px, 5vw, 44px);
   margin-top: -4px;
 }
 .reveal-title[class*="tier-"] {
@@ -1365,7 +1396,7 @@ p {
   letter-spacing: 0.1em;
 }
 .galaxy-banner strong {
-  font-size: clamp(30px, 6vw, 46px);
+  font-size: clamp(28px, 5vw, 40px);
   line-height: 1.05;
   color: var(--accent);
   text-shadow: 3px 3px 0 #6b3d00;
