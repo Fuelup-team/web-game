@@ -12,7 +12,16 @@ lifts; the rare one goes farther. A perfect flight, 1,000 points, meets the Moon
 python3 -m http.server 5173
 ```
 
-Then open http://localhost:5173. No install or build step needed.
+Then open http://localhost:5173. No install or build step needed. (The fleet board only works on
+Netlify; locally it shows as "Live on the real site".)
+
+## Before you push
+
+```bash
+node scripts/check.mjs
+```
+
+The same safety check runs on Netlify before every deploy. If it fails, nothing goes live.
 
 ## Scoring
 
@@ -31,22 +40,25 @@ special top-answer effect.
 
 ## Burn types
 
-- **Single burn** (4 per flight): one answer. Retry until one locks. Up to 100.
-- **Stack** (2 per flight): name as many as you can (elements, dog breeds…). Each answer adds its
+- **One answer** (3 per flight): retry until one locks. Up to 100.
+- **Guess the year** (1 per flight): exact year is Galaxy, then within 2, 5, 15 and 40 years.
+- **Name as many as you can** (2 per flight): name as many as you can (elements, dog breeds…). Each answer adds its
   points, up to 250.
-- **Gauge** (1 per flight): name the thing whose number is closest to a target (mountain height, river
+- **Closest number** (1 per flight): name the thing whose number is closest to a target (mountain height, river
   length…). Galaxy only for the single closest answer on the chart; then Nebula within 7%, Deep Space
   16%, Orbit 35%, Sky 90%, otherwise Off course (5).
 
-Perfect flight: 4 × 100 + 100 + 2 × 250 = 1,000.
+Perfect flight: 3 × 100 + 100 + 100 + 2 × 250 = 1,000. Your points are your altitude: 1,000 lands on
+the Moon, with a named stage every 200 points.
 
 Questions and answers live in [src/game/data.js](src/game/data.js).
 
-## Not done yet
+## Fleet board
 
-- **Fleet board** (today's average and the list of pilots). The demo stored scores on Grok's
-  server. This version needs its own small backend; see [src/game/fleet.js](src/game/fleet.js)
-  for the API it expects. Until then the game runs fine without it.
+Today's average and the list of pilots come from a small Netlify function
+([netlify/functions/fleet.mjs](netlify/functions/fleet.mjs)) that stores scores in Netlify Blobs.
+It re-scores every flight itself, keeps only the day, a random pilot id and the score, and allows one
+flight per pilot per day.
 
 ## Daily workflow
 

@@ -1,6 +1,6 @@
 // Fuelup game engine: matching answers, scoring burns, building the daily flight.
 // Ported from the Grok demo. Pure functions only — no DOM here.
-import { LIST_ROUNDS, SINGLE_ROUNDS, GAUGE_ROUNDS } from "./data.js";
+import { LIST_ROUNDS, SINGLE_ROUNDS, GAUGE_ROUNDS, YEAR_ROUNDS } from "./data.js";
 
 /**
  * Rarity levels, from most common to rarest. The farther the answer flies,
@@ -32,10 +32,8 @@ export function pointsFor(tier) {
 export const TOP_LEVEL = "galaxy";
 /** A list burn never scores more than this. */
 export const LIST_CAP = 250;
-/** Score of a perfect flight: 4 singles (100) + 1 gauge (100) + 2 lists (250). */
+/** Score of a perfect flight: 3 singles (100) + 1 year (100) + 1 gauge (100) + 2 lists (250). */
 export const PERFECT_SCORE = 1000;
-/** Distance to the Moon, reached by a perfect flight. */
-export const MOON_KM = 384400;
 /** Tier ranking, for picking the best hit. */
 export const TIER_RANK = { drift: 0, sky: 1, orbit: 2, deepspace: 3, nebula: 4, galaxy: 5 };
 /** Flight 1 was on this day. */
@@ -72,11 +70,6 @@ export function formatDay(day) {
 
 // ---------- Formatting ----------
 
-/** "12,345 km" */
-export function formatKm(km) {
-  return `${Math.max(0, Math.round(km)).toLocaleString("en-US")} km`;
-}
-
 /** Format a gauge value in its unit. */
 export function formatValue(unit, value) {
   if (unit === "atomic") return String(value);
@@ -97,25 +90,37 @@ export function formatDelta(deltaPct) {
   return `${abs.toFixed(abs >= 10 ? 0 : 1)}% ${deltaPct < 0 ? "under" : "over"}`;
 }
 
-// ---------- Altitude ----------
+// ---------- Altitude (points only) ----------
+//
+// Altitude IS your points. 1 point = 1 step up; 1,000 points lands on the
+// Moon. The rocket climbs in a straight line, and every 200 points is a
+// named stage so you always know where you are.
 
-/** Altitude in km for a score. 820 points reaches the Moon. */
-export function altitudeFor(score) {
-  const ratio = Math.max(0, score) / PERFECT_SCORE;
-  return Math.round(MOON_KM * Math.min(1.05, ratio) ** 2.15);
+/** Named stages of the climb, by points. */
+export const STAGES = [
+  { from: 0, id: "pad", name: "On the pad" },
+  { from: 1, id: "liftoff", name: "Lift-off" },
+  { from: 200, id: "clouds", name: "Above the clouds" },
+  { from: 400, id: "halfway", name: "Halfway there" },
+  { from: 600, id: "deep", name: "Leaving Earth behind" },
+  { from: 800, id: "approach", name: "Moon approach" },
+  { from: PERFECT_SCORE, id: "moon", name: "Moon landing" },
+];
+
+/** The stage for a score. */
+export function stageFor(score) {
+  return [...STAGES].reverse().find((s) => score >= s.from) ?? STAGES[0];
 }
 
-/** Named zone for an altitude. */
-export function zoneFor(km) {
-  if (km < 80) return { id: "pad", name: "The pad", detail: "Still in the thick air. The next rare answer leaves the ground." };
-  if (km < 2000) return { id: "leo", name: "Low orbit", detail: "Past the Kármán line. Earth has started to curve." };
-  if (km < 20000) return { id: "meo", name: "Medium orbit", detail: "The atmosphere is a bright hem on the planet." };
-  if (km < 42000) return { id: "geo", name: "Geostationary", detail: "You are holding over a single meridian." };
-  if (km < 120000) return { id: "high", name: "High orbit", detail: "Earth is a full marble from up here." };
-  if (km < 300000) return { id: "cislunar", name: "Cislunar space", detail: "The quiet stretch between two worlds." };
-  if (km < 370000) return { id: "approach", name: "Lunar approach", detail: "The Moon is no longer a decoration." };
-  if (km <= 392400) return { id: "moon", name: "The Moon", detail: "A perfect flight meets lunar distance." };
-  return { id: "beyond", name: "Beyond the Moon", detail: "You kept burning after the chart ended." };
+/** How far up the climb a score is, 0 to 1. */
+export function progressFor(score) {
+  return Math.max(0, Math.min(1, score / PERFECT_SCORE));
+}
+
+/** "580 points to the Moon" / "You reached the Moon" */
+export function toTheMoon(score) {
+  const left = PERFECT_SCORE - score;
+  return left > 0 ? `${left.toLocaleString("en-US")} points to the Moon` : "You reached the Moon";
 }
 
 // ---------- Matching answers ----------
@@ -295,6 +300,65 @@ function foundGem(hits, gem) {
   return hits.some((h) => h.tier === TOP_LEVEL || normalize(h.canonical) === key);
 }
 
+// ---------- Year burns ("When did it happen?") ----------
+
+/** How many years off each level allows. Exact year is the only Galaxy. */
+export const YEAR_BANDS = [
+  { tier: "galaxy", within: 0, label: "exact year" },
+  { tier: "nebula", within: 2, label: "within 2 years" },
+  { tier: "deepspace", within: 5, label: "within 5 years" },
+  { tier: "orbit", within: 15, label: "within 15 years" },
+  { tier: "sky", within: 40, label: "within 40 years" },
+];
+
+/** "1616" → 1616, "44 BC" or "-44" → -44. Returns null if it is not a year. */
+export function parseYear(text) {
+  const t = text.toLowerCase().replace(/[,.\s]+/g, " ").trim();
+  const m = t.match(/^(?:year\s*)?(-)?\s*(\d{1,4})\s*(bc|bce|b c|ad|ce)?$/);
+  if (!m) return null;
+  const n = Number(m[2]);
+  const bc = !!m[1] || (m[3] && m[3].replace(/ /g, "").startsWith("b"));
+  const year = bc ? -n : n;
+  return year >= -5000 && year <= 2100 ? year : null;
+}
+
+/** 1616 → "1616", -44 → "44 BC" */
+export function formatYear(year) {
+  return year < 0 ? `${-year} BC` : String(year);
+}
+
+/** Score a guessed year against the real one. */
+export function yearScore(guess, year) {
+  const off = Math.abs(guess - year);
+  const band = YEAR_BANDS.find((b) => off <= b.within);
+  const tier = band ? band.tier : OFF_COURSE.id;
+  return { tier, points: pointsFor(tier), yearsOff: off, direction: guess < year ? "early" : guess > year ? "late" : "exact" };
+}
+
+/** "Exact year", "3 years early", "1 year late" */
+export function formatYearsOff(yearsOff, direction) {
+  if (!yearsOff) return "exact year";
+  return `${yearsOff} year${yearsOff === 1 ? "" : "s"} ${direction}`;
+}
+
+function yearHit(round, text) {
+  let guess = parseYear(text);
+  if (guess == null) return null;
+  // "In what year BC…" questions: a plain number means BC unless AD/CE is typed.
+  if (round.year < 0 && guess > 0 && !/\b(ad|ce)\b/i.test(text)) guess = -guess;
+  const s = yearScore(guess, round.year);
+  return {
+    input: text,
+    canonical: formatYear(guess),
+    tier: s.tier,
+    points: s.points,
+    via: "exact",
+    value: guess,
+    yearsOff: s.yearsOff,
+    direction: s.direction,
+  };
+}
+
 /**
  * Check one typed answer during a burn.
  * Returns { ok: true, hit } or { ok: false, reason }.
@@ -302,6 +366,11 @@ function foundGem(hits, gem) {
 export function tryAnswer(round, input, alreadyLogged) {
   const text = input.trim();
   if (!text) return { ok: false, reason: "Type an answer first." };
+
+  if (round.kind === "year") {
+    const hit = yearHit(round, text);
+    return hit ? { ok: true, hit } : { ok: false, reason: "Type a year, like 1616 or 44 BC." };
+  }
 
   if (round.kind === "closest") {
     const m = matchAnswer(round.items, text);
@@ -325,6 +394,7 @@ export function tryAnswer(round, input, alreadyLogged) {
  * Returns { level, answers: [{ name, detail }] }.
  */
 export function topAnswers(round) {
+  if (round.kind === "year") return { level: TOP_LEVEL, answers: [{ name: formatYear(round.year), detail: null }] };
   if (round.kind === "closest") {
     const miss = (v) => Math.max(v, round.target) / Math.min(v, round.target);
     const sorted = [...round.items].sort((a, b) => miss(a.value) - miss(b.value));
@@ -347,6 +417,21 @@ export function scoreRound(round, inputs) {
 }
 
 function scoreRoundPoints(round, inputs) {
+  if (round.kind === "year") {
+    const hit = inputs.map((input) => yearHit(round, String(input))).find(Boolean) ?? null;
+    return {
+      id: round.id,
+      kind: "year",
+      prompt: round.prompt,
+      hits: hit ? [hit] : [],
+      points: hit?.points ?? 0,
+      gem: formatYear(round.year),
+      gemDetail: formatYear(round.year),
+      gemHit: hit?.tier === TOP_LEVEL,
+      aside: round.aside,
+      capped: false,
+    };
+  }
   if (round.kind === "closest") {
     const found = inputs.map((input) => ({ input, m: matchAnswer(round.items, input) })).find((x) => x.m?.value != null);
     const best = closestItem(round.items, round.target);
@@ -452,9 +537,10 @@ function gaugePrompt(gauge, target) {
 export function buildFlight(seed, practice = false) {
   const random = seededRandom(hash(seed));
   const lists = pick(LIST_ROUNDS, random, 2);
-  const singles = pick(SINGLE_ROUNDS, random, 4);
+  const singles = pick(SINGLE_ROUNDS, random, 3);
   const gauge = pick(GAUGE_ROUNDS, random, 1)[0];
-  if (!gauge || lists.length < 2 || singles.length < 4) throw new Error("The chart is short a burn.");
+  const yearRound = pick(YEAR_ROUNDS, random, 1)[0];
+  if (!gauge || !yearRound || lists.length < 2 || singles.length < 3) throw new Error("The chart is short a burn.");
 
   const target = gauge.targets[Math.floor(random() * gauge.targets.length)] ?? gauge.targets[0] ?? 1;
   const gaugeRound = {
@@ -474,22 +560,21 @@ export function buildFlight(seed, practice = false) {
     day: practice ? todayUtc() : seed,
     number: practice ? 0 : flightNumber(seed),
     practice,
-    rounds: [lists[0], singles[0], singles[1], gaugeRound, lists[1], singles[2], singles[3]],
+    rounds: [lists[0], singles[0], singles[1], gaugeRound, lists[1], yearRound, singles[2]],
   };
 }
 
 /** Summary of a finished flight. */
 export function finishFlight(day, mission, rounds) {
   const score = rounds.reduce((sum, r) => sum + r.points, 0);
-  const altitudeKm = altitudeFor(score);
-  return { day, mission, score, altitudeKm, zone: zoneFor(altitudeKm), rounds };
+  return { day, mission, score, rounds };
 }
 
 /** Plain-text summary for the clipboard. */
 export function shareText(flight, callsign, fleetAverage) {
   const lines = [
     `FUELUP · ${flight.mission ? `Flight ${flight.mission}` : "Practice"}`,
-    `${callsign} · ${flight.score} pts · ${formatKm(flight.altitudeKm)} · ${flight.zone.name}`,
+    `${callsign} · ${flight.score} / ${PERFECT_SCORE.toLocaleString("en-US")} points · ${stageFor(flight.score).name}`,
   ];
   if (fleetAverage != null) lines.push(`Fleet average today ${fleetAverage}`);
   flight.rounds.forEach((r, i) => {
@@ -504,6 +589,7 @@ export function burnLabel(index, kind) {
   if (index === 6) return "Escape burn";
   if (kind === "list") return "Stack";
   if (kind === "closest") return "Gauge";
+  if (kind === "year") return "Year burn";
   return "Single burn";
 }
 
@@ -522,7 +608,7 @@ export function splitEntries(text) {
 // ---------- Data checks (run once on load, like the demo) ----------
 
 function validate() {
-  const ids = [...LIST_ROUNDS, ...SINGLE_ROUNDS, ...GAUGE_ROUNDS].map((r) => r.id);
+  const ids = [...LIST_ROUNDS, ...SINGLE_ROUNDS, ...GAUGE_ROUNDS, ...YEAR_ROUNDS].map((r) => r.id);
   if (new Set(ids).size !== ids.length) throw new Error("Duplicate prompt id");
   for (const round of [...LIST_ROUNDS, ...SINGLE_ROUNDS]) {
     const keys = new Set();
@@ -539,6 +625,11 @@ function validate() {
     const top = round.answers.filter((a) => a.tier === TOP_LEVEL);
     if (top.length < 1 || top.length > 2) throw new Error(`${round.id} needs 1 or 2 ${TOP_LEVEL} answers, has ${top.length}`);
     if (!top.some((a) => a.name === round.gem)) throw new Error(`Gem ${round.gem} in ${round.id} must be ${TOP_LEVEL}`);
+  }
+  for (const y of YEAR_ROUNDS) {
+    if (y.kind !== "year") throw new Error(`${y.id} must have kind "year"`);
+    if (!Number.isInteger(y.year) || y.year < -5000 || y.year > 2100) throw new Error(`${y.id} has a bad year ${y.year}`);
+    if (!y.prompt || !y.aside) throw new Error(`${y.id} needs a prompt and an aside`);
   }
   for (const g of GAUGE_ROUNDS) {
     if (g.targets.length < 3 || g.items.length < 8) throw new Error(`Thin chart ${g.id}`);
