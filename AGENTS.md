@@ -9,8 +9,9 @@ file wins. Agree changes to these rules with each other before pushing them.
 - **Fuelup**: a daily trivia game. Seven timed "burns" per UTC day; rarer answers score more and fly the
   rocket higher. 1,000 points reaches the Moon. Rebuilt from Eeli's Grok demo.
 - **Stack: plain HTML, CSS and JavaScript (ES modules). No framework, no build step.**
-  `index.html` loads `src/ui/app.js` directly. The only npm dependency is `@netlify/blobs`, used by the
-  fleet board server (`netlify/functions/fleet.mjs`), never by the page. Don't add a framework, bundler
+  `index.html` loads `src/ui/app.js` directly. Hosted on **Cloudflare** (Workers with static assets,
+  settings in `wrangler.jsonc`); the fleet board API is `worker/index.js` with scores in Workers KV.
+  No npm packages. Files listed in `.assetsignore` are never published. Don't add a framework, bundler
   or other packages without agreeing it together first.
 - Live site deploys automatically from `main`.
 - Run locally with any static server from the repo root, e.g. `python3 -m http.server 5173`, then open
@@ -28,7 +29,7 @@ Keep to this layout so the two maintainers rarely edit the same files:
 | `src/game/engine.js` | Rules: matching answers, scoring, daily flight, altitude | _fill in_ |
 | `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board client | _fill in_ |
 | `src/ui/` | Screens (`app.js`), altitude meter (`stage.js`), `styles.css` | _fill in_ |
-| `src/server/fleet-core.js`, `netlify/functions/fleet.mjs` | Fleet board server (Netlify) | _fill in_ |
+| `src/server/fleet-core.js`, `worker/index.js` | Fleet board server (Cloudflare Worker + KV) | _fill in_ |
 | `scripts/check.mjs` | Safety check, runs before every deploy | shared |
 | `public/` | Art, pixel icons (pixelarticons, MIT), favicon, share image | shared |
 | `docs/` | Design notes and decisions | shared |
@@ -103,7 +104,7 @@ Commit messages: short imperative summary line, e.g. `Add jump physics`, `Fix sc
 
 ## Before pushing to main
 
-- Run the safety check: `node scripts/check.mjs`. Netlify runs it too and **won't deploy** if it fails
+- Run the safety check: `node scripts/check.mjs`. Cloudflare runs it too and **won't deploy** if it fails
   (the live site keeps the last working version). GitHub shows a ✓ or ✗ on every push.
 - The game runs locally without console errors.
 - You pulled the latest `main` first.

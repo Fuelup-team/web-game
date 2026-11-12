@@ -1,5 +1,9 @@
-// Fleet board logic, used by the Netlify function (netlify/functions/fleet.mjs).
-// Kept separate from Netlify so it can be tested with a fake store.
+// Fleet board logic, used by the Cloudflare Worker (worker/index.js).
+// Kept separate from Cloudflare so it can be tested with a fake store.
+//
+// A store needs: list({ prefix }) -> { blobs: [{ key, data? }] },
+// get(key) -> value or null, setJSON(key, value). If list() already returns
+// each entry's data, no extra reads are needed.
 //
 // Storage: one entry per pilot per day, key "YYYY-MM-DD/<pilotKey>",
 // value { score, at }. Only the day, the random pilot id and the score are
@@ -32,7 +36,7 @@ export async function readFleet(store, day, pilotKey, now = new Date()) {
   checkDay(day, now);
   const { blobs } = await store.list({ prefix: `${day}/` });
   const entries = await Promise.all(
-    blobs.map(async ({ key }) => ({ key, data: await store.get(key, { type: "json" }) })),
+    blobs.map(async ({ key, data }) => ({ key, data: data ?? (await store.get(key, { type: "json" })) })),
   );
   const yourKey = PILOT_KEY.test(pilotKey ?? "") ? `${day}/${pilotKey}` : null;
   const board = entries
@@ -67,6 +71,15 @@ export async function submitFlight(store, body, now = new Date()) {
 
   const key = `${day}/${pilotKey}`;
   const existing = await store.get(key, { type: "json" });
-  if (!existing) await store.setJSON(key, { score, at: now.toISOString() });
-  return readFleet(store, day, pilotKey, now);
+  const saved = existing ?? { score, at: now.toISOString() };
+  if (!existing) await store.setJSON(key, saved);
+  const fleet = await readFleet(store, day, pilotKey, now);
+  // Some stores take a moment before a new entry shows up in list(): make sure
+  // the pilot always sees their own score on the board they get back.
+  if (!fleet.board.some((x) => x.yours)) {
+    fleet.board = [...fleet.board, { score: saved.score, yours: true }].sort((a, b) => b.score - a.score);
+    fleet.pilots += 1;
+    fleet.averageScore = Math.round(fleet.board.reduce((sum, x) => sum + x.score, 0) / fleet.pilots);
+  }
+  return fleet;
 }

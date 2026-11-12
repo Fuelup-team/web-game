@@ -40,13 +40,14 @@ Done. A ruleset named **Protect main** (Settings → Rules → Rulesets) blocks 
 
 ## 4. Hosting with auto-deploy
 
-Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers and deploy from GitHub.
+Fuelup is hosted on **Cloudflare** (moved from Netlify in Nov 2026, when Netlify's free deploy
+credits ran out). Every push to `main` is checked and deployed automatically.
 
-1. Sign in with GitHub and import the repo.
-2. Production branch: `main`. Build command: none (plain static files); output folder: `/` (repo root).
-3. Optional: turn on **preview deployments** for branches, so a big change on a branch gets its own test link.
-4. Invite your friend to the hosting team/project. (Vercel's free Hobby plan is single-user;
-   Netlify and Cloudflare Pages let you add members free.)
+- Settings live in `wrangler.jsonc`: the site files, the fleet board worker (`worker/index.js`) and the
+  Workers KV namespace that stores scores.
+- Cloudflare dashboard: Workers & Pages, then the `fuelup` project, for deploy logs and settings.
+- Build command: `node scripts/check.mjs`. Deploy command: `npx wrangler deploy`.
+- To give Eeli access: Cloudflare dashboard, Manage account, Members, invite him.
 
 ## 5. Domain (optional)
 
@@ -64,4 +65,4 @@ Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers a
 
 - [ ] Add each person's area to the ownership table in `AGENTS.md`
 - [x] Stack chosen: plain HTML, CSS and JavaScript (see `AGENTS.md`)
-- [x] Fleet board backend (Netlify function + Netlify Blobs)
+- [x] Fleet board backend (Cloudflare Worker + Workers KV)

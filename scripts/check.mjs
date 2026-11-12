@@ -1,4 +1,4 @@
-// Safety check: run before every deploy (Netlify) and on every push (GitHub).
+// Safety check: run before every deploy (Cloudflare) and on every push (GitHub).
 // If anything here fails, the deploy stops and the live site keeps the last
 // working version.
 //
@@ -35,7 +35,7 @@ console.log("Fuelup safety check\n");
 
 // 1. Every JavaScript file has valid syntax.
 console.log("JavaScript syntax");
-for (const file of [...filesUnder(join(root, "src"), ".js"), ...filesUnder(join(root, "netlify"), ".mjs"), ...filesUnder(join(root, "scripts"), ".mjs")]) {
+for (const file of [...filesUnder(join(root, "src"), ".js"), ...filesUnder(join(root, "worker"), ".js"), ...filesUnder(join(root, "scripts"), ".mjs")]) {
   check(file.slice(root.length + 1), () => {
     execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
   });
@@ -130,7 +130,7 @@ if (engine) {
   });
 }
 
-// 7. The fleet board server logic, against an in-memory stand-in for Netlify Blobs.
+// 7. The fleet board server logic, against an in-memory stand-in for Workers KV.
 console.log("\nFleet board");
 try {
   const fleet = await import(pathToFileURL(join(root, "src/server/fleet-core.js")).href);
@@ -178,6 +178,11 @@ check("index.html links point at real files", () => {
   const local = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((p) => !/^(https?:|#|data:)/.test(p));
   const missing = local.filter((p) => !existsSync(join(root, p)));
   if (missing.length) throw new Error(`missing: ${missing.join(", ")}`);
+});
+check("private folders are never published", () => {
+  const ignore = readFileSync(join(root, ".assetsignore"), "utf8").split("\n").map((l) => l.trim());
+  const missing = ["tools", "scripts", "worker", "src/server", ".git"].filter((p) => !ignore.includes(p));
+  if (missing.length) throw new Error(`.assetsignore must list: ${missing.join(", ")}`);
 });
 check("pictures and icons used in code exist", () => {
   const code = filesUnder(join(root, "src"), ".js").map((f) => readFileSync(f, "utf8")).join("\n");

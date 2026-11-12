@@ -1,0 +1,16 @@
+// Cloudflare settings for Fuelup. Cloudflare reads this on every deploy.
+{
+  "name": "fuelup",
+  // The fleet board API. Everything else is a static file from the repo.
+  "main": "worker/index.js",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  // Fleet board scores (Workers KV). The id comes from the Cloudflare dashboard.
+  "kv_namespaces": [
+    { "binding": "FLEET", "id": "70ae0e93d2894f8e95e1c86219df2e75" }
+  ]
+}

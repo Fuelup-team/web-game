@@ -2,11 +2,9 @@
   "name": "fuelup",
   "private": true,
   "type": "module",
-  "description": "Fuelup daily trivia game. The site itself has no build step; this file only lists the fleet board server's one dependency.",
+  "description": "Fuelup daily trivia game. No build step: the site is plain files, deployed to Cloudflare (see wrangler.jsonc).",
   "scripts": {
-    "check": "node scripts/check.mjs"
-  },
-  "dependencies": {
-    "@netlify/blobs": "8.1.0"
+    "check": "node scripts/check.mjs",
+    "retier": "node scripts/retier.mjs --write"
   }
 }

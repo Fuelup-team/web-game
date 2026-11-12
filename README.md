@@ -13,7 +13,7 @@ python3 -m http.server 5173
 ```
 
 Then open http://localhost:5173. No install or build step needed. (The fleet board only works on
-Netlify; locally it shows as "Live on the real site".)
+Cloudflare; locally it shows as "Live on the real site".)
 
 ## Before you push
 
@@ -21,7 +21,7 @@ Netlify; locally it shows as "Live on the real site".)
 node scripts/check.mjs
 ```
 
-The same safety check runs on Netlify before every deploy. If it fails, nothing goes live.
+The same safety check runs on Cloudflare before every deploy. If it fails, nothing goes live.
 
 ## Scoring
 
@@ -55,8 +55,8 @@ Questions and answers live in [src/game/data.js](src/game/data.js).
 
 ## Fleet board
 
-Today's average and the list of pilots come from a small Netlify function
-([netlify/functions/fleet.mjs](netlify/functions/fleet.mjs)) that stores scores in Netlify Blobs.
+Today's average and the list of pilots come from a small Cloudflare Worker
+([worker/index.js](worker/index.js)) that stores scores in Workers KV.
 It re-scores every flight itself, keeps only the day, a random pilot id and the score, and allows one
 flight per pilot per day.
 

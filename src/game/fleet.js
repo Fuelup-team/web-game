@@ -1,11 +1,11 @@
 // Fleet board: today's anonymous scores from every pilot.
-// Talks to the Netlify function at /api/fleet (netlify/functions/fleet.mjs).
+// Talks to the Cloudflare Worker at /api/fleet (worker/index.js).
 // When running locally with a plain static server there is no API, so the
 // board is switched off on localhost.
 
 export const FLEET_URL = "/api/fleet";
 
-/** True where the fleet API exists (the live site and Netlify previews). */
+/** True where the fleet API exists (the live site on Cloudflare). */
 export const fleetEnabled =
   typeof location !== "undefined" && !["localhost", "127.0.0.1", ""].includes(location.hostname);
 

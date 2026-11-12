@@ -1,0 +1,17 @@
+# Files Cloudflare should NOT publish. Everything else in the repo is served as the site.
+.git
+.github
+.claude
+node_modules
+.wrangler
+worker
+scripts
+tools
+src/server
+*.md
+.env*
+.gitignore
+.assetsignore
+package.json
+package-lock.json
+wrangler.jsonc
