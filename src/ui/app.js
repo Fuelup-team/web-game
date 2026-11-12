@@ -8,7 +8,38 @@ import {
   LEVELS, OFF_COURSE, GAUGE_BANDS, levelOf,
 } from "../game/engine.js";
 
-/** "Galaxy · Ultra rare · +100" */
+function art(file) {
+  const base = typeof window !== "undefined" && window.__FUEL_BASE ? window.__FUEL_BASE : "";
+  return base + "public/art/" + file;
+}
+
+/** Grey at the left, shining yellow at the right. */
+const LAMP_ORDER = ["drift", "sky", "orbit", "deepspace", "nebula", "galaxy"];
+
+function rarityLamps(tier) {
+  const rank = LAMP_ORDER.indexOf(tier);
+  return h("div", {
+    className: "lamps",
+    attrs: { role: "img", "aria-label": tier ? `${levelOf(tier).name} on the rarity lamp` : "Rarity lamp, grey to gold" },
+  }, LAMP_ORDER.map((id, i) =>
+    h("span", {
+      className: ["lamp", `lamp-${id}`, i <= rank ? "is-lit" : "", i === rank ? "is-here" : ""].filter(Boolean).join(" "),
+      attrs: { title: levelOf(id).name },
+    }),
+  ));
+}
+
+function paintLamps(lamps, tier) {
+  const rank = LAMP_ORDER.indexOf(tier);
+  [...lamps.children].forEach((dot, i) => {
+    dot.classList.remove("is-lit", "is-here");
+    if (i <= rank) {
+      void dot.offsetWidth;
+      dot.classList.add("is-lit");
+      if (i === rank) dot.classList.add("is-here");
+    }
+  });
+}
 function levelLine(tier, points = levelOf(tier).points) {
   const level = levelOf(tier);
   return `${level.name} · ${level.rarity} · +${points}`;
@@ -17,7 +48,7 @@ import { loadProfile, saveProfile, logFlight } from "../game/storage.js";
 import { audio, playHit, playMiss } from "../game/sound.js";
 import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
 
-const root = document.getElementById("app");
+let root = document.getElementById("app");
 const day = todayUtc();
 
 // ---------- State ----------
@@ -320,8 +351,8 @@ function renderPad() {
   }, state.rulesOpen ? "Hide the chart" : "How a burn scores");
 
   return h("section", { className: "pad" },
-    h("img", { className: "pad-photo", src: "public/art/pad.jpg", alt: "" }),
-    h("img", { className: "hero-rocket", src: "public/art/rocket.png", alt: "" }),
+    h("img", { className: "pad-photo", src: art("stars.jpg"), alt: "" }),
+    h("img", { className: "hero-rocket", src: art("rocket-pixel.png"), alt: "" }),
     h("div", { className: "pad-scrim" }),
     h("article", { className: "folio" },
       h("div", { className: "folio-top" },
@@ -381,6 +412,7 @@ function renderBurn() {
   const chips = h("ul", { className: "chips" });
   const suggestList = h("ul", { className: "suggest", attrs: { role: "listbox" } });
   const note = h("p", { className: "note", attrs: { "aria-live": "polite" } });
+  const lamps = rarityLamps(null);
 
   const input = h("input", {
     id: "burn-answer",
@@ -419,8 +451,9 @@ function renderBurn() {
   function setNote(text, bad, tier) {
     note.textContent = text;
     note.className = bad ? "note is-bad" : tier ? `note tier-${tier}` : "note";
+    if (tier) paintLamps(lamps, tier);
     if (bad) {
-      void note.offsetWidth; // restart the shake animation
+      void note.offsetWidth;
       note.classList.add("shake");
     }
   }
@@ -433,8 +466,10 @@ function renderBurn() {
   function drawChips() {
     if (round.kind !== "list") return;
     chips.hidden = burn.hits.length === 0;
-    mount(chips, burn.hits.map((hit) =>
-      h("li", { className: `chip tier-${hit.tier}` },
+    mount(chips, burn.hits.map((hit) => {
+      const hot = hit.tier === "deepspace" || hit.tier === "nebula" || hit.tier === "galaxy";
+      return h("li", { className: `chip tier-${hit.tier}` },
+        h("i", { className: `chip-lamp lamp-${hit.tier} is-lit${hot ? " is-here" : ""}`, attrs: { "aria-hidden": "true" } }),
         h("span", {}, hit.canonical, h("small", { className: "chip-level" }, ` ${levelOf(hit.tier).name} +${hit.points}`)),
         h("button", {
           attrs: { type: "button", "aria-label": `Remove ${hit.canonical}` },
@@ -442,11 +477,13 @@ function renderBurn() {
             burn.hits = burn.hits.filter((x) => x.canonical !== hit.canonical);
             drawChips();
             stage.setScore(stageScore());
-            setNote(defaultNote(), false);
+            const best = bestTier(burn.hits);
+            setNote(defaultNote(), false, best || undefined);
+            if (!best) paintLamps(lamps, "");
           },
         }, "×"),
-      ),
-    ));
+      );
+    }));
   }
 
   function drawSuggestions() {
@@ -528,6 +565,7 @@ function renderBurn() {
     ),
     round.kind === "closest" && suggestList,
     note,
+    lamps,
     round.kind === "list" &&
       h("button", { className: "text-btn", attrs: { type: "button" }, onClick: () => finishBurn("seal") }, "Seal this burn"),
   );
@@ -652,6 +690,7 @@ function renderBetween() {
     h("p", { className: "kicker" }, `Burn ${s.index + 1} sealed`),
     title,
     pill && h("p", {}, pill),
+    rarityLamps(just.hits.length ? tier : null),
     first && just.kind !== "list" &&
       h("p", { className: "reveal-name" }, `You said ${first.canonical}`, first.deltaPct != null && first.value != null ? ` · ${formatDelta(first.deltaPct)}` : ""),
     topAnswersBlock(just),
@@ -838,5 +877,12 @@ function renderMenu() {
 
 // ---------- Start ----------
 
-watchViewport();
-render();
+function boot() {
+  root = document.getElementById("app");
+  if (!root) return;
+  watchViewport();
+  render();
+}
+
+boot();
+window.__fuelupStart = boot;

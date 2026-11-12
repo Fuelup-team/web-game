@@ -1217,3 +1217,166 @@ input:focus {
     100% { opacity: 0; }
   }
 }
+
+/* Pixel night behind the questions, and a rarity lamp under each answer. */
+.pad-photo,
+.stage-sky,
+.stage-rocket,
+.hero-rocket {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.hero-rocket {
+  width: min(34vw, 200px);
+  right: 8%;
+  bottom: 8%;
+  filter: none;
+}
+.flight {
+  position: relative;
+  display: block;
+  min-height: 100dvh;
+  background: #06122e;
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  min-height: 100%;
+  height: auto;
+  pointer-events: none;
+  background: #06122e;
+}
+.deck {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  min-height: 100dvh;
+}
+.flight .play-card,
+.flight .reveal,
+.flight .report {
+  background: rgba(6, 18, 46, 0.72);
+  color: #f3e6d0;
+  box-shadow: none;
+  border: 1px solid rgba(243, 230, 208, 0.16);
+}
+.flight .play-card .blurb,
+.flight .play-card .note,
+.flight .reveal .aside,
+.flight .reveal .fine,
+.flight .report .fine {
+  color: rgba(243, 230, 208, 0.86);
+}
+.flight .play-card h2,
+.flight .reveal h2,
+.flight .report h2,
+.flight .play-card .timer,
+.flight .deck-meta,
+.flight .brand {
+  color: #f3e6d0;
+}
+.stage-rocket {
+  left: auto;
+  right: 7%;
+  width: min(24vw, 150px);
+  filter: none;
+}
+.stage-rocket.is-boost,
+.stage-rocket.is-boost-big {
+  animation: rocket-kick 0.45s ease;
+}
+.stage-rocket.is-boost-big {
+  animation-duration: 0.7s;
+}
+@keyframes rocket-kick {
+  40% { transform: translateY(-10px); }
+}
+.lamps {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.7rem 0 0.2rem;
+}
+.lamp,
+.chip-lamp {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+  background: #2a2826;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.lamp.is-lit {
+  animation: lamp-pop 0.35s ease both;
+}
+.lamp-drift.is-lit,
+.chip-lamp.lamp-drift { background: #6e6a66; }
+.lamp-sky.is-lit,
+.chip-lamp.lamp-sky { background: #9a948c; }
+.lamp-orbit.is-lit,
+.chip-lamp.lamp-orbit { background: #c4a574; box-shadow: 0 0 8px #c4a574; }
+.lamp-deepspace.is-lit,
+.chip-lamp.lamp-deepspace { background: #f0c14a; box-shadow: 0 0 10px #f0c14a; }
+.lamp-nebula.is-lit,
+.chip-lamp.lamp-nebula { background: #ffe08a; box-shadow: 0 0 12px #ffe08a; }
+.lamp-galaxy.is-lit,
+.chip-lamp.lamp-galaxy { background: #fff1a8; box-shadow: 0 0 16px 4px #ffe56a; }
+.lamp.is-here {
+  animation: lamp-pop 0.35s ease both, lamp-shine 1.15s ease-in-out 0.35s infinite;
+}
+.chip.tier-sky { background: #eceae6; box-shadow: inset 0 0 0 1.5px #8d8882; }
+.chip.tier-orbit { box-shadow: inset 0 0 0 1.5px #c4a574, 0 0 8px rgba(196, 165, 116, 0.45); }
+.chip.tier-deepspace { box-shadow: inset 0 0 0 1.5px #f0c14a, 0 0 12px rgba(240, 193, 74, 0.55); }
+.chip.tier-nebula,
+.chip.tier-galaxy {
+  background: #fff6d0;
+  animation: chip-shine 1.3s ease-in-out infinite;
+}
+.chip.tier-galaxy {
+  box-shadow: inset 0 0 0 2px #ffe56a, 0 0 16px #ffe56a;
+}
+@keyframes lamp-pop {
+  0% { transform: scale(0.4); }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes lamp-shine {
+  50% { transform: scale(1.2); filter: brightness(1.45); }
+}
+@keyframes chip-shine {
+  50% { filter: brightness(1.12); }
+}
+.fuel-app.is-typing .stage,
+.fuel-app.is-keyboard .stage {
+  display: block;
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+@media (width>=960px) {
+  .flight { display: block; }
+  .stage { position: absolute; height: 100%; }
+}
+@media (width<=720px) {
+  .flight {
+    display: block;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+  .hero-rocket {
+    width: min(150px, 38vw);
+  }
+  .deck { overflow: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lamp.is-here,
+  .chip.tier-nebula,
+  .chip.tier-galaxy,
+  .stage-rocket.is-boost,
+  .stage-rocket.is-boost-big {
+    animation: none;
+  }
+}
+
