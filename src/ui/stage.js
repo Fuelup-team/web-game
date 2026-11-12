@@ -8,8 +8,8 @@ function art(file) {
   return base + "public/art/" + file;
 }
 
-const TIME = { drift: 5600, sky: 6800, orbit: 8200, deepspace: 9800, nebula: 11400, galaxy: 13200 };
-const RATE = { drift: 10, sky: 16, orbit: 28, deepspace: 42, nebula: 56, galaxy: 72 };
+const CLIMB_MS = 2200;
+const RATE = { drift: 14, sky: 18, orbit: 26, deepspace: 36, nebula: 46, galaxy: 58 };
 const FLAME = ["#fffaf2", "#f4ead8", "#e7dcc8", "#d8d2c8", "#c4622d", "#f7f3ea"];
 
 function heightFor(tier) {
@@ -49,7 +49,7 @@ export function createStage() {
   let frame = 0;
 
   function paint(cam) {
-    const rocketBottom = 10 + cam * 48;
+    const rocketBottom = 8 + cam * 64;
     ship.style.bottom = `${rocketBottom}%`;
     sky.style.objectPosition = `center ${84 - cam * 58}%`;
     sky.style.transform = "none";
@@ -59,34 +59,32 @@ export function createStage() {
     zone.textContent = zoneFor(altitudeFor(score)).name;
   }
 
-  function emit() {
-    const bit = h("span", { className: "flame-bit" });
-    const size = [4, 4, 4, 8, 8][Math.floor(Math.random() * 5)];
-    bit.style.width = `${size}px`;
-    bit.style.height = `${size}px`;
-    bit.style.background = FLAME[Math.floor(Math.random() * FLAME.length)];
-    bit.style.marginLeft = `${Math.round((Math.random() - 0.5) * 10)}px`;
-    bit.style.setProperty("--fall", `${16 + Math.round(Math.random() * 40)}px`);
-    ship.append(bit);
-    setTimeout(() => bit.remove(), 720);
+  function emit(burst) {
+    const count = burst ? 4 : 1;
+    for (let i = 0; i < count; i++) {
+      const bit = h("span", { className: "flame-bit" });
+      const size = burst
+        ? [8, 8, 12, 12, 16][Math.floor(Math.random() * 5)]
+        : [4, 4, 4, 8][Math.floor(Math.random() * 4)];
+      bit.style.width = `${size}px`;
+      bit.style.height = `${size}px`;
+      bit.style.background = FLAME[Math.floor(Math.random() * FLAME.length)];
+      bit.style.marginLeft = `${Math.round((Math.random() - 0.5) * (burst ? 22 : 10))}px`;
+      bit.style.setProperty("--fall", `${(burst ? 36 : 16) + Math.round(Math.random() * (burst ? 70 : 36))}px`);
+      ship.append(bit);
+      setTimeout(() => bit.remove(), burst ? 820 : 720);
+    }
   }
 
   function tick(now) {
     if (animAt) {
       const p = Math.min(1, (now - animAt) / animMs);
-      const span = peak - from;
-      let cam;
-      if (p < 0.1) {
-        const e = 1 - Math.pow(1 - p / 0.1, 3);
-        cam = from + span * e;
-      } else {
-        const e = (p - 0.1) / 0.9;
-        cam = peak + (dest - peak) * (e * e);
-      }
-      shown = cam;
-      if (flame && now - lastFlame > 1000 / (RATE[flame] || 16)) {
+      const e = p * p * p;
+      shown = from + (dest - from) * e;
+      const burst = flame && p > 0.42;
+      if (flame && now - lastFlame > 1000 / ((RATE[flame] || 18) * (burst ? 3.4 : 0.55))) {
         lastFlame = now;
-        emit();
+        emit(burst);
       }
       if (p >= 1) {
         animAt = 0;
@@ -121,8 +119,7 @@ export function createStage() {
     const key = tier === true ? "galaxy" : tier === false || !tier ? "sky" : tier;
     const next = heightFor(key);
     const goingDown = next < shown - 0.04;
-    const nextPeak = goingDown ? next : Math.min(1, next + (TIER_RANK[key] >= 4 ? 0.06 : 0.02));
-    launch(nextPeak, next, goingDown ? 6400 : TIME[key] || 4800, goingDown ? null : key);
+    launch(next, next, CLIMB_MS, goingDown ? null : key);
     rocket.classList.remove("is-burning");
     void rocket.offsetWidth;
     rocket.classList.add("is-burning");
