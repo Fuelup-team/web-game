@@ -1266,34 +1266,42 @@ input:focus {
   transition: transform 0.7s cubic-bezier(0.16, 0.84, 0.3, 1);
 }
 .stage-rocket {
-  left: 54%;
+  position: relative;
+  left: auto;
   right: auto;
-  width: min(30vw, 168px);
+  bottom: auto;
+  width: 100%;
+  height: auto;
   filter: none;
   z-index: 2;
-  transition: bottom 0.15s linear;
+  display: block;
+  transition: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
-.plume {
+.stage-ship {
   position: absolute;
+  left: 54%;
+  width: min(30vw, 168px);
   z-index: 2;
-  width: 6px;
-  height: 6px;
+  pointer-events: none;
+}
+.flame-bit {
+  position: absolute;
+  left: 50%;
+  z-index: 1;
   image-rendering: pixelated;
   pointer-events: none;
-  animation: plume-fall 0.7s ease-in forwards;
+  animation: flame-fall 0.5s steps(4, end) forwards;
 }
-@keyframes plume-fall {
-  to { transform: translateY(var(--fall, 70px)); opacity: 0; }
+@keyframes flame-fall {
+  to { transform: translateY(var(--fall, 28px)); opacity: 0; }
 }
-.stage-rocket.is-boost,
-.stage-rocket.is-boost-big {
-  animation: rocket-kick 0.55s cubic-bezier(0.16, 0.84, 0.44, 1);
+.stage-rocket.is-burning {
+  animation: rocket-burn 0.18s steps(2, end) 6;
 }
-.stage-rocket.is-boost-big { animation-duration: 0.85s; }
-@keyframes rocket-kick {
-  0% { filter: brightness(1); }
-  30% { filter: brightness(1.45); }
-  100% { filter: brightness(1); }
+@keyframes rocket-burn {
+  50% { filter: brightness(1.35); }
 }
 .deck {
   position: relative;

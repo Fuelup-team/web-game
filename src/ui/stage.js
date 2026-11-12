@@ -1,5 +1,5 @@
-// Pixel night: a station on the ground, a rocket that launches with each answer,
-// and a sky that gets darker the higher you climb.
+// Pixel night: the rocket shoots up on each answer. Better answers go further,
+// faster, and leave a longer pixel flame. The sky darkens as the score climbs.
 import { h } from "./dom.js";
 import { altitudeFor, zoneFor, formatKm } from "../game/engine.js";
 
@@ -8,19 +8,17 @@ function art(file) {
   return base + "public/art/" + file;
 }
 
-const KICK = { drift: 4, sky: 8, orbit: 14, deepspace: 24, nebula: 34, galaxy: 48 };
-const PLUME = { drift: 5, sky: 8, orbit: 12, deepspace: 18, nebula: 26, galaxy: 36 };
-const PLUME_COLOR = {
-  drift: "#6e7278",
-  sky: "#b7bcc4",
-  orbit: "#3dba6a",
-  deepspace: "#e23b3b",
-  nebula: "#b06cff",
-  galaxy: "#ffe56a",
-};
+// How far past the new altitude a hit throws the rocket, in % of the screen.
+const SURGE = { drift: 2, sky: 5, orbit: 14, deepspace: 28, nebula: 42, galaxy: 58 };
+// Whole launch, including the long flame after the fast climb.
+const TIME = { drift: 1100, sky: 1400, orbit: 1800, deepspace: 2300, nebula: 2700, galaxy: 3200 };
+// New flame pixels per second while the burn lasts.
+const RATE = { drift: 18, sky: 26, orbit: 40, deepspace: 58, nebula: 74, galaxy: 96 };
+// Same blocks as the rocket: cream, white, ash, copper.
+const FLAME = ["#fffaf2", "#f4ead8", "#e7dcc8", "#d8d2c8", "#c4622d", "#f7f3ea"];
 
 function liftFor(score) {
-  return 1 - Math.exp(-Math.max(0, score) / 170);
+  return 1 - Math.exp(-Math.max(0, score) / 120);
 }
 
 export function createStage() {
@@ -28,6 +26,7 @@ export function createStage() {
   const dark = h("div", { className: "stage-dark" });
   const station = h("img", { className: "stage-station", src: art("station.png"), alt: "" });
   const rocket = h("img", { className: "stage-rocket", src: art("rocket-pixel.png"), alt: "" });
+  const ship = h("div", { className: "stage-ship" }, rocket);
   const km = h("p", { className: "stage-km" });
   const zone = h("p", { className: "stage-zone" });
 
@@ -37,25 +36,28 @@ export function createStage() {
     sky,
     dark,
     station,
-    rocket,
+    ship,
     h("div", { className: "stage-readout" }, h("p", { className: "stage-kicker" }, "Altitude"), km, zone),
     h("ol", { className: "stage-scale" }, h("li", {}, "Moon"), h("li", {}, "Cislunar"), h("li", {}, "Orbit"), h("li", {}, "Pad")),
   );
 
   let score = 0;
-  let kick = 0;
-  let kickAt = 0;
-  let kickMs = 700;
+  let shown = 12;
+  let from = 12;
+  let peak = 12;
+  let dest = 12;
+  let animAt = 0;
+  let animMs = 600;
+  let flame = null;
+  let lastFlame = 0;
   let frame = 0;
 
   function resting() {
-    return 14 + liftFor(score) * 68;
+    return 12 + liftFor(score) * 74;
   }
 
-  function place(extra = 0) {
+  function paintScene() {
     const lift = liftFor(score);
-    const bottom = Math.min(86, resting() + extra);
-    rocket.style.bottom = `${bottom}%`;
     station.style.transform = `translateX(-50%) translateY(${lift * 130}%)`;
     sky.style.objectPosition = `center ${82 - lift * 55}%`;
     dark.style.opacity = String(Math.min(0.82, lift * 0.9));
@@ -63,45 +65,88 @@ export function createStage() {
     zone.textContent = zoneFor(altitudeFor(score)).name;
   }
 
+  function emit(bottom) {
+    const bit = h("span", { className: "flame-bit" });
+    const size = [4, 4, 4, 8, 8][Math.floor(Math.random() * 5)];
+    bit.style.width = `${size}px`;
+    bit.style.height = `${size}px`;
+    bit.style.background = FLAME[Math.floor(Math.random() * FLAME.length)];
+    bit.style.marginLeft = `${Math.round((Math.random() - 0.5) * 10)}px`;
+    bit.style.bottom = "0";
+    bit.style.setProperty("--fall", `${16 + Math.round(Math.random() * (flame === "galaxy" ? 72 : 40))}px`);
+    ship.append(bit);
+    setTimeout(() => bit.remove(), 680);
+    void bottom;
+  }
+
   function tick(now) {
-    const t = kickAt ? Math.max(0, 1 - (now - kickAt) / kickMs) : 0;
-    place(kick * t * t);
-    frame = t > 0 ? requestAnimationFrame(tick) : 0;
+    let bottom = shown;
+    if (animAt) {
+      const p = Math.min(1, (now - animAt) / animMs);
+      if (p < 0.22) {
+        const e = 1 - Math.pow(1 - p / 0.22, 3);
+        bottom = from + (peak - from) * e;
+      } else {
+        const e = Math.pow((p - 0.22) / 0.78, 2);
+        bottom = peak + (dest - peak) * e;
+      }
+      shown = bottom;
+      if (flame && now - lastFlame > 1000 / (RATE[flame] || 26)) {
+        lastFlame = now;
+        const n = flame === "galaxy" || flame === "nebula" ? 3 : 1;
+        for (let i = 0; i < n; i++) emit(bottom);
+      }
+      if (p >= 1) {
+        animAt = 0;
+        flame = null;
+      }
+    }
+    ship.style.bottom = `${bottom}%`;
+    frame = animAt ? requestAnimationFrame(tick) : 0;
+  }
+
+  function launch(nextPeak, nextDest, ms, flameKey) {
+    from = shown;
+    peak = nextPeak;
+    dest = nextDest;
+    animMs = ms;
+    animAt = performance.now();
+    flame = flameKey;
+    lastFlame = 0;
+    if (!frame) frame = requestAnimationFrame(tick);
   }
 
   function setScore(next) {
     score = next;
-    if (!frame) place(0);
+    paintScene();
+    const nextDest = resting();
+    launch(nextDest, nextDest, 420, null);
   }
 
   /**
-   * Shoot the rocket up. A common answer hops. A Galaxy answer leaves the station.
-   * `tier` may be a level id, or a boolean from older callers.
+   * A common answer hops. A Galaxy answer crosses most of the screen,
+   * fast at the start, with the flame still falling after it arrives.
    */
   function boost(tier = "sky") {
     const key = tier === true ? "galaxy" : tier === false || !tier ? "sky" : tier;
-    kick = KICK[key] || 8;
-    kickMs = key === "galaxy" ? 1200 : key === "nebula" ? 1000 : 750;
-    kickAt = performance.now();
-    rocket.classList.remove("is-boost", "is-boost-big");
+    const surge = SURGE[key] ?? 5;
+    const nextDest = resting();
+    const nextPeak = Math.min(90, nextDest + surge);
+    const stay = Math.min(88, nextDest + surge * 0.72);
+    launch(nextPeak, stay, TIME[key] || 1400, key);
+    rocket.classList.remove("is-burning");
     void rocket.offsetWidth;
-    rocket.classList.add(key === "galaxy" || key === "nebula" || key === "deepspace" ? "is-boost-big" : "is-boost");
-    const n = PLUME[key] || 8;
-    const color = PLUME_COLOR[key] || "#ffe56a";
-    const bottom = resting();
-    for (let i = 0; i < n; i++) {
-      const bit = h("span", { className: "plume" });
-      bit.style.background = i % 4 === 0 ? "#fff6d0" : color;
-      bit.style.left = `calc(50% + ${Math.round(Math.random() * 22 - 8)}px)`;
-      bit.style.bottom = `calc(${bottom}% - ${6 + Math.round(Math.random() * 10)}px)`;
-      bit.style.setProperty("--fall", `${50 + Math.round(Math.random() * 90)}px`);
-      bit.style.animationDelay = `${(Math.random() * 0.14).toFixed(2)}s`;
-      el.append(bit);
-      setTimeout(() => bit.remove(), 1000);
-    }
-    if (!frame) frame = requestAnimationFrame(tick);
+    rocket.classList.add("is-burning");
   }
 
-  place(0);
-  return { el, setScore, boost, destroy() { cancelAnimationFrame(frame); } };
+  paintScene();
+  ship.style.bottom = `${shown}%`;
+  return {
+    el,
+    setScore,
+    boost,
+    destroy() {
+      cancelAnimationFrame(frame);
+    },
+  };
 }
