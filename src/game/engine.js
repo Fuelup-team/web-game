@@ -254,22 +254,33 @@ export function suggest(items, input, limit = 5) {
 
 /**
  * Gauge closeness, on a ratio (twice as far misses as badly as half as far).
- * Each band uses the same level and points as the rarity price list.
+ * Galaxy is only for THE closest answer on the chart; everything else is
+ * scored by these bands, using the same levels and points as the price list.
  */
 export const GAUGE_BANDS = [
-  { tier: "galaxy", within: 1.025, label: "within 2.5%" },
   { tier: "nebula", within: 1.07, label: "within 7%" },
   { tier: "deepspace", within: 1.16, label: "within 16%" },
   { tier: "orbit", within: 1.35, label: "within 35%" },
   { tier: "sky", within: 1.9, label: "within 90%" },
 ];
 
-/** Score a gauge answer by how close its value is to the target. */
-export function gaugeScore(value, target) {
+const missRatio = (value, target) => Math.max(value, target) / Math.max(1e-9, Math.min(value, target));
+
+/** The closest miss ratio anyone can get on this chart. */
+function bestMiss(items, target) {
+  return Math.min(...items.map((i) => missRatio(i.value, target)));
+}
+
+/**
+ * Score a gauge answer. Galaxy if it is the closest item on the chart
+ * (ties count, so at most a couple of answers), otherwise by closeness band.
+ */
+export function gaugeScore(value, target, items) {
   const deltaPct = ((value - target) / target) * 100;
-  const ratio = Math.max(value, target) / Math.max(1e-9, Math.min(value, target));
-  const band = GAUGE_BANDS.find((b) => ratio <= b.within);
-  const tier = band ? band.tier : OFF_COURSE.id;
+  const ratio = missRatio(value, target);
+  let tier;
+  if (items && ratio <= bestMiss(items, target) + 1e-9) tier = TOP_LEVEL;
+  else tier = GAUGE_BANDS.find((b) => ratio <= b.within)?.tier ?? OFF_COURSE.id;
   return { tier, points: pointsFor(tier), deltaPct };
 }
 
@@ -295,7 +306,7 @@ export function tryAnswer(round, input, alreadyLogged) {
   if (round.kind === "closest") {
     const m = matchAnswer(round.items, text);
     if (!m || m.value == null) return { ok: false, reason: "Not on today's chart. Try another name." };
-    const s = gaugeScore(m.value, round.target);
+    const s = gaugeScore(m.value, round.target, round.items);
     return {
       ok: true,
       hit: { input: text, canonical: m.canonical, tier: s.tier, points: s.points, via: m.via, value: m.value, deltaPct: s.deltaPct },
@@ -309,19 +320,17 @@ export function tryAnswer(round, input, alreadyLogged) {
 }
 
 /**
- * The best answers on a round's chart: every answer at the rarest level it
- * has (usually Galaxy). For gauge rounds, every item close enough for Galaxy,
- * nearest first, or just the nearest one if none are that close.
+ * The top (Galaxy) answers on a round's chart: the round's one hard answer,
+ * or for gauge rounds the closest item (two only if they tie).
  * Returns { level, answers: [{ name, detail }] }.
  */
 export function topAnswers(round) {
   if (round.kind === "closest") {
     const miss = (v) => Math.max(v, round.target) / Math.min(v, round.target);
     const sorted = [...round.items].sort((a, b) => miss(a.value) - miss(b.value));
-    const inGalaxy = sorted.filter((i) => gaugeScore(i.value, round.target).tier === TOP_LEVEL);
-    const list = inGalaxy.length ? inGalaxy : sorted.slice(0, 1);
+    const list = sorted.filter((i) => gaugeScore(i.value, round.target, round.items).tier === TOP_LEVEL);
     return {
-      level: gaugeScore(list[0].value, round.target).tier,
+      level: TOP_LEVEL,
       answers: list.map((i) => ({ name: i.name, detail: formatValue(round.unit, i.value) })),
     };
   }
@@ -343,7 +352,7 @@ function scoreRoundPoints(round, inputs) {
     const best = closestItem(round.items, round.target);
     let hit = null;
     if (found) {
-      const s = gaugeScore(found.m.value, round.target);
+      const s = gaugeScore(found.m.value, round.target, round.items);
       hit = {
         input: found.input,
         canonical: found.m.canonical,
@@ -527,6 +536,9 @@ function validate() {
       }
     }
     if (!keys.has(normalize(round.gem))) throw new Error(`Gem ${round.gem} missing from ${round.id}`);
+    const top = round.answers.filter((a) => a.tier === TOP_LEVEL);
+    if (top.length < 1 || top.length > 2) throw new Error(`${round.id} needs 1 or 2 ${TOP_LEVEL} answers, has ${top.length}`);
+    if (!top.some((a) => a.name === round.gem)) throw new Error(`Gem ${round.gem} in ${round.id} must be ${TOP_LEVEL}`);
   }
   for (const g of GAUGE_ROUNDS) {
     if (g.targets.length < 3 || g.items.length < 8) throw new Error(`Thin chart ${g.id}`);

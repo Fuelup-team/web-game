@@ -32,6 +32,8 @@ export function createStage() {
 
   let score = 0;
   let boostAt = 0;
+  let boostLength = 800; // ms; longer and bigger for a top answer
+  let boostSize = 1;
 
   function setScore(next) {
     score = next;
@@ -72,14 +74,21 @@ export function createStage() {
       ctx.arc(s.x * w, s.y * hgt * 0.8, s.r * dpr, 0, Math.PI * 2);
       ctx.fill();
     }
-    const strength = boostAt > 0 ? Math.max(0, 1 - (now - boostAt) / 800) : 0;
+    const strength = boostAt > 0 ? Math.max(0, 1 - (now - boostAt) / boostLength) : 0;
     if (strength > 0 && !reduceMotion) {
       const y = hgt * (1 - rocketBottom(score) / 100);
-      for (let i = 0; i < 12; i++) {
+      const count = Math.round(12 * boostSize);
+      for (let i = 0; i < count; i++) {
         const t = ((now / 50 + i * 19) % 100) / 100;
         ctx.fillStyle = `rgba(242, 193, 78, ${strength * (1 - t) * 0.75})`;
         ctx.beginPath();
-        ctx.arc(w * 0.38 - t * w * 0.16, y + Math.sin(i + now / 200) * 6 * dpr, (2.4 - t * 1.4) * dpr, 0, Math.PI * 2);
+        ctx.arc(
+          w * 0.38 - t * w * 0.16 * boostSize,
+          y + Math.sin(i + now / 200) * 6 * dpr * boostSize,
+          (2.4 - t * 1.4) * dpr * boostSize,
+          0,
+          Math.PI * 2,
+        );
         ctx.fill();
       }
     }
@@ -91,9 +100,11 @@ export function createStage() {
   return {
     el,
     setScore,
-    /** Puff of exhaust, e.g. after a logged answer. */
-    boost() {
+    /** Puff of exhaust after a logged answer; `big` for a top answer. */
+    boost(big = false) {
       boostAt = performance.now();
+      boostLength = big ? 1800 : 800;
+      boostSize = big ? 2.2 : 1;
     },
     destroy() {
       cancelAnimationFrame(frame);

@@ -26,14 +26,17 @@ Every answer has a rarity level. Same points in every burn:
 | Nebula | Very rare | 75 |
 | Galaxy | Ultra rare | 100 |
 
+Each burn has exactly **one** Galaxy answer (the hardest one, with a fun fact). Finding it sets off a
+special top-answer effect.
+
 ## Burn types
 
 - **Single burn** (4 per flight): one answer. Retry until one locks. Up to 100.
 - **Stack** (2 per flight): name as many as you can (elements, dog breeds…). Each answer adds its
   points, up to 250.
 - **Gauge** (1 per flight): name the thing whose number is closest to a target (mountain height, river
-  length…). Closeness uses the same levels: Galaxy within 2.5%, Nebula 7%, Deep Space 16%, Orbit 35%,
-  Sky 90%, otherwise Off course (5).
+  length…). Galaxy only for the single closest answer on the chart; then Nebula within 7%, Deep Space
+  16%, Orbit 35%, Sky 90%, otherwise Off course (5).
 
 Perfect flight: 4 × 100 + 100 + 2 × 250 = 1,000.
 

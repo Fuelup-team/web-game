@@ -1102,3 +1102,118 @@ input:focus {
     display: none;
   }
 }
+
+/* ---------- Top answer (Galaxy) celebration ---------- */
+.galaxy-burst {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.galaxy-flash {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 50% 45%, #f0b429cc 0%, #f0b42955 22%, #8a2fa833 42%, transparent 65%);
+  animation: galaxy-flash 1.9s ease-out forwards;
+}
+.galaxy-banner {
+  position: relative;
+  padding: 0.9rem 1.4rem 1rem;
+  border-radius: 18px;
+  background: #07141c;
+  color: #f4ead8;
+  text-align: center;
+  box-shadow: 0 0 0 2px #f0b429, 0 0 48px 8px #f0b42980, 8px 8px #07141c8c;
+  animation: galaxy-pop 2.1s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+.galaxy-banner .kicker {
+  color: #f0b429;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+}
+.galaxy-banner strong {
+  display: block;
+  margin: 0.15rem 0 0.35rem;
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+  line-height: 1.05;
+  background: linear-gradient(100deg, #f4ead8 10%, #f0b429 45%, #fff3cf 55%, #f0b429 70%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: galaxy-shine 1.6s linear infinite;
+}
+.galaxy-banner .level-pill {
+  font-size: 0.78rem;
+}
+.galaxy-spark {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  margin: calc(var(--size, 8px) / -2);
+  border-radius: 50%;
+  background: var(--color, #f0b429);
+  box-shadow: 0 0 10px 2px var(--color, #f0b429);
+  opacity: 0;
+  animation: galaxy-spark 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) var(--delay, 0s) forwards;
+}
+.galaxy-spark.is-star {
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color, #f0b429);
+  font-size: calc(var(--size, 8px) * 2.2);
+  line-height: 1;
+  width: auto;
+  height: auto;
+  text-shadow: 0 0 10px currentColor;
+}
+@keyframes galaxy-flash {
+  0% { opacity: 0; transform: scale(0.6); }
+  15% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.15); }
+}
+@keyframes galaxy-pop {
+  0% { opacity: 0; transform: scale(0.4) rotate(-6deg); }
+  14% { opacity: 1; transform: scale(1.06) rotate(1deg); }
+  24% { transform: scale(1) rotate(0); }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.92) translateY(-12px); }
+}
+@keyframes galaxy-shine {
+  from { background-position: 100% 0; }
+  to { background-position: -150% 0; }
+}
+@keyframes galaxy-spark {
+  0% { opacity: 1; transform: translate(0, 0) scale(0.4) rotate(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); }
+}
+
+/* Reveal and chips for a top answer keep a soft gold glow. */
+.reveal.tier-galaxy {
+  box-shadow: inset 0 7px 0 var(--level-galaxy-fill), 0 0 0 2px #f0b42966, 0 0 36px #f0b42955, 8px 8px #07141c8c;
+}
+.chip.tier-galaxy {
+  box-shadow: inset 0 0 0 2px var(--level-galaxy-fill), 0 0 14px #f0b42988;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-spark,
+  .galaxy-flash {
+    display: none;
+  }
+  .galaxy-banner,
+  .galaxy-banner strong {
+    animation-name: galaxy-fade;
+  }
+  @keyframes galaxy-fade {
+    0%, 80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}

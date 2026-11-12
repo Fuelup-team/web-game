@@ -269,7 +269,7 @@ function stat(label, value, detail) {
 function rules() {
   return h("div", { className: "rules" },
     h("p", {}, "Each flight is seven timed burns, about half a minute to fifty seconds. The clock does not pause."),
-    h("p", {}, "Every answer has a rarity. The rarer it is, the farther it flies, and the more points it scores. Same price in every burn:"),
+    h("p", {}, "Every answer has a rarity. The rarer it is, the farther it flies, and the more points it scores. Same price in every burn. Each burn hides exactly one Galaxy answer, the hardest one on the chart:"),
     h("table", { className: "level-table" },
       h("tbody", {}, LEVELS.map((l) =>
         h("tr", { className: `tier-${l.id}` },
@@ -283,7 +283,7 @@ function rules() {
       h("li", {}, `Single burns want one answer. You can retry until one locks. Up to 100 points.`),
       h("li", {}, `Stack burns want as many correct names as you can type. Each one adds its points, up to ${LIST_CAP}.`),
       h("li", {},
-        `Gauge burns want the closest thing on the chart. Closeness uses the same levels: ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}. Further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
+        `Gauge burns want the closest thing on the chart. Galaxy only for the single closest answer, then ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}. Further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
     ),
     h("p", { className: "fine" },
       `After the flight, tap any burn. It opens the best answer on that chart and a short fact. A perfect flight, ${PERFECT_SCORE.toLocaleString("en-US")} points, meets the Moon at ${formatKm(MOON_KM)}.`),
@@ -484,7 +484,9 @@ function renderBurn() {
     setNote(result.note, false, result.best);
     if (result.best) playHit(result.best, muted());
     stage.setScore(stageScore());
-    stage.boost();
+    const top = result.best === "galaxy" ? result.hits.findLast((x) => x.tier === "galaxy") : null;
+    stage.boost(!!top);
+    if (top) celebrateTop(top.canonical, top.points);
     if (round.kind === "list") input.focus();
     else finishBurn("seal");
   }
@@ -556,6 +558,43 @@ function startBurnClock() {
 }
 
 // ----- Between burns -----
+
+/**
+ * Big moment for a top (Galaxy) answer: gold flash, a burst of stars,
+ * a "Top answer" banner. Sits over the screen without taking focus.
+ */
+function celebrateTop(name, points) {
+  document.querySelector(".galaxy-burst")?.remove();
+  const colors = ["#f0b429", "#fff3cf", "#f4ead8", "#e08a3c", "#c79bff"];
+  const sparks = Array.from({ length: 46 }, (_, i) => {
+    const angle = (i / 46) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = 140 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.45;
+    const star = i % 3 === 0;
+    const spark = h("span", { className: star ? "galaxy-spark is-star" : "galaxy-spark" }, star ? "✦" : null);
+    const vars = {
+      "--dx": `${Math.cos(angle) * dist}px`,
+      "--dy": `${Math.sin(angle) * dist}px`,
+      "--rot": `${Math.round(Math.random() * 540 - 270)}deg`,
+      "--size": `${4 + Math.random() * 7}px`,
+      "--color": colors[i % colors.length],
+      "--delay": `${Math.random() * 0.18}s`,
+    };
+    for (const [prop, value] of Object.entries(vars)) spark.style.setProperty(prop, value);
+    return spark;
+  });
+  const burst = h("div", { className: "galaxy-burst", attrs: { "aria-live": "assertive" } },
+    h("div", { className: "galaxy-flash" }),
+    sparks,
+    h("div", { className: "galaxy-banner tier-galaxy" },
+      h("p", { className: "kicker" }, "Top answer"),
+      h("strong", {}, name),
+      h("span", { className: "level-pill" }, `Galaxy · Ultra rare · +${points}`),
+    ),
+  );
+  document.body.append(burst);
+  navigator.vibrate?.([30, 40, 80]);
+  setTimeout(() => burst.remove(), 2300);
+}
 
 /** The rarest level among some hits, or null. */
 function bestTier(hits) {

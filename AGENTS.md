@@ -38,6 +38,8 @@ Keep to this layout so the two maintainers rarely edit the same files:
 - Rarity levels, most common to rarest, with the same points in every burn:
   `sky` Sky (Common, 10) · `orbit` Orbit (Uncommon, 25) · `deepspace` Deep Space (Rare, 50) ·
   `nebula` Nebula (Very rare, 75) · `galaxy` Galaxy (Ultra rare, 100). Defined in `LEVELS` in `engine.js`.
+- Galaxy is the top answer: exactly one per round (two at most), and it must be the round's `gem`.
+  `engine.js` refuses to load data that breaks this. Keep it very hard to find.
 - List burns cap at 250. A perfect flight is 1,000 points and reaches the Moon.
 - Every list and single round needs a `gem` that is one of its answers.
 

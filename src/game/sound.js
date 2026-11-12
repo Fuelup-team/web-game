@@ -29,9 +29,13 @@ function tone(freq, seconds, type, volume, delay = 0) {
 export function playHit(tier, muted) {
   if (muted) return;
   if (tier === "galaxy") {
-    tone(523, 0.12, "triangle", 0.05);
-    tone(659, 0.14, "triangle", 0.05, 0.08);
-    tone(784, 0.22, "triangle", 0.06, 0.16);
+    // Top answer: a rising fanfare with a sparkle on top.
+    tone(523, 0.14, "triangle", 0.06);
+    tone(659, 0.14, "triangle", 0.06, 0.09);
+    tone(784, 0.16, "triangle", 0.06, 0.18);
+    tone(1047, 0.5, "triangle", 0.07, 0.27);
+    tone(1568, 0.35, "sine", 0.03, 0.34);
+    tone(2093, 0.3, "sine", 0.02, 0.42);
   } else if (tier === "nebula" || tier === "deepspace") {
     tone(tier === "nebula" ? 620 : 480, 0.12, "sine", 0.04);
   } else {
