@@ -1,5 +1,7 @@
 # Fuelup
 
+**Play it:** https://fuelup.daniel-kaltio.workers.dev (hosted on Cloudflare).
+
 A daily trivia game. Seven timed burns, the same for every pilot on a UTC day. The obvious answer still
 lifts; the rare one goes farther. A perfect flight, 1,000 points, meets the Moon.
 
