@@ -1,0 +1,51 @@
+{
+  "topic": "Cheeses",
+  "gem": "Epoisses",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "cheeses",
+      "prompt": "Name as many cheeses as you can.",
+      "blurb": "Cheddar feeds the launch. The washed-rind ones feed the upper stage.",
+      "seconds": 32,
+      "fact": "Époisses is washed in marc de Bourgogne. Napoleon is said to have liked it. Cheddar still wins the crowd."
+    }
+  ],
+  "answers": [
+    {"name": "Cheddar", "level": "sky"},
+    {"name": "Mozzarella", "level": "sky"},
+    {"name": "Parmesan", "level": "sky", "also": ["parmigiano", "parmigiano reggiano"]},
+    {"name": "Swiss", "level": "sky"},
+    {"name": "American", "level": "sky", "also": ["american cheese"]},
+    {"name": "Brie", "level": "sky"},
+    {"name": "Gouda", "level": "sky"},
+    {"name": "Feta", "level": "sky"},
+    {"name": "Provolone", "level": "sky"},
+    {"name": "Ricotta", "level": "sky"},
+    {"name": "Blue Cheese", "level": "sky", "also": ["bleu cheese"]},
+    {"name": "Monterey Jack", "level": "sky"},
+    {"name": "Gruyere", "level": "orbit"},
+    {"name": "Camembert", "level": "orbit"},
+    {"name": "Gorgonzola", "level": "orbit"},
+    {"name": "Manchego", "level": "orbit"},
+    {"name": "Halloumi", "level": "orbit"},
+    {"name": "Pecorino", "level": "orbit"},
+    {"name": "Havarti", "level": "orbit"},
+    {"name": "Colby", "level": "orbit"},
+    {"name": "Roquefort", "level": "orbit"},
+    {"name": "Stilton", "level": "deepspace"},
+    {"name": "Emmental", "level": "deepspace"},
+    {"name": "Burrata", "level": "deepspace"},
+    {"name": "Paneer", "level": "deepspace"},
+    {"name": "Cotija", "level": "deepspace"},
+    {"name": "Comte", "level": "deepspace"},
+    {"name": "Taleggio", "level": "deepspace"},
+    {"name": "Epoisses", "level": "galaxy"},
+    {"name": "Vacherin", "level": "deepspace"},
+    {"name": "Cabrales", "level": "nebula"},
+    {"name": "Mimolette", "level": "nebula"},
+    {"name": "Livarot", "level": "nebula"},
+    {"name": "Appenzeller", "level": "nebula"},
+    {"name": "Raclette", "level": "nebula"}
+  ]
+}

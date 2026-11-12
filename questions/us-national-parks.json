@@ -1,0 +1,53 @@
+{
+  "topic": "US national parks",
+  "gem": "Gates of the Arctic",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "park",
+      "prompt": "Name a United States national park.",
+      "blurb": "Yellowstone is the crowd. There are parks almost nobody has stood in.",
+      "seconds": 30,
+      "fact": "Gates of the Arctic has no roads and no trails. It is the size of a small country, in Alaska."
+    }
+  ],
+  "answers": [
+    {"name": "Yellowstone", "level": "sky"},
+    {"name": "Yosemite", "level": "sky"},
+    {"name": "Grand Canyon", "level": "sky"},
+    {"name": "Great Smoky Mountains", "level": "sky", "also": ["smoky mountains"]},
+    {"name": "Rocky Mountain", "level": "sky"},
+    {"name": "Zion", "level": "sky"},
+    {"name": "Glacier", "level": "sky"},
+    {"name": "Acadia", "level": "sky"},
+    {"name": "Everglades", "level": "sky"},
+    {"name": "Olympic", "level": "sky"},
+    {"name": "Denali", "level": "sky"},
+    {"name": "Joshua Tree", "level": "orbit"},
+    {"name": "Arches", "level": "orbit"},
+    {"name": "Bryce Canyon", "level": "orbit"},
+    {"name": "Death Valley", "level": "orbit"},
+    {"name": "Grand Teton", "level": "orbit"},
+    {"name": "Crater Lake", "level": "sky"},
+    {"name": "Mount Rainier", "level": "sky"},
+    {"name": "Shenandoah", "level": "orbit"},
+    {"name": "Sequoia", "level": "deepspace"},
+    {"name": "Big Bend", "level": "deepspace"},
+    {"name": "Mesa Verde", "level": "orbit"},
+    {"name": "Redwood", "level": "orbit"},
+    {"name": "Hawaii Volcanoes", "level": "orbit"},
+    {"name": "Saguaro", "level": "deepspace"},
+    {"name": "Badlands", "level": "deepspace"},
+    {"name": "Canyonlands", "level": "deepspace"},
+    {"name": "Hot Springs", "level": "deepspace"},
+    {"name": "Congaree", "level": "deepspace"},
+    {"name": "Isle Royale", "level": "deepspace"},
+    {"name": "Voyageurs", "level": "nebula"},
+    {"name": "Gates of the Arctic", "level": "galaxy"},
+    {"name": "Kobuk Valley", "level": "nebula"},
+    {"name": "Dry Tortugas", "level": "nebula"},
+    {"name": "Capitol Reef", "level": "nebula"},
+    {"name": "Pinnacles", "level": "nebula"},
+    {"name": "National Park of American Samoa", "level": "nebula", "also": ["american samoa"]}
+  ]
+}

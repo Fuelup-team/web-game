@@ -1,0 +1,47 @@
+{
+  "topic": "Summer Olympic host cities",
+  "gem": "Antwerp",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "olympic-hosts",
+      "prompt": "Name as many cities that have hosted the Summer Olympics as you can.",
+      "blurb": "Summer Games up to Paris 2024. The early 1900s are the far end.",
+      "seconds": 42,
+      "fact": "Antwerp hosted in 1920, the first Games to fly the Olympic flag with its five rings."
+    },
+    {
+      "kind": "rare",
+      "id": "olympic-one",
+      "prompt": "Name a city that has hosted the Summer Olympics.",
+      "blurb": "One city. Recent hosts are easy. Go back a century.",
+      "seconds": 26,
+      "fact": "Antwerp hosted in 1920, the first Games to fly the Olympic flag with its five rings."
+    }
+  ],
+  "answers": [
+    {"name": "London", "level": "sky"},
+    {"name": "Paris", "level": "sky"},
+    {"name": "Tokyo", "level": "sky"},
+    {"name": "Beijing", "level": "sky", "also": ["peking"]},
+    {"name": "Rio de Janeiro", "level": "sky", "also": ["rio"]},
+    {"name": "Los Angeles", "level": "sky", "also": ["la"]},
+    {"name": "Sydney", "level": "sky"},
+    {"name": "Athens", "level": "sky"},
+    {"name": "Barcelona", "level": "orbit"},
+    {"name": "Atlanta", "level": "orbit"},
+    {"name": "Moscow", "level": "orbit"},
+    {"name": "Berlin", "level": "orbit"},
+    {"name": "Rome", "level": "orbit"},
+    {"name": "Seoul", "level": "orbit"},
+    {"name": "Munich", "level": "deepspace", "also": ["munchen"]},
+    {"name": "Mexico City", "level": "deepspace", "also": ["mexico"]},
+    {"name": "Montreal", "level": "deepspace"},
+    {"name": "Melbourne", "level": "deepspace"},
+    {"name": "Helsinki", "level": "deepspace"},
+    {"name": "Amsterdam", "level": "nebula"},
+    {"name": "Stockholm", "level": "nebula"},
+    {"name": "St. Louis", "level": "nebula", "also": ["saint louis"]},
+    {"name": "Antwerp", "level": "galaxy", "also": ["antwerpen"]}
+  ]
+}

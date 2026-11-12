@@ -22,7 +22,9 @@ Keep to this layout so the two maintainers rarely edit the same files:
 
 | Path | What lives there | Main owner |
 |---|---|---|
-| `src/game/data.js` | All questions and answers with their rarity levels | _fill in_ |
+| `questions/*.json` | **All questions and answers**, one file per topic (see `questions/README.md`) | _fill in_ |
+| `src/game/data.js` | Loads the question files (add an import line for each new topic) | _fill in_ |
+| `tools/question-bank.html` | Browse every question and answer by level (local only, blocked on the live site) | shared |
 | `src/game/engine.js` | Rules: matching answers, scoring, daily flight, altitude | _fill in_ |
 | `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board client | _fill in_ |
 | `src/ui/` | Screens (`app.js`), altitude meter (`stage.js`), `styles.css` | _fill in_ |
@@ -47,6 +49,7 @@ Keep to this layout so the two maintainers rarely edit the same files:
   year" (`YEAR_ROUNDS` in `data.js`). Lists cap at 250. A perfect flight is 1,000 points.
 - **Altitude is points.** 1 point = 1 step, 1,000 = the Moon, a named stage every 200 (`STAGES`).
   Don't reintroduce kilometres or curved scales.
+- **Questions live in `questions/`, never in code.** One JSON file per topic, answers one per line.
 - **Adding answers:** write each chart from most to least well known, then run
   `node scripts/retier.mjs --write`. It sets the levels from that order: about 35% Sky (never more than
   20), then Orbit, Deep Space, and only the obscure tail is Nebula. Galaxy is only the gem. High points

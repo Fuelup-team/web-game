@@ -1,0 +1,32 @@
+{
+  "topic": "Nuts",
+  "gem": "Kola nut",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "nut",
+      "prompt": "Name a nut.",
+      "blurb": "Peanuts count, even if a botanist winces. Almond stays in the sky.",
+      "seconds": 26,
+      "fact": "The kola nut is the bitter seed behind the old soda name, and almost nobody burns it."
+    }
+  ],
+  "answers": [
+    {"name": "Almond", "level": "sky"},
+    {"name": "Peanut", "level": "sky"},
+    {"name": "Cashew", "level": "sky"},
+    {"name": "Walnut", "level": "sky"},
+    {"name": "Pistachio", "level": "sky"},
+    {"name": "Hazelnut", "level": "orbit"},
+    {"name": "Pecan", "level": "orbit"},
+    {"name": "Chestnut", "level": "orbit"},
+    {"name": "Macadamia", "level": "orbit"},
+    {"name": "Brazil nut", "level": "deepspace"},
+    {"name": "Pine nut", "level": "deepspace"},
+    {"name": "Acorn", "level": "deepspace"},
+    {"name": "Kola nut", "level": "galaxy", "also": ["cola nut"]},
+    {"name": "Hickory", "level": "deepspace", "also": ["hickory nut"]},
+    {"name": "Beechnut", "level": "nebula"},
+    {"name": "Candlenut", "level": "nebula"}
+  ]
+}

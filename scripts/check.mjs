@@ -41,7 +41,25 @@ for (const file of [...filesUnder(join(root, "src"), ".js"), ...filesUnder(join(
   });
 }
 
-// 2. Questions load and pass the engine's own data rules (one Galaxy per burn, etc.).
+// 2. Every question file is valid and connected to the game.
+console.log("\nQuestion files");
+check("every questions/*.json file is valid JSON", () => {
+  for (const f of readdirSync(join(root, "questions")).filter((f) => f.endsWith(".json"))) {
+    try {
+      JSON.parse(readFileSync(join(root, "questions", f), "utf8"));
+    } catch (err) {
+      throw new Error(`${f}: ${err.message}`);
+    }
+  }
+});
+check("every topic file is imported in src/game/data.js", () => {
+  const loader = readFileSync(join(root, "src/game/data.js"), "utf8");
+  const missing = readdirSync(join(root, "questions"))
+    .filter((f) => f.endsWith(".json") && !loader.includes(`questions/${f}"`));
+  if (missing.length) throw new Error(`not imported: ${missing.join(", ")}`);
+});
+
+// 3. Questions load and pass the engine's own data rules (one Galaxy per burn, etc.).
 console.log("\nQuestions and rules");
 let engine;
 let data;
@@ -49,6 +67,10 @@ try {
   data = await import(pathToFileURL(join(root, "src/game/data.js")).href);
   engine = await import(pathToFileURL(join(root, "src/game/engine.js")).href);
   console.log("  ✓ data.js and engine.js load, data rules pass");
+  check("every topic in CHART_FILES is filled in", () => {
+    const empty = [...data.CHART_FILES.keys()].filter((i) => !data.CHART_FILES[i]?.answers);
+    if (empty.length) throw new Error(`empty slots at positions ${empty.join(", ")} (a doubled comma?)`);
+  });
 } catch (err) {
   failures++;
   console.log(`  ✗ data.js / engine.js failed to load\n      ${err.message}`);

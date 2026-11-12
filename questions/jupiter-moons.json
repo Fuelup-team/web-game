@@ -1,0 +1,26 @@
+{
+  "topic": "Moons of Jupiter",
+  "gem": "Himalia",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "jupiter",
+      "prompt": "Name a moon of Jupiter.",
+      "blurb": "Io is everyone's first moon. There are dozens past the famous four.",
+      "seconds": 28,
+      "fact": "Himalia is the largest of the outer swarm, a dark irregular moon named in 1904."
+    }
+  ],
+  "answers": [
+    {"name": "Io", "level": "sky"},
+    {"name": "Europa", "level": "sky"},
+    {"name": "Ganymede", "level": "sky"},
+    {"name": "Callisto", "level": "orbit"},
+    {"name": "Amalthea", "level": "orbit"},
+    {"name": "Himalia", "level": "galaxy"},
+    {"name": "Elara", "level": "deepspace"},
+    {"name": "Metis", "level": "deepspace"},
+    {"name": "Thebe", "level": "nebula"},
+    {"name": "Pasiphae", "level": "nebula"}
+  ]
+}

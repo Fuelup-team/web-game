@@ -1,0 +1,29 @@
+{
+  "topic": "Woodwind instruments",
+  "gem": "Contrabassoon",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "woodwind",
+      "prompt": "Name a woodwind instrument.",
+      "blurb": "The saxophone counts. The obvious flute does not climb.",
+      "seconds": 28,
+      "fact": "The contrabassoon growls an octave below the bassoon. It is the far woodwind."
+    }
+  ],
+  "answers": [
+    {"name": "Flute", "level": "sky"},
+    {"name": "Clarinet", "level": "sky"},
+    {"name": "Saxophone", "level": "sky", "also": ["sax"]},
+    {"name": "Piccolo", "level": "sky"},
+    {"name": "Oboe", "level": "orbit"},
+    {"name": "Bassoon", "level": "orbit"},
+    {"name": "Recorder", "level": "orbit"},
+    {"name": "English Horn", "level": "deepspace", "also": ["cor anglais"]},
+    {"name": "Bass Clarinet", "level": "deepspace"},
+    {"name": "Ocarina", "level": "deepspace"},
+    {"name": "Contrabassoon", "level": "galaxy"},
+    {"name": "Crumhorn", "level": "nebula"},
+    {"name": "Shawm", "level": "nebula"}
+  ]
+}

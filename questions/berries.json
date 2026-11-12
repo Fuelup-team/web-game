@@ -1,0 +1,34 @@
+{
+  "topic": "Berries",
+  "gem": "Cloudberry",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "berry",
+      "prompt": "Name a berry.",
+      "blurb": "Strawberry is real, and it stays in the sky. Go somewhere colder.",
+      "seconds": 26,
+      "fact": "Cloudberries grow on bogs in the far north, amber and sharp. Strawberries win the crowd."
+    }
+  ],
+  "answers": [
+    {"name": "Strawberry", "level": "sky"},
+    {"name": "Blueberry", "level": "sky"},
+    {"name": "Raspberry", "level": "sky"},
+    {"name": "Blackberry", "level": "sky"},
+    {"name": "Cranberry", "level": "sky"},
+    {"name": "Acai", "level": "sky"},
+    {"name": "Goji", "level": "orbit", "also": ["goji berry"]},
+    {"name": "Gooseberry", "level": "orbit"},
+    {"name": "Elderberry", "level": "orbit"},
+    {"name": "Mulberry", "level": "orbit"},
+    {"name": "Currant", "level": "deepspace", "also": ["blackcurrant", "redcurrant"]},
+    {"name": "Boysenberry", "level": "deepspace"},
+    {"name": "Lingonberry", "level": "deepspace"},
+    {"name": "Huckleberry", "level": "deepspace"},
+    {"name": "Bilberry", "level": "nebula"},
+    {"name": "Cloudberry", "level": "galaxy"},
+    {"name": "Salmonberry", "level": "nebula"},
+    {"name": "Loganberry", "level": "nebula"}
+  ]
+}

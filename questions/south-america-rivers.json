@@ -1,0 +1,28 @@
+{
+  "topic": "Rivers of South America",
+  "gem": "Sao Francisco",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "sa-river",
+      "prompt": "Name a major river in South America other than the Amazon.",
+      "blurb": "The Amazon itself is not accepted. Orinoco is the next reflex.",
+      "seconds": 30,
+      "fact": "The São Francisco runs mostly inside Brazil, long and rarely the first river named."
+    }
+  ],
+  "answers": [
+    {"name": "Orinoco", "level": "sky"},
+    {"name": "Parana", "level": "sky"},
+    {"name": "Paraguay", "level": "sky", "also": ["paraguay river"]},
+    {"name": "Uruguay", "level": "sky", "also": ["uruguay river"]},
+    {"name": "Magdalena", "level": "orbit"},
+    {"name": "Tocantins", "level": "orbit"},
+    {"name": "Araguaia", "level": "orbit"},
+    {"name": "Essequibo", "level": "deepspace"},
+    {"name": "Sao Francisco", "level": "galaxy", "also": ["sao francisco river"]},
+    {"name": "Mamore", "level": "deepspace"},
+    {"name": "Guaviare", "level": "nebula"},
+    {"name": "Pilcomayo", "level": "nebula"}
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "topic": "Countries bordering France",
+  "gem": "Suriname",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "france-border",
+      "prompt": "Name a country that shares a land border with France.",
+      "blurb": "Overseas borders count. Germany is the reflex. Look at the edges of the map.",
+      "seconds": 32,
+      "fact": "Brazil and Suriname touch French Guiana. Andorra is the small burn in the Pyrenees."
+    }
+  ],
+  "answers": [
+    {"name": "Germany", "level": "sky"},
+    {"name": "Spain", "level": "sky"},
+    {"name": "Italy", "level": "sky"},
+    {"name": "Belgium", "level": "sky"},
+    {"name": "Switzerland", "level": "orbit"},
+    {"name": "Luxembourg", "level": "orbit"},
+    {"name": "Monaco", "level": "deepspace"},
+    {"name": "Andorra", "level": "deepspace"},
+    {"name": "Brazil", "level": "nebula"},
+    {"name": "Suriname", "level": "galaxy"},
+    {"name": "Netherlands", "level": "nebula", "also": ["holland"]}
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "topic": "Bones below the knee",
+  "gem": "Cuboid",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "shank",
+      "prompt": "Name a bone below the knee.",
+      "blurb": "The kneecap is the knee, not below it. Tibia is the reflex.",
+      "seconds": 28,
+      "fact": "The cuboid sits on the outer foot. Tibia is the bone everyone can picture."
+    }
+  ],
+  "answers": [
+    {"name": "Tibia", "level": "sky", "also": ["shin", "shin bone"]},
+    {"name": "Fibula", "level": "sky"},
+    {"name": "Calcaneus", "level": "sky", "also": ["heel", "heel bone"]},
+    {"name": "Talus", "level": "orbit"},
+    {"name": "Metatarsal", "level": "orbit", "also": ["metatarsals"]},
+    {"name": "Phalanx", "level": "deepspace", "also": ["toe bone", "phalanges"]},
+    {"name": "Navicular", "level": "deepspace"},
+    {"name": "Cuboid", "level": "galaxy"},
+    {"name": "Cuneiform", "level": "nebula"}
+  ]
+}

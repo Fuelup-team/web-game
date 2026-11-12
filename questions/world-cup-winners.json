@@ -1,0 +1,24 @@
+{
+  "topic": "Men's FIFA World Cup winners",
+  "gem": "Uruguay",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "world-cup-one",
+      "prompt": "Name a country that has won the men's FIFA World Cup.",
+      "blurb": "Brazil is everyone's answer. Think back to the first tournaments.",
+      "seconds": 24,
+      "fact": "Uruguay won the first World Cup in 1930 and won again in 1950."
+    }
+  ],
+  "answers": [
+    {"name": "Brazil", "level": "sky"},
+    {"name": "Germany", "level": "sky", "also": ["west germany"]},
+    {"name": "Argentina", "level": "orbit"},
+    {"name": "France", "level": "orbit"},
+    {"name": "Italy", "level": "deepspace"},
+    {"name": "Spain", "level": "deepspace"},
+    {"name": "England", "level": "nebula"},
+    {"name": "Uruguay", "level": "galaxy"}
+  ]
+}

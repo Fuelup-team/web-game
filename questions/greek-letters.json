@@ -1,0 +1,48 @@
+{
+  "topic": "Greek letters",
+  "gem": "Upsilon",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "greek-letters",
+      "prompt": "Name as many letters of the Greek alphabet as you can.",
+      "blurb": "There are 24. Alpha and omega are easy. The middle of the alphabet is not.",
+      "seconds": 40,
+      "fact": "Upsilon is the 20th Greek letter. The Latin letter Y comes from it."
+    },
+    {
+      "kind": "rare",
+      "id": "greek-one",
+      "prompt": "Name a letter of the Greek alphabet.",
+      "blurb": "One letter. Alpha is everyone's first. The quiet middle letters score.",
+      "seconds": 24,
+      "fact": "Upsilon is the 20th Greek letter. The Latin letter Y comes from it."
+    }
+  ],
+  "answers": [
+    {"name": "Alpha", "level": "sky"},
+    {"name": "Beta", "level": "sky"},
+    {"name": "Omega", "level": "sky"},
+    {"name": "Delta", "level": "sky"},
+    {"name": "Gamma", "level": "sky"},
+    {"name": "Pi", "level": "sky"},
+    {"name": "Sigma", "level": "sky"},
+    {"name": "Theta", "level": "sky"},
+    {"name": "Lambda", "level": "orbit"},
+    {"name": "Epsilon", "level": "orbit"},
+    {"name": "Omicron", "level": "orbit"},
+    {"name": "Mu", "level": "orbit"},
+    {"name": "Phi", "level": "orbit"},
+    {"name": "Psi", "level": "orbit"},
+    {"name": "Kappa", "level": "deepspace"},
+    {"name": "Zeta", "level": "deepspace"},
+    {"name": "Tau", "level": "deepspace"},
+    {"name": "Rho", "level": "deepspace"},
+    {"name": "Chi", "level": "deepspace"},
+    {"name": "Iota", "level": "nebula"},
+    {"name": "Eta", "level": "nebula"},
+    {"name": "Nu", "level": "nebula"},
+    {"name": "Xi", "level": "nebula"},
+    {"name": "Upsilon", "level": "galaxy"}
+  ]
+}

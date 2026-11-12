@@ -1,0 +1,51 @@
+{
+  "topic": "Island countries",
+  "gem": "Tuvalu",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "island",
+      "prompt": "Name a country made entirely of islands.",
+      "blurb": "Japan, the UK, and Australia are the crowded lift. A small flag goes farther.",
+      "seconds": 30,
+      "fact": "Tuvalu's highest point is under five metres. It is a country the room does not reach."
+    }
+  ],
+  "answers": [
+    {"name": "Australia", "level": "sky"},
+    {"name": "Japan", "level": "sky"},
+    {"name": "United Kingdom", "level": "sky", "also": ["uk", "britain"]},
+    {"name": "Indonesia", "level": "sky"},
+    {"name": "Philippines", "level": "sky"},
+    {"name": "New Zealand", "level": "sky"},
+    {"name": "Iceland", "level": "sky"},
+    {"name": "Ireland", "level": "sky"},
+    {"name": "Madagascar", "level": "sky"},
+    {"name": "Cuba", "level": "sky"},
+    {"name": "Sri Lanka", "level": "sky"},
+    {"name": "Taiwan", "level": "sky"},
+    {"name": "Papua New Guinea", "level": "orbit"},
+    {"name": "Singapore", "level": "orbit"},
+    {"name": "Malta", "level": "orbit"},
+    {"name": "Cyprus", "level": "orbit"},
+    {"name": "Jamaica", "level": "orbit"},
+    {"name": "Haiti", "level": "orbit"},
+    {"name": "Dominican Republic", "level": "orbit"},
+    {"name": "Bahrain", "level": "orbit"},
+    {"name": "Fiji", "level": "orbit"},
+    {"name": "Mauritius", "level": "deepspace"},
+    {"name": "Trinidad and Tobago", "level": "deepspace", "also": ["trinidad"]},
+    {"name": "Maldives", "level": "deepspace"},
+    {"name": "Seychelles", "level": "deepspace"},
+    {"name": "Comoros", "level": "deepspace"},
+    {"name": "Nauru", "level": "deepspace"},
+    {"name": "Tuvalu", "level": "galaxy"},
+    {"name": "Palau", "level": "deepspace"},
+    {"name": "Kiribati", "level": "deepspace"},
+    {"name": "Tonga", "level": "nebula"},
+    {"name": "Samoa", "level": "nebula"},
+    {"name": "Vanuatu", "level": "nebula"},
+    {"name": "Cabo Verde", "level": "nebula", "also": ["cape verde"]},
+    {"name": "Barbados", "level": "nebula"}
+  ]
+}

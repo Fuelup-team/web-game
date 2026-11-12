@@ -1,0 +1,42 @@
+{
+  "topic": "NATO phonetic alphabet",
+  "gem": "Juliett",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "phonetic-list",
+      "prompt": "Name as many words of the NATO phonetic alphabet as you can.",
+      "blurb": "Alfa, Bravo, Charlie. The middle of the alphabet is where it gets hard.",
+      "seconds": 42,
+      "fact": "It's spelled Juliett with two Ts so French speakers don't read the final T as silent."
+    }
+  ],
+  "answers": [
+    {"name": "Alfa", "level": "sky", "also": ["alpha"]},
+    {"name": "Bravo", "level": "sky"},
+    {"name": "Charlie", "level": "sky"},
+    {"name": "Delta", "level": "sky"},
+    {"name": "Echo", "level": "sky"},
+    {"name": "Foxtrot", "level": "sky"},
+    {"name": "Tango", "level": "sky"},
+    {"name": "Zulu", "level": "sky"},
+    {"name": "Romeo", "level": "sky"},
+    {"name": "Oscar", "level": "orbit"},
+    {"name": "Victor", "level": "orbit"},
+    {"name": "Whiskey", "level": "orbit", "also": ["whisky"]},
+    {"name": "X-ray", "level": "orbit", "also": ["xray"]},
+    {"name": "Yankee", "level": "orbit"},
+    {"name": "Hotel", "level": "orbit"},
+    {"name": "Golf", "level": "deepspace"},
+    {"name": "India", "level": "deepspace"},
+    {"name": "Lima", "level": "deepspace"},
+    {"name": "Mike", "level": "deepspace"},
+    {"name": "November", "level": "deepspace"},
+    {"name": "Papa", "level": "deepspace"},
+    {"name": "Quebec", "level": "nebula"},
+    {"name": "Sierra", "level": "nebula"},
+    {"name": "Kilo", "level": "nebula"},
+    {"name": "Uniform", "level": "nebula"},
+    {"name": "Juliett", "level": "galaxy", "also": ["juliet"]}
+  ]
+}

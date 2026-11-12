@@ -1,0 +1,21 @@
+{
+  "topic": "Dwarf planets",
+  "gem": "Makemake",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "dwarf-planet-one",
+      "prompt": "Name a dwarf planet in our solar system.",
+      "blurb": "Pluto is everyone's answer. There are others out there.",
+      "seconds": 24,
+      "fact": "Makemake is a dwarf planet beyond Neptune, named after a creator god of the Rapa Nui people of Easter Island."
+    }
+  ],
+  "answers": [
+    {"name": "Pluto", "level": "sky"},
+    {"name": "Ceres", "level": "orbit"},
+    {"name": "Eris", "level": "deepspace"},
+    {"name": "Haumea", "level": "nebula"},
+    {"name": "Makemake", "level": "galaxy"}
+  ]
+}

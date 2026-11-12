@@ -1,0 +1,23 @@
+{
+  "topic": "Noble gases",
+  "gem": "Oganesson",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "noble",
+      "prompt": "Name a noble gas.",
+      "blurb": "Helium fills the balloon and almost no altitude. The last gas on the table is the far one.",
+      "seconds": 26,
+      "fact": "Oganesson is the newest noble gas, element 118, and it does not behave like a polite gas at all."
+    }
+  ],
+  "answers": [
+    {"name": "Helium", "level": "sky"},
+    {"name": "Neon", "level": "sky"},
+    {"name": "Argon", "level": "orbit"},
+    {"name": "Krypton", "level": "orbit"},
+    {"name": "Xenon", "level": "deepspace"},
+    {"name": "Radon", "level": "nebula"},
+    {"name": "Oganesson", "level": "galaxy"}
+  ]
+}
