@@ -1247,13 +1247,6 @@ input:focus {
   overflow: hidden;
   background: #06122e;
 }
-.stage-sky {
-  inset: auto 0 0 0;
-  width: 100%;
-  height: 280%;
-  object-fit: cover;
-  object-position: center bottom;
-}
 .stage-dark {
   position: absolute;
   inset: 0;

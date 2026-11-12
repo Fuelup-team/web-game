@@ -1,22 +1,20 @@
-// The rocket stays on screen. A better answer scrolls the sky further and longer,
-// so the climb feels high without the ship leaving the frame.
+// The original star picture stays as it is. A better answer lifts the rocket
+// and darkens the sky. A worse answer than the last one brings both back down.
 import { h } from "./dom.js";
-import { altitudeFor, zoneFor, formatKm } from "../game/engine.js";
+import { altitudeFor, zoneFor, formatKm, TIER_RANK } from "../game/engine.js";
 
 function art(file) {
   const base = typeof window !== "undefined" && window.__FUEL_BASE ? window.__FUEL_BASE : "";
   return base + "public/art/" + file;
 }
 
-// Extra sky travel on top of the score, in "screens" of scroll.
-const SURGE = { drift: 0.06, sky: 0.12, orbit: 0.32, deepspace: 0.62, nebula: 0.95, galaxy: 1.25 };
-// The whole climb, including the long coast after the fast start.
-const TIME = { drift: 2600, sky: 3400, orbit: 4600, deepspace: 6000, nebula: 7400, galaxy: 8800 };
-const RATE = { drift: 16, sky: 22, orbit: 34, deepspace: 48, nebula: 62, galaxy: 80 };
+const TIME = { drift: 4200, sky: 4800, orbit: 5600, deepspace: 6800, nebula: 8000, galaxy: 9200 };
+const RATE = { drift: 10, sky: 16, orbit: 28, deepspace: 42, nebula: 56, galaxy: 72 };
 const FLAME = ["#fffaf2", "#f4ead8", "#e7dcc8", "#d8d2c8", "#c4622d", "#f7f3ea"];
 
-function camFor(score) {
-  return (1 - Math.exp(-Math.max(0, score) / 160)) * 1.15;
+function heightFor(tier) {
+  const rank = TIER_RANK[tier] ?? 0;
+  return rank / 5;
 }
 
 export function createStage() {
@@ -51,11 +49,12 @@ export function createStage() {
   let frame = 0;
 
   function paint(cam) {
-    const rocketBottom = Math.min(32, 16 + Math.min(cam, 1.2) * 10);
+    const rocketBottom = 16 + cam * 14;
     ship.style.bottom = `${rocketBottom}%`;
-    sky.style.transform = `translateY(${cam * 26}%)`;
-    station.style.transform = `translateX(-50%) translateY(${cam * 55}%)`;
-    dark.style.opacity = String(Math.min(0.78, cam * 0.34));
+    sky.style.objectPosition = `center ${72 - cam * 28}%`;
+    sky.style.transform = "none";
+    station.style.transform = `translateX(-50%) translateY(${cam * 70}%)`;
+    dark.style.opacity = String(cam * 0.72);
     km.textContent = formatKm(altitudeFor(score));
     zone.textContent = zoneFor(altitudeFor(score)).name;
   }
@@ -67,7 +66,7 @@ export function createStage() {
     bit.style.height = `${size}px`;
     bit.style.background = FLAME[Math.floor(Math.random() * FLAME.length)];
     bit.style.marginLeft = `${Math.round((Math.random() - 0.5) * 10)}px`;
-    bit.style.setProperty("--fall", `${18 + Math.round(Math.random() * (flame === "galaxy" ? 64 : 36))}px`);
+    bit.style.setProperty("--fall", `${16 + Math.round(Math.random() * 40)}px`);
     ship.append(bit);
     setTimeout(() => bit.remove(), 720);
   }
@@ -75,19 +74,19 @@ export function createStage() {
   function tick(now) {
     if (animAt) {
       const p = Math.min(1, (now - animAt) / animMs);
+      const span = peak - from;
       let cam;
-      if (p < 0.16) {
-        const e = 1 - Math.pow(1 - p / 0.16, 3);
-        cam = from + (peak - from) * e;
+      if (p < 0.18) {
+        const e = 1 - Math.pow(1 - p / 0.18, 3);
+        cam = from + span * e;
       } else {
-        const e = (p - 0.16) / 0.84;
+        const e = (p - 0.18) / 0.82;
         cam = peak + (dest - peak) * (e * e);
       }
       shown = cam;
-      if (flame && now - lastFlame > 1000 / (RATE[flame] || 22)) {
+      if (flame && now - lastFlame > 1000 / (RATE[flame] || 16)) {
         lastFlame = now;
-        const n = flame === "galaxy" || flame === "nebula" ? 2 : 1;
-        for (let i = 0; i < n; i++) emit();
+        emit();
       }
       if (p >= 1) {
         animAt = 0;
@@ -111,18 +110,19 @@ export function createStage() {
 
   function setScore(next) {
     score = next;
-    const nextDest = camFor(score);
-    launch(nextDest, nextDest, 700, null);
+    paint(shown);
   }
 
-  /** Common barely lifts the sky. Galaxy keeps the stars moving for a long time. */
+  /**
+   * Match the sky to this answer. A rarer one climbs. A worse one than the
+   * last answer sinks back toward the original night.
+   */
   function boost(tier = "sky") {
     const key = tier === true ? "galaxy" : tier === false || !tier ? "sky" : tier;
-    const surge = SURGE[key] ?? 0.12;
-    const base = camFor(score);
-    const nextPeak = base + surge;
-    const stay = base + surge * 0.84;
-    launch(nextPeak, stay, TIME[key] || 3400, key);
+    const next = heightFor(key);
+    const goingDown = next < shown - 0.04;
+    const nextPeak = goingDown ? next : Math.min(1, next + (TIER_RANK[key] >= 4 ? 0.06 : 0.02));
+    launch(nextPeak, next, goingDown ? 6400 : TIME[key] || 4800, goingDown ? null : key);
     rocket.classList.remove("is-burning");
     void rocket.offsetWidth;
     rocket.classList.add("is-burning");
