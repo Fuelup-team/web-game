@@ -574,7 +574,7 @@ function renderBurn() {
     if (result.best) playHit(result.best, muted());
     stage.setScore(stageScore());
     const top = result.best === TOP_LEVEL ? result.hits.findLast((x) => x.tier === TOP_LEVEL) : null;
-    stage.boost(!!top);
+    stage.boost(result.best || "sky");
     if (top) celebrateTop(top.canonical, top.points);
     if (round.kind === "list") input.focus();
     else finishBurn("seal");
