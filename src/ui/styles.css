@@ -293,17 +293,17 @@ input:focus {
  * Rarity levels: one color per level, used everywhere a level appears.
  * --lvl is the level color (text on cream, pill background),
  * --lvl-ink is the text color on a filled --lvl pill.
- *   Sky (Common) blue · Orbit (Uncommon) teal · Deep Space (Rare) indigo
- *   Nebula (Very rare) purple · Galaxy (Ultra rare) gold · Off course red
+ *   Sky (Common) gray · Orbit (Uncommon) green · Deep Space (Rare) red
+ *   Nebula (Very rare) purple · Galaxy (Ultra rare) gold · Off course gray
  */
 :root {
-  --level-sky: #2c6a99;
-  --level-orbit: #11756a;
-  --level-deepspace: #3446b0;
-  --level-nebula: #8a2fa8;
-  --level-galaxy: #a36d00;
-  --level-galaxy-fill: #f0b429;
-  --level-drift: #a5402f;
+  --level-sky: #8b9098;
+  --level-orbit: #1f9d55;
+  --level-deepspace: #d12b2b;
+  --level-nebula: #9b4dff;
+  --level-galaxy: #e2b03a;
+  --level-galaxy-fill: #f5c542;
+  --level-drift: #5c6168;
 }
 .tier-sky {
   --lvl: var(--level-sky);
@@ -973,23 +973,21 @@ input:focus {
 @media (width<=720px) {
   .fuel-app.is-typing .flight {
     z-index: 6;
-    background: var(--color-void);
-    grid-template-rows: auto;
+    background: transparent;
     width: 100%;
-    height: auto;
+    height: var(--vvh, 100dvh);
     min-height: 0;
-    max-height: none;
+    max-height: var(--vvh, 100dvh);
     position: fixed;
-    top: 0;
+    top: var(--vv-top, 0px);
     left: 0;
     right: 0;
-    overflow: visible;
-  }
-  .fuel-app.is-typing .stage {
-    display: none;
+    overflow: hidden;
+    display: block;
   }
   .fuel-app.is-typing .deck {
-    overflow: visible;
+    overflow: auto;
+    max-height: 100%;
   }
   .fuel-app.is-typing .play-card {
     margin: 0.35rem 0.6rem 0.6rem;
@@ -1010,18 +1008,20 @@ input:focus {
   width: 100%;
   height: var(--vvh, 100dvh);
   z-index: 4;
-  grid-template-rows: 72px minmax(0, 1fr);
-  grid-template-columns: 1fr;
   min-height: 0;
   position: fixed;
   left: 0;
   right: 0;
+  display: block;
+  overflow: hidden;
+  background: transparent;
 }
 .fuel-app.is-keyboard .stage {
-  height: auto;
-  min-height: 0;
-  position: relative;
-  top: auto;
+  display: block;
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  min-height: 100%;
 }
 .fuel-app.is-keyboard .deck {
   min-height: 0;
@@ -1069,24 +1069,21 @@ input:focus {
   .fuel-app.is-typing .flight {
     top: var(--vv-top, 0px);
     z-index: 8;
-    background: var(--color-void);
-    grid-template-rows: auto;
-    grid-template-columns: 1fr;
+    background: transparent;
     width: 100%;
-    height: auto;
+    height: var(--vvh, 100dvh);
     min-height: 0;
-    max-height: none;
+    max-height: var(--vvh, 100dvh);
     position: fixed;
     left: 0;
     right: 0;
-    overflow: visible;
-  }
-  .fuel-app.is-typing .stage {
-    display: none;
+    overflow: hidden;
+    display: block;
   }
   .fuel-app.is-typing .deck {
     min-height: 0;
-    overflow: visible;
+    overflow: auto;
+    max-height: 100%;
   }
   .fuel-app.is-typing .play-card {
     flex: none;
@@ -1239,13 +1236,64 @@ input:focus {
   background: #06122e;
 }
 .stage {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
-  min-height: 100%;
-  height: auto;
+  width: 100%;
+  height: 100dvh;
+  height: var(--vvh, 100dvh);
+  top: var(--vv-top, 0px);
   pointer-events: none;
   background: #06122e;
+}
+.stage-dark {
+  position: absolute;
+  inset: 0;
+  background: #01030a;
+  opacity: 0;
+  pointer-events: none;
+}
+.stage-station {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(92vw, 560px);
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: transform 0.7s cubic-bezier(0.16, 0.84, 0.3, 1);
+}
+.stage-rocket {
+  left: 54%;
+  right: auto;
+  width: min(30vw, 168px);
+  filter: none;
+  z-index: 2;
+  transition: bottom 0.15s linear;
+}
+.plume {
+  position: absolute;
+  z-index: 2;
+  width: 6px;
+  height: 6px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: plume-fall 0.7s ease-in forwards;
+}
+@keyframes plume-fall {
+  to { transform: translateY(var(--fall, 70px)); opacity: 0; }
+}
+.stage-rocket.is-boost,
+.stage-rocket.is-boost-big {
+  animation: rocket-kick 0.55s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+.stage-rocket.is-boost-big { animation-duration: 0.85s; }
+@keyframes rocket-kick {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.45); }
+  100% { filter: brightness(1); }
 }
 .deck {
   position: relative;
@@ -1276,22 +1324,6 @@ input:focus {
 .flight .brand {
   color: #f3e6d0;
 }
-.stage-rocket {
-  left: auto;
-  right: 7%;
-  width: min(24vw, 150px);
-  filter: none;
-}
-.stage-rocket.is-boost,
-.stage-rocket.is-boost-big {
-  animation: rocket-kick 0.45s ease;
-}
-.stage-rocket.is-boost-big {
-  animation-duration: 0.7s;
-}
-@keyframes rocket-kick {
-  40% { transform: translateY(-10px); }
-}
 .lamps {
   display: flex;
   align-items: center;
@@ -1311,30 +1343,28 @@ input:focus {
   animation: lamp-pop 0.35s ease both;
 }
 .lamp-drift.is-lit,
-.chip-lamp.lamp-drift { background: #6e6a66; }
+.chip-lamp.lamp-drift { background: #6e7278; }
 .lamp-sky.is-lit,
-.chip-lamp.lamp-sky { background: #9a948c; }
+.chip-lamp.lamp-sky { background: #b7bcc4; box-shadow: 0 0 6px #b7bcc4; }
 .lamp-orbit.is-lit,
-.chip-lamp.lamp-orbit { background: #c4a574; box-shadow: 0 0 8px #c4a574; }
+.chip-lamp.lamp-orbit { background: #3dba6a; box-shadow: 0 0 10px #3dba6a; }
 .lamp-deepspace.is-lit,
-.chip-lamp.lamp-deepspace { background: #f0c14a; box-shadow: 0 0 10px #f0c14a; }
+.chip-lamp.lamp-deepspace { background: #e23b3b; box-shadow: 0 0 12px #e23b3b; }
 .lamp-nebula.is-lit,
-.chip-lamp.lamp-nebula { background: #ffe08a; box-shadow: 0 0 12px #ffe08a; }
+.chip-lamp.lamp-nebula { background: #b06cff; box-shadow: 0 0 14px #b06cff; }
 .lamp-galaxy.is-lit,
-.chip-lamp.lamp-galaxy { background: #fff1a8; box-shadow: 0 0 16px 4px #ffe56a; }
+.chip-lamp.lamp-galaxy { background: #ffe56a; box-shadow: 0 0 16px 4px #ffe56a; }
 .lamp.is-here {
   animation: lamp-pop 0.35s ease both, lamp-shine 1.15s ease-in-out 0.35s infinite;
 }
-.chip.tier-sky { background: #eceae6; box-shadow: inset 0 0 0 1.5px #8d8882; }
-.chip.tier-orbit { box-shadow: inset 0 0 0 1.5px #c4a574, 0 0 8px rgba(196, 165, 116, 0.45); }
-.chip.tier-deepspace { box-shadow: inset 0 0 0 1.5px #f0c14a, 0 0 12px rgba(240, 193, 74, 0.55); }
-.chip.tier-nebula,
+.chip.tier-sky { background: #eceff3; box-shadow: inset 0 0 0 1.5px #8b9098; }
+.chip.tier-orbit { background: #e7f8ee; box-shadow: inset 0 0 0 1.5px #1f9d55, 0 0 10px rgba(61, 186, 106, 0.55); }
+.chip.tier-deepspace { background: #fde8e8; box-shadow: inset 0 0 0 1.5px #d12b2b, 0 0 12px rgba(209, 43, 43, 0.55); }
+.chip.tier-nebula { background: #f3e8ff; box-shadow: inset 0 0 0 1.5px #9b4dff, 0 0 14px rgba(155, 77, 255, 0.6); animation: chip-shine 1.3s ease-in-out infinite; }
 .chip.tier-galaxy {
   background: #fff6d0;
-  animation: chip-shine 1.3s ease-in-out infinite;
-}
-.chip.tier-galaxy {
-  box-shadow: inset 0 0 0 2px #ffe56a, 0 0 16px #ffe56a;
+  box-shadow: inset 0 0 0 2px #f5c542, 0 0 16px #f5c542;
+  animation: chip-shine 1.1s ease-in-out infinite;
 }
 @keyframes lamp-pop {
   0% { transform: scale(0.4); }
@@ -1375,8 +1405,16 @@ input:focus {
   .chip.tier-nebula,
   .chip.tier-galaxy,
   .stage-rocket.is-boost,
-  .stage-rocket.is-boost-big {
+  .stage-rocket.is-boost-big,
+  .plume,
+  .stage-station {
     animation: none;
+    transition: none;
   }
+}
+.fuel-app.is-keyboard .play-card,
+.fuel-app.is-typing .play-card {
+  overflow: visible;
+  max-height: none;
 }
 
