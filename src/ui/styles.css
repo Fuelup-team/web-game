@@ -1258,7 +1258,7 @@ input:focus {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: min(92vw, 560px);
+  width: min(100vw, 560px);
   height: auto;
   transform: translateX(-50%);
   z-index: 1;
@@ -1282,8 +1282,8 @@ input:focus {
 }
 .stage-ship {
   position: absolute;
-  left: 54%;
-  width: min(30vw, 168px);
+  left: 42%;
+  width: min(28vw, 150px);
   z-index: 2;
   pointer-events: none;
 }

@@ -8,7 +8,7 @@ function art(file) {
   return base + "public/art/" + file;
 }
 
-const TIME = { drift: 4200, sky: 4800, orbit: 5600, deepspace: 6800, nebula: 8000, galaxy: 9200 };
+const TIME = { drift: 5600, sky: 6800, orbit: 8200, deepspace: 9800, nebula: 11400, galaxy: 13200 };
 const RATE = { drift: 10, sky: 16, orbit: 28, deepspace: 42, nebula: 56, galaxy: 72 };
 const FLAME = ["#fffaf2", "#f4ead8", "#e7dcc8", "#d8d2c8", "#c4622d", "#f7f3ea"];
 
@@ -49,12 +49,12 @@ export function createStage() {
   let frame = 0;
 
   function paint(cam) {
-    const rocketBottom = 16 + cam * 14;
+    const rocketBottom = 10 + cam * 48;
     ship.style.bottom = `${rocketBottom}%`;
-    sky.style.objectPosition = `center ${72 - cam * 28}%`;
+    sky.style.objectPosition = `center ${84 - cam * 58}%`;
     sky.style.transform = "none";
-    station.style.transform = `translateX(-50%) translateY(${cam * 70}%)`;
-    dark.style.opacity = String(cam * 0.72);
+    station.style.transform = `translateX(-50%) translateY(${cam * 110}%)`;
+    dark.style.opacity = String(Math.min(0.86, cam * 0.9));
     km.textContent = formatKm(altitudeFor(score));
     zone.textContent = zoneFor(altitudeFor(score)).name;
   }
@@ -76,11 +76,11 @@ export function createStage() {
       const p = Math.min(1, (now - animAt) / animMs);
       const span = peak - from;
       let cam;
-      if (p < 0.18) {
-        const e = 1 - Math.pow(1 - p / 0.18, 3);
+      if (p < 0.1) {
+        const e = 1 - Math.pow(1 - p / 0.1, 3);
         cam = from + span * e;
       } else {
-        const e = (p - 0.18) / 0.82;
+        const e = (p - 0.1) / 0.9;
         cam = peak + (dest - peak) * (e * e);
       }
       shown = cam;
