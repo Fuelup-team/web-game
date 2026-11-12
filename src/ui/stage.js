@@ -1,113 +1,54 @@
-// The flight backdrop: photos that fade from pad to Earth to Moon, twinkling
-// stars, the rocket rising with your score, and an exhaust puff on each hit.
+// Pixel night sky and a transparent rocket that climbs with the score.
 import { h } from "./dom.js";
 import { altitudeFor, zoneFor, formatKm } from "../game/engine.js";
 
+function art(file) {
+  const base = typeof window !== "undefined" && window.__FUEL_BASE ? window.__FUEL_BASE : "";
+  return base + "public/art/" + file;
+}
+
 /** Rocket height on screen, as % from the bottom. */
 function rocketBottom(score) {
-  return 11 + (1 - Math.exp(-Math.max(0, score) / 230)) * 56;
+  return 8 + (1 - Math.exp(-Math.max(0, score) / 230)) * 58;
 }
 
 export function createStage() {
-  const pad = h("img", { className: "stage-photo", src: "public/art/pad.jpg", alt: "" });
-  const earth = h("img", { className: "stage-photo", src: "public/art/earth.jpg", alt: "" });
-  const moon = h("img", { className: "stage-photo", src: "public/art/moon.jpg", alt: "" });
-  const canvas = h("canvas", { className: "stage-stars" });
-  const rocket = h("img", { className: "stage-rocket", src: "public/art/rocket.png", alt: "" });
+  const sky = h("img", { className: "stage-photo stage-sky", src: art("stars.jpg"), alt: "" });
+  const rocket = h("img", { className: "stage-rocket", src: art("rocket-pixel.png"), alt: "" });
   const km = h("p", { className: "stage-km" });
   const zone = h("p", { className: "stage-zone" });
 
   const el = h(
     "div",
     { className: "stage" },
-    pad,
-    earth,
-    moon,
-    canvas,
-    h("div", { className: "stage-scrim" }),
+    sky,
     rocket,
     h("div", { className: "stage-readout" }, h("p", { className: "stage-kicker" }, "Altitude"), km, zone),
     h("ol", { className: "stage-scale" }, h("li", {}, "Moon"), h("li", {}, "Cislunar"), h("li", {}, "Orbit"), h("li", {}, "Pad")),
   );
 
   let score = 0;
-  let boostAt = 0;
-  let boostLength = 800; // ms; longer and bigger for a top answer
-  let boostSize = 1;
 
   function setScore(next) {
     score = next;
     const alt = altitudeFor(score);
-    pad.style.opacity = Math.max(0, 1 - score / 240);
-    earth.style.opacity = Math.min(1, 0.2 + score / 160);
-    moon.style.opacity = Math.max(0, Math.min(1, (score - 340) / 400));
+    const lift = 1 - Math.exp(-Math.max(0, score) / 230);
+    sky.style.objectPosition = `center ${70 - lift * 36}%`;
     rocket.style.bottom = `${rocketBottom(score)}%`;
     km.textContent = formatKm(alt);
     zone.textContent = zoneFor(alt).name;
   }
 
-  // Star field + exhaust, drawn every frame while the stage is on screen.
-  const ctx = canvas.getContext("2d");
-  const stars = Array.from({ length: 64 }, () => ({
-    x: Math.random(),
-    y: Math.random(),
-    r: Math.random() * 1.25 + 0.25,
-    phase: Math.random() * Math.PI * 2,
-  }));
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let frame = 0;
-
-  function draw(now) {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = Math.max(1, Math.floor(rect.width * dpr));
-    const hgt = Math.max(1, Math.floor(rect.height * dpr));
-    if (canvas.width !== w || canvas.height !== hgt) {
-      canvas.width = w;
-      canvas.height = hgt;
-    }
-    ctx.clearRect(0, 0, w, hgt);
-    for (const s of stars) {
-      const alpha = reduceMotion ? 0.7 : 0.3 + Math.abs(Math.sin(now / 800 + s.phase)) * 0.55;
-      ctx.fillStyle = `rgba(244, 234, 216, ${alpha})`;
-      ctx.beginPath();
-      ctx.arc(s.x * w, s.y * hgt * 0.8, s.r * dpr, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    const strength = boostAt > 0 ? Math.max(0, 1 - (now - boostAt) / boostLength) : 0;
-    if (strength > 0 && !reduceMotion) {
-      const y = hgt * (1 - rocketBottom(score) / 100);
-      const count = Math.round(12 * boostSize);
-      for (let i = 0; i < count; i++) {
-        const t = ((now / 50 + i * 19) % 100) / 100;
-        ctx.fillStyle = `rgba(242, 193, 78, ${strength * (1 - t) * 0.75})`;
-        ctx.beginPath();
-        ctx.arc(
-          w * 0.38 - t * w * 0.16 * boostSize,
-          y + Math.sin(i + now / 200) * 6 * dpr * boostSize,
-          (2.4 - t * 1.4) * dpr * boostSize,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-      }
-    }
-    frame = requestAnimationFrame(draw);
-  }
-  frame = requestAnimationFrame(draw);
-
   setScore(0);
   return {
     el,
     setScore,
-    /** Puff of exhaust after a logged answer; `big` for a top answer. */
+    /** A little kick on the rocket after a logged answer; `big` for a top answer. */
     boost(big = false) {
-      boostAt = performance.now();
-      boostLength = big ? 1800 : 800;
-      boostSize = big ? 2.2 : 1;
+      rocket.classList.remove("is-boost", "is-boost-big");
+      void rocket.offsetWidth;
+      rocket.classList.add(big ? "is-boost-big" : "is-boost");
     },
-    destroy() {
-      cancelAnimationFrame(frame);
-    },
+    destroy() {},
   };
 }
