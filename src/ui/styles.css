@@ -289,30 +289,146 @@ input:focus {
   font-style: normal;
   display: flex;
 }
-/* Rarity levels: the farther out, the rarer. Colors read on the cream card. */
+/*
+ * Rarity levels: one color per level, used everywhere a level appears.
+ * --lvl is the level color (text on cream, pill background),
+ * --lvl-ink is the text color on a filled --lvl pill.
+ *   Sky (Common) blue · Orbit (Uncommon) teal · Deep Space (Rare) indigo
+ *   Nebula (Very rare) purple · Galaxy (Ultra rare) gold · Off course red
+ */
+:root {
+  --level-sky: #2c6a99;
+  --level-orbit: #11756a;
+  --level-deepspace: #3446b0;
+  --level-nebula: #8a2fa8;
+  --level-galaxy: #a36d00;
+  --level-galaxy-fill: #f0b429;
+  --level-drift: #a5402f;
+}
 .tier-sky {
-  color: #7a6a58;
+  --lvl: var(--level-sky);
+  --lvl-fill: var(--level-sky);
+  --lvl-ink: #fff;
+  color: var(--lvl);
 }
 .tier-orbit {
-  color: #23707a;
+  --lvl: var(--level-orbit);
+  --lvl-fill: var(--level-orbit);
+  --lvl-ink: #fff;
+  color: var(--lvl);
 }
 .tier-deepspace {
-  color: #2d559a;
+  --lvl: var(--level-deepspace);
+  --lvl-fill: var(--level-deepspace);
+  --lvl-ink: #fff;
+  color: var(--lvl);
 }
 .tier-nebula {
-  color: #7a3f9e;
+  --lvl: var(--level-nebula);
+  --lvl-fill: var(--level-nebula);
+  --lvl-ink: #fff;
+  color: var(--lvl);
 }
 .tier-galaxy {
-  color: #9a6400;
+  --lvl: var(--level-galaxy);
+  --lvl-fill: var(--level-galaxy-fill);
+  --lvl-ink: #1c140c;
+  color: var(--lvl);
 }
 .tier-drift {
-  color: #a24a3d;
+  --lvl: var(--level-drift);
+  --lvl-fill: var(--level-drift);
+  --lvl-ink: #fff;
+  color: var(--lvl);
 }
+
+/* Filled pill: "GALAXY · ULTRA RARE · +100" */
+.level-pill {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  background: var(--lvl-fill, #7a6a58);
+  color: var(--lvl-ink, #fff);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Answer chips during a stack burn: tinted with their level color. */
 .chip[class*="tier-"] {
-  box-shadow: inset 0 0 0 1.5px currentColor;
+  background: color-mix(in srgb, var(--lvl) 10%, #fffaf2);
+  box-shadow: inset 0 0 0 1.5px var(--lvl);
+  color: var(--color-cream-ink);
 }
 .chip .chip-level {
-  opacity: 0.85;
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: 0.25rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--lvl-fill);
+  color: var(--lvl-ink);
+}
+
+/* Reveal card after a burn: a colored band in the level's color. */
+.reveal[class*="tier-"] {
+  color: var(--color-cream-ink);
+  box-shadow: inset 0 7px 0 var(--lvl-fill), 8px 8px #07141c8c;
+}
+.reveal h2 .level-word {
+  color: var(--lvl);
+}
+.reveal .level-pill {
+  margin: 0 0 0.6rem;
+}
+
+/* All the top answers for a burn. */
+.top-answers {
+  margin: 0.2rem 0 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--lvl-fill, #a36d00) 12%, #fffaf2);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lvl-fill, #a36d00) 55%, transparent);
+  color: var(--color-cream-ink);
+}
+.top-answers .kicker {
+  color: var(--lvl);
+  margin-bottom: 0.35rem;
+}
+.top-answers ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.top-answers ul li {
+  border-top: 0;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: #fffaf2;
+  font-size: 0.9rem;
+  box-shadow: inset 0 0 0 1px #e4d3b8;
+}
+.top-answers ul li.is-yours {
+  background: var(--lvl-fill);
+  color: var(--lvl-ink);
+  box-shadow: none;
+  font-weight: 600;
+}
+.top-answers li small {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+.top-answers .fine {
+  margin-top: 0.4rem;
+}
+
+/* Report rows: the score in the level's color. */
+.burn-toggle strong[class*="tier-"] {
+  color: var(--lvl);
 }
 .level-table {
   width: 100%;

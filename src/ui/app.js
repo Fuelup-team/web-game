@@ -4,7 +4,7 @@ import { createStage } from "./stage.js";
 import {
   todayUtc, flightNumber, formatDay, formatKm, formatDelta,
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
-  burnLabel, bestAnswerLabel, splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, MOON_KM,
+  burnLabel, splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, MOON_KM,
   LEVELS, OFF_COURSE, GAUGE_BANDS, levelOf,
 } from "../game/engine.js";
 
@@ -36,7 +36,6 @@ state.callsign = state.profile.callsign;
 /** Live data for the burn in progress. */
 let burn = null;
 let stage = null;
-let betweenTimer = 0;
 
 function setProfile(next) {
   state.profile = next;
@@ -81,7 +80,6 @@ function watchViewport() {
 
 function go(screen) {
   stopBurn();
-  clearTimeout(betweenTimer);
   state.screen = screen;
   render();
 }
@@ -179,7 +177,6 @@ function checkEntries(round, text, current) {
 // ---------- Rendering ----------
 
 function render() {
-  clearTimeout(betweenTimer);
   if (stage && !["play", "between", "report"].includes(state.screen.name)) {
     stage.destroy();
     stage = null;
@@ -276,7 +273,7 @@ function rules() {
     h("table", { className: "level-table" },
       h("tbody", {}, LEVELS.map((l) =>
         h("tr", { className: `tier-${l.id}` },
-          h("td", { className: "level-name" }, l.name),
+          h("td", { className: "level-name" }, h("span", { className: "level-pill" }, l.name)),
           h("td", {}, l.rarity),
           h("td", {}, `${l.points} pts`),
         ),
@@ -419,9 +416,9 @@ function renderBurn() {
     onBlur: () => setTimeout(() => document.activeElement !== input && root.classList.remove("is-typing"), 180),
   });
 
-  function setNote(text, bad) {
+  function setNote(text, bad, tier) {
     note.textContent = text;
-    note.className = bad ? "note is-bad" : "note";
+    note.className = bad ? "note is-bad" : tier ? `note tier-${tier}` : "note";
     if (bad) {
       void note.offsetWidth; // restart the shake animation
       note.classList.add("shake");
@@ -484,7 +481,7 @@ function renderBurn() {
     input.value = "";
     drawChips();
     drawSuggestions();
-    setNote(result.note, false);
+    setNote(result.note, false, result.best);
     if (result.best) playHit(result.best, muted());
     stage.setScore(stageScore());
     stage.boost();
@@ -560,34 +557,66 @@ function startBurnClock() {
 
 // ----- Between burns -----
 
+/** The rarest level among some hits, or null. */
+function bestTier(hits) {
+  return hits.reduce((best, x) => (!best || TIER_RANK[x.tier] > TIER_RANK[best] ? x.tier : best), null);
+}
+
+/**
+ * Every top answer on this burn's chart (e.g. all Galaxy answers), with the
+ * player's own answers highlighted and listed first.
+ */
+function topAnswersBlock(result) {
+  const top = result.topAnswers ?? [{ name: result.gem, detail: null }]; // older saved flights
+  const level = levelOf(result.topLevel ?? "galaxy");
+  const yours = new Set(result.hits.map((x) => x.canonical));
+  const ordered = result.kind === "closest" ? top : [...top.filter((t) => yours.has(t.name)), ...top.filter((t) => !yours.has(t.name))];
+  const max = 12;
+  const shown = ordered.slice(0, max);
+  const found = top.filter((t) => yours.has(t.name)).length;
+  const label =
+    result.kind === "closest"
+      ? top.length > 1 ? `Closest on the chart · ${level.name} · ${top.length} answers` : "Closest on the chart"
+      : `${level.name} answers · ${level.rarity} · ${top.length}`;
+  return h("div", { className: `top-answers tier-${level.id}` },
+    h("p", { className: "kicker" }, label),
+    h("ul", {}, shown.map((t) =>
+      h("li", { className: yours.has(t.name) ? "is-yours" : "" }, t.name, t.detail && h("small", {}, ` ${t.detail}`)),
+    )),
+    ordered.length > max && h("p", { className: "fine" }, `+ ${ordered.length - max} more`),
+    found > 0
+      ? h("p", { className: "fine" }, top.length === 1 ? "You found it." : `You found ${found} of ${top.length}.`)
+      : h("p", { className: "fine" }, "None of yours this time."),
+  );
+}
+
 function renderBetween() {
   const s = state.screen;
   const just = s.just;
   const first = just.hits[0];
-  betweenTimer = setTimeout(() => nextBurn(s), 2800);
+  const tier = just.kind === "list" ? bestTier(just.hits) ?? "drift" : first?.tier ?? "drift";
+  const level = levelOf(tier);
 
   let title;
-  let badge = null;
+  let pill = null;
   if (just.kind === "list") {
     title = h("h2", {}, `${just.hits.length} logged`, h("span", {}, ` +${just.points}`));
-    if (just.capped) badge = h("p", { className: "level-badge" }, `Stack full · ${LIST_CAP} max`);
+    if (just.hits.length) pill = h("span", { className: "level-pill" }, `Best: ${level.name}${just.capped ? ` · Stack full, ${LIST_CAP} max` : ""}`);
   } else if (first) {
-    const level = levelOf(first.tier);
-    title = h("h2", { className: `tier-${first.tier}` }, level.name, h("span", {}, ` +${just.points}`));
-    badge = h("p", { className: `level-badge tier-${first.tier}` }, just.kind === "closest" ? `Closeness · ${level.name}` : level.rarity);
+    title = h("h2", {}, h("span", { className: "level-word" }, level.name), h("span", {}, ` +${just.points}`));
+    pill = h("span", { className: "level-pill" }, just.kind === "closest" ? `Closeness · ${level.name}` : `${level.name} · ${level.rarity}`);
   } else {
-    title = h("h2", { className: "tier-drift" }, "No answer", h("span", {}, " +0"));
+    title = h("h2", {}, "No answer", h("span", {}, " +0"));
   }
 
-  return h("article", { className: "folio reveal" },
+  return h("article", { className: `folio reveal tier-${tier}` },
     h("p", { className: "kicker" }, `Burn ${s.index + 1} sealed`),
     title,
-    badge,
+    pill && h("p", {}, pill),
     first && just.kind !== "list" &&
-      h("p", { className: "reveal-name" }, first.canonical, first.deltaPct != null && first.value != null ? ` · ${formatDelta(first.deltaPct)}` : ""),
-    just.kind === "list" && just.hits.length > 0 &&
-      h("p", { className: "reveal-name" }, [...just.hits].sort((a, b) => b.points - a.points).slice(0, 3).map((x) => x.canonical).join(" · ")),
-    h("p", { className: "aside" }, just.gemHit ? "You reached the Galaxy." : `Farthest answer: ${just.gemDetail}.`, " ", just.aside),
+      h("p", { className: "reveal-name" }, `You said ${first.canonical}`, first.deltaPct != null && first.value != null ? ` · ${formatDelta(first.deltaPct)}` : ""),
+    topAnswersBlock(just),
+    h("p", { className: "aside" }, just.aside),
     h("p", { className: "running" }, `Flight total ${sum(s.results)} of ${PERFECT_SCORE.toLocaleString("en-US")}`),
     h("button", { className: "btn btn-primary", attrs: { type: "button" }, onClick: () => nextBurn(s) },
       s.index === 6 ? "Read the ascent" : "Next burn"),
@@ -635,17 +664,16 @@ function renderReport() {
               h("p", { className: "burn-prompt" }, r.prompt),
               h("p", { className: "burn-answer" },
                 names || "No answer",
-                r.hits.length === 1 && h("em", { className: `tier-${r.hits[0].tier}` }, ` ${levelOf(r.hits[0].tier).name}`),
+                r.hits.length === 1 && h("em", { className: `tier-${r.hits[0].tier}` }, " ", h("span", { className: "level-pill" }, levelOf(r.hits[0].tier).name)),
               ),
             ),
           ),
-          h("strong", {}, r.points),
+          h("strong", { className: r.hits.length ? `tier-${bestTier(r.hits)}` : "" }, r.points),
         ),
         open && h("div", { className: "gem-pillow" },
-          h("p", { className: "kicker" }, bestAnswerLabel(r.kind)),
-          h("p", { className: "gem-name" }, r.gemDetail),
+          topAnswersBlock(r),
           h("p", { className: "gem-fact" }, r.aside),
-          h("p", { className: "fine" }, r.gemHit ? "You found it." : names ? `You logged ${names}.` : "You logged nothing on this burn."),
+          h("p", { className: "fine" }, names ? `You logged ${names}.` : "You logged nothing on this burn."),
         ),
       );
     }));

@@ -133,31 +133,42 @@ export function normalize(text) {
     .replace(/\s+/g, " ");
 }
 
-/** Edit distance, capped: returns 3 for anything farther than 2. */
-function editDistance(a, b) {
+/**
+ * Typo distance between two strings: insertions, deletions, substitutions,
+ * and swapped neighbouring letters ("ie" for "ei") each count as one.
+ * Returns max + 1 as soon as the distance is known to exceed `max`.
+ */
+function editDistance(a, b, max) {
   if (a === b) return 0;
-  if (Math.abs(a.length - b.length) > 2) return 3;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  let curr = Array(b.length + 1).fill(0);
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev2 = [];
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
   for (let i = 1; i <= a.length; i++) {
-    curr[0] = i;
-    let rowMin = curr[0];
-    const ch = a.charCodeAt(i - 1);
+    const curr = [i];
+    let rowMin = i;
     for (let j = 1; j <= b.length; j++) {
-      const cost = ch === b.charCodeAt(j - 1) ? 0 : 1;
-      const v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, prev2[j - 2] + 1);
       curr[j] = v;
       if (v < rowMin) rowMin = v;
     }
-    if (rowMin > 2) return 3;
-    [prev, curr] = [curr, prev];
+    if (rowMin > max) return max + 1;
+    prev2 = prev;
+    prev = curr;
   }
-  return prev[b.length] ?? 3;
+  return Math.min(prev[b.length], max + 1);
 }
 
-/** Every spelling (name + aliases) of every item, normalized. */
+/** How many typos to forgive, by length of what was typed (spaces ignored). */
+function typoAllowance(length) {
+  if (length < 4) return 0;
+  if (length <= 6) return 1;
+  if (length <= 9) return 2;
+  return 3;
+}
+
+/** Every spelling (name + aliases) of every item, normalized, with and without spaces. */
 function spellings(items) {
   const out = [];
   const seen = new Set();
@@ -166,42 +177,53 @@ function spellings(items) {
       const key = normalize(spelling);
       if (key && !seen.has(key)) {
         seen.add(key);
-        out.push({ canonical: item.name, tier: item.tier ?? "sky", key, value: item.value });
+        out.push({ canonical: item.name, tier: item.tier ?? "sky", key, compact: key.replace(/ /g, ""), value: item.value });
       }
     }
   }
   return out;
 }
 
+const hitFrom = (s, via) => ({ canonical: s.canonical, tier: s.tier, value: s.value, via });
+
 /**
- * Find what the player meant. Exact match on any spelling first, then a
- * typo-tolerant match (1 typo, or 2 for long words) if it is unambiguous.
+ * Find what the player meant, forgiving where it is safe:
+ *  1. exact match on any spelling, ignoring case, accents, punctuation and spaces
+ *     ("sanmarino", "San-Marino" → San Marino)
+ *  2. typos: 1 for 4–6 letters, 2 for 7–9, 3 for 10+; swapped letters count once
+ *     ("Liechtenstien", "Lichtenstein" → Liechtenstein)
+ *  3. a start of a name, 5+ letters, that fits only one answer ("liecht" → Liechtenstein)
+ * A typo or partial name that could mean two different answers is not guessed.
  */
 export function matchAnswer(items, input) {
   const key = normalize(input);
   if (!key) return null;
+  const compact = key.replace(/ /g, "");
   const all = spellings(items);
-  const exact = all.find((s) => s.key === key);
-  if (exact) return { canonical: exact.canonical, tier: exact.tier, value: exact.value, via: "exact" };
-  if (key.length < 5 || /^\d+$/.test(key)) return null;
+  const exact = all.find((s) => s.key === key) ?? all.find((s) => s.compact === compact);
+  if (exact) return hitFrom(exact, "exact");
+  if (/^\d+$/.test(compact)) return null;
 
-  let best = null;
-  let bestDist = 99;
-  let runnerUp = 99;
-  for (const s of all) {
-    if (s.key.length <= 3 || Math.abs(s.key.length - key.length) > 2) continue;
-    const d = editDistance(key, s.key);
-    if (d < bestDist) {
-      runnerUp = bestDist;
-      bestDist = d;
-      best = s;
-    } else if (d === bestDist || d < runnerUp) {
-      runnerUp = d;
+  // Typos: closest answer wins, but only if no other answer is equally close.
+  const limit = typoAllowance(compact.length);
+  if (limit > 0) {
+    const bestByAnswer = new Map();
+    for (const s of all) {
+      if (s.compact.length <= 3) continue;
+      const d = editDistance(compact, s.compact, limit);
+      if (d <= limit && !(bestByAnswer.get(s.canonical)?.d <= d)) bestByAnswer.set(s.canonical, { d, s });
     }
+    const ranked = [...bestByAnswer.values()].sort((x, y) => x.d - y.d);
+    if (ranked.length && (ranked.length === 1 || ranked[1].d > ranked[0].d)) return hitFrom(ranked[0].s, "fuzzy");
   }
-  const closeEnough = bestDist === 1 || (bestDist === 2 && key.length >= 8);
-  if (!best || !closeEnough || runnerUp <= bestDist) return null;
-  return { canonical: best.canonical, tier: best.tier, value: best.value, via: "fuzzy" };
+
+  // Start of a name, if it can only be one answer.
+  if (compact.length >= 5) {
+    const starts = new Map();
+    for (const s of all) if (s.compact.startsWith(compact)) starts.set(s.canonical, s);
+    if (starts.size === 1) return hitFrom([...starts.values()][0], "fuzzy");
+  }
+  return null;
 }
 
 /** Autocomplete suggestions for gauge rounds. */
@@ -286,8 +308,36 @@ export function tryAnswer(round, input, alreadyLogged) {
   return { ok: true, hit: { input: text, canonical: m.canonical, tier: m.tier, points: pointsFor(m.tier), via: m.via } };
 }
 
+/**
+ * The best answers on a round's chart: every answer at the rarest level it
+ * has (usually Galaxy). For gauge rounds, every item close enough for Galaxy,
+ * nearest first, or just the nearest one if none are that close.
+ * Returns { level, answers: [{ name, detail }] }.
+ */
+export function topAnswers(round) {
+  if (round.kind === "closest") {
+    const miss = (v) => Math.max(v, round.target) / Math.min(v, round.target);
+    const sorted = [...round.items].sort((a, b) => miss(a.value) - miss(b.value));
+    const inGalaxy = sorted.filter((i) => gaugeScore(i.value, round.target).tier === TOP_LEVEL);
+    const list = inGalaxy.length ? inGalaxy : sorted.slice(0, 1);
+    return {
+      level: gaugeScore(list[0].value, round.target).tier,
+      answers: list.map((i) => ({ name: i.name, detail: formatValue(round.unit, i.value) })),
+    };
+  }
+  const best = Math.max(...round.answers.map((a) => TIER_RANK[a.tier]));
+  const level = Object.keys(TIER_RANK).find((t) => TIER_RANK[t] === best);
+  return { level, answers: round.answers.filter((a) => a.tier === level).map((a) => ({ name: a.name, detail: null })) };
+}
+
 /** Final result of a burn, from the canonical names the player logged. */
 export function scoreRound(round, inputs) {
+  const result = scoreRoundPoints(round, inputs);
+  const top = topAnswers(round);
+  return { ...result, topLevel: top.level, topAnswers: top.answers };
+}
+
+function scoreRoundPoints(round, inputs) {
   if (round.kind === "closest") {
     const found = inputs.map((input) => ({ input, m: matchAnswer(round.items, input) })).find((x) => x.m?.value != null);
     const best = closestItem(round.items, round.target);
