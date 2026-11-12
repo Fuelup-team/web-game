@@ -64,4 +64,4 @@ Pick one: **Vercel**, **Netlify** or **Cloudflare Pages**. All have free tiers a
 
 - [ ] Add each person's area to the ownership table in `AGENTS.md`
 - [x] Stack chosen: plain HTML, CSS and JavaScript (see `AGENTS.md`)
-- [ ] Add a backend for the fleet board (see `src/game/fleet.js`)
+- [x] Fleet board backend (Netlify function + Netlify Blobs)

@@ -1,29 +1,66 @@
-// Fuelup app: screens (pad, burn, reveal, report, menu) and the flight flow.
-import { h, mount, icon } from "./dom.js";
+// Fuelup app: screens (start, burn, reveal, result, menu) and the flight flow.
+import { h, mount, icon, asset } from "./dom.js";
 import { createStage } from "./stage.js";
 import {
-  todayUtc, flightNumber, formatDay, formatKm, formatDelta,
+  todayUtc, flightNumber, formatDay, formatDelta, formatYearsOff,
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
-  burnLabel, splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, MOON_KM,
-  LEVELS, OFF_COURSE, GAUGE_BANDS, levelOf,
+  splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, TOP_LEVEL,
+  LEVELS, OFF_COURSE, GAUGE_BANDS, YEAR_BANDS, levelOf, stageFor, toTheMoon,
 } from "../game/engine.js";
+import { loadProfile, saveProfile, logFlight } from "../game/storage.js";
+import { audio, playHit, playMiss } from "../game/sound.js";
+import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
 
-function art(file) {
-  const base = typeof window !== "undefined" && window.__FUEL_BASE ? window.__FUEL_BASE : "";
-  return base + "public/art/" + file;
-}
+// ---------- Burn types, in plain words ----------
 
-/** Grey at the left, shining yellow at the right. */
+const KINDS = {
+  list: {
+    label: "Name as many as you can",
+    short: "Name many",
+    icon: "list",
+    how: `Type answers one at a time and press Enter after each. Every answer adds its points, up to ${LIST_CAP}.`,
+    placeholder: "Type an answer, press Enter",
+    submit: "Add",
+  },
+  rare: {
+    label: "One answer",
+    short: "One answer",
+    icon: "check",
+    how: "Type one answer. If it isn't on the chart, try again until one locks in. Up to 100 points.",
+    placeholder: "Type one answer",
+    submit: "Lock in",
+  },
+  closest: {
+    label: "Closest number",
+    short: "Closest",
+    icon: "scale",
+    how: "Name the thing whose number is closest to the target. Only the single closest answer reaches Galaxy.",
+    placeholder: "Start typing a name",
+    submit: "Lock in",
+  },
+  year: {
+    label: "Guess the year",
+    short: "Year",
+    icon: "calendar",
+    how: "Type the year it happened. The exact year is Galaxy, and every year off costs points.",
+    placeholder: "Type a year, like 1969",
+    submit: "Lock in",
+  },
+};
+const kindOf = (round) => KINDS[round.kind] ?? KINDS.rare;
+
+// ---------- Rarity lamp (six pixels, Off course to Galaxy) ----------
+
 const LAMP_ORDER = ["drift", "sky", "orbit", "deepspace", "nebula", "galaxy"];
 
 function rarityLamps(tier) {
   const rank = LAMP_ORDER.indexOf(tier);
   return h("div", {
     className: "lamps",
-    attrs: { role: "img", "aria-label": tier ? `${levelOf(tier).name} on the rarity lamp` : "Rarity lamp, grey to gold" },
+    attrs: { role: "img", "aria-label": tier ? `Rarity: ${levelOf(tier).name}` : "Rarity lamp" },
   }, LAMP_ORDER.map((id, i) =>
     h("span", {
-      className: ["lamp", `lamp-${id}`, i <= rank ? "is-lit" : "", i === rank ? "is-here" : ""].filter(Boolean).join(" "),
+      className: ["lamp", `tier-${id}`, i <= rank ? "is-lit" : "", i === rank ? "is-here" : ""].filter(Boolean).join(" "),
       attrs: { title: levelOf(id).name },
     }),
   ));
@@ -34,31 +71,35 @@ function paintLamps(lamps, tier) {
   [...lamps.children].forEach((dot, i) => {
     dot.classList.remove("is-lit", "is-here");
     if (i <= rank) {
-      void dot.offsetWidth;
+      void dot.offsetWidth; // restart the pop animation
       dot.classList.add("is-lit");
       if (i === rank) dot.classList.add("is-here");
     }
   });
+  lamps.setAttribute("aria-label", tier ? `Rarity: ${levelOf(tier).name}` : "Rarity lamp");
 }
+
+/** "Galaxy, Ultra rare, +100" */
 function levelLine(tier, points = levelOf(tier).points) {
   const level = levelOf(tier);
-  return `${level.name} · ${level.rarity} · +${points}`;
+  return `${level.name}, ${level.rarity}, +${points}`;
 }
-import { loadProfile, saveProfile, logFlight } from "../game/storage.js";
-import { audio, playHit, playMiss } from "../game/sound.js";
-import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
+
+/** A small filled tag in a level's color. */
+function levelTag(tier, text = levelOf(tier).name) {
+  return h("span", { className: `level-tag tier-${tier}` }, text);
+}
+
+// ---------- State ----------
 
 let root = document.getElementById("app");
 const day = todayUtc();
 
-// ---------- State ----------
-
 const state = {
   profile: loadProfile(),
   fleet: null,
-  fleetError: false,
+  fleetStatus: fleetEnabled ? "loading" : "off", // loading | ready | error | off
   callsign: "",
-  rulesOpen: false,
   menu: null, // null | "root" | "leave" | "how" | "terms" | "privacy"
   screen: { name: "pad" }, // pad | play | between | report
 };
@@ -77,16 +118,19 @@ const muted = () => state.profile.muted;
 const callsignLabel = () => (state.callsign.trim() || "Pilot").slice(0, 18);
 const todaysFlight = () => state.profile.flights[day];
 const sum = (items) => items.reduce((total, x) => total + x.points, 0);
+const fmt = (n) => n.toLocaleString("en-US");
 
 if (fleetEnabled) {
   fetchFleet(day, state.profile.pilotKey)
     .then((fleet) => {
       state.fleet = fleet;
-      state.fleetError = false;
-      if (state.screen.name === "pad") render();
+      state.fleetStatus = "ready";
     })
     .catch(() => {
-      state.fleetError = true;
+      state.fleetStatus = "error";
+    })
+    .finally(() => {
+      if (state.screen.name === "pad") render();
     });
 }
 
@@ -98,13 +142,10 @@ function watchViewport() {
   const update = () => {
     const keyboard = window.innerHeight - vv.height > 80;
     document.documentElement.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
-    document.documentElement.style.setProperty("--vv-top", `${Math.round(vv.offsetTop)}px`);
     root.classList.toggle("is-keyboard", keyboard);
-    if (keyboard) window.scrollTo(0, 0);
   };
   update();
   vv.addEventListener("resize", update);
-  vv.addEventListener("scroll", update);
 }
 
 // ---------- Flow ----------
@@ -113,6 +154,7 @@ function go(screen) {
   stopBurn();
   state.screen = screen;
   render();
+  window.scrollTo(0, 0);
 }
 
 function startFlight(practice) {
@@ -130,7 +172,7 @@ function stopBurn() {
   burn = null;
 }
 
-/** End the current burn (sealed by the player, or out of time). */
+/** End the current burn (finished by the player, or out of time). */
 function finishBurn(reason) {
   const screen = state.screen;
   if (!burn || burn.done || screen.name !== "play") return;
@@ -141,7 +183,7 @@ function finishBurn(reason) {
     const result = checkEntries(round, burn.draft, hits);
     if (!result.bad) hits = result.hits;
   }
-  const scored = scoreRound(round, hits.map((x) => x.canonical));
+  const scored = { ...scoreRound(round, hits.map((x) => x.canonical)), timedOut: reason === "time" };
   const results = [...screen.results, scored];
   stage?.boost();
 
@@ -164,9 +206,9 @@ async function recordFlight(flight) {
       next.pilotKey,
       flight.rounds.map((r) => ({ id: r.id, inputs: r.hits.map((x) => x.canonical) })),
     );
-    state.fleetError = false;
+    state.fleetStatus = "ready";
   } catch {
-    state.fleetError = true;
+    state.fleetStatus = "error";
   }
   if (state.screen.name === "report") render();
 }
@@ -175,7 +217,7 @@ function nextBurn(between) {
   go({ name: "play", mission: between.mission, index: between.index + 1, results: between.results });
 }
 
-/** Check typed text against the round. List burns accept several, comma-separated. */
+/** Check typed text against the round. "Name many" burns accept several, comma-separated. */
 function checkEntries(round, text, current) {
   const entries = round.kind === "list" ? splitEntries(text) : [text.trim()].filter(Boolean);
   if (!entries.length) return { hits: current, note: "Type an answer first.", bad: true };
@@ -196,40 +238,41 @@ function checkEntries(round, text, current) {
   }
   if (!added) return { hits: current, note: reason || "Not on the chart.", bad: true };
   const last = hits[hits.length - 1];
+  const fixed = last.via === "fuzzy" ? `Read as ${last.canonical}. ` : "";
   const note =
     round.kind === "list"
       ? added === 1
-        ? `${last.via === "fuzzy" ? "Logged as " : ""}${last.canonical} · ${levelLine(last.tier)}`
-        : `${added} logged · ${Math.min(LIST_CAP, sum(hits))} of ${LIST_CAP} points on this stack`
-      : `${last.via === "fuzzy" ? "Locked as " : ""}${last.canonical} · ${levelLine(last.tier, last.points)}`;
+        ? `${fixed}${last.canonical}: ${levelLine(last.tier)}`
+        : `${added} added. ${fmt(Math.min(LIST_CAP, sum(hits)))} of ${LIST_CAP} points.`
+      : `${fixed}${last.canonical}: ${levelLine(last.tier, last.points)}`;
   return { hits, note, bad: false, best };
+}
+
+/** The rarest level among some hits, or null. */
+function bestTier(hits) {
+  return hits.reduce((best, x) => (!best || TIER_RANK[x.tier] > TIER_RANK[best] ? x.tier : best), null);
 }
 
 // ---------- Rendering ----------
 
 function render() {
-  if (stage && !["play", "between", "report"].includes(state.screen.name)) {
-    stage.destroy();
-    stage = null;
-  }
   const s = state.screen;
-  root.className = ["fuel-app", root.classList.contains("is-keyboard") ? "is-keyboard" : ""].filter(Boolean).join(" ");
+  root.className = ["fuel-app", `on-${s.name}`, root.classList.contains("is-keyboard") ? "is-keyboard" : ""].filter(Boolean).join(" ");
 
   const children = [];
-  if (state.menu) children.push(renderMenu());
   if (s.name === "pad") {
-    children.push(renderPad());
+    stage = null;
+    children.push(renderTopBar(), renderPad());
   } else {
     if (!stage) stage = createStage();
     stage.setScore(stageScore());
-    const deck = h("div", { className: "deck" }, renderDeckBar());
-    if (s.name === "play") deck.append(renderBurn());
-    if (s.name === "between") deck.append(renderBetween());
-    if (s.name === "report") deck.append(renderReport());
-    children.push(h("section", { className: "flight" }, stage.el, deck));
+    const panel = s.name === "play" ? renderBurn() : s.name === "between" ? renderBetween() : renderReport();
+    children.push(renderTopBar(), h("main", { className: "flight-grid", id: "main" }, stage.el, panel));
   }
+  if (state.menu) children.push(renderMenu());
   mount(root, children);
   if (s.name === "play") startBurnClock();
+  if (s.name === "between" && !state.menu) root.querySelector(".reveal [data-autofocus]")?.focus({ preventScroll: true });
 }
 
 function stageScore() {
@@ -241,157 +284,165 @@ function stageScore() {
   return done + (s.mission.rounds[s.index]?.kind === "list" ? Math.min(LIST_CAP, live) : live);
 }
 
-function renderDeckBar() {
+// ----- Top bar (every screen) -----
+
+function renderTopBar() {
   const s = state.screen;
-  const meta =
-    s.name === "report"
-      ? s.practice ? "Practice" : `Flight ${s.flight.mission}`
-      : `${burnLabel(s.index, s.mission.rounds[Math.min(s.index, 6)]?.kind ?? "rare")} · ${Math.min(s.index + 1, 7)} / 7`;
-  return h(
-    "header",
-    { className: "deck-bar" },
-    h("button", {
-      className: "icon-btn",
-      attrs: { type: "button", "aria-label": "Back to the pad" },
-      onClick: () => (s.name === "report" ? go({ name: "pad" }) : openMenu("leave")),
-    }, icon("arrow-left")),
-    h("p", { className: "brand" }, "Fuelup"),
-    h("p", { className: "deck-meta" }, meta),
-    h("button", {
-      className: "icon-btn",
-      attrs: { type: "button", "aria-label": muted() ? "Unmute" : "Mute" },
-      onClick: toggleMute,
-    }, icon(muted() ? "volume-x" : "volume-2")),
-    h("button", {
-      className: "icon-btn",
-      attrs: { type: "button", "aria-label": "Menu" },
-      onClick: () => openMenu("root"),
-    }, icon("menu")),
+  const inFlight = s.name === "play" || s.name === "between";
+  return h("header", { className: "topbar" },
+    h("div", { className: "topbar-left" },
+      s.name === "pad"
+        ? h("p", { className: "logo" }, "Fuelup")
+        : h("button", {
+          className: "btn-icon",
+          attrs: { type: "button", "aria-label": inFlight ? "Leave this flight" : "Back to start" },
+          onClick: () => (inFlight ? openMenu("leave") : go({ name: "pad" })),
+        }, icon("arrow-left")),
+      s.name !== "pad" && h("p", { className: "logo logo-small" }, "Fuelup"),
+    ),
+    inFlight && renderPips(),
+    h("div", { className: "topbar-right" },
+      h("button", {
+        className: "btn-icon",
+        attrs: { type: "button", "aria-label": muted() ? "Turn sound on" : "Turn sound off", "aria-pressed": String(!muted()) },
+        onClick: toggleMute,
+      }, icon(muted() ? "volume-x" : "volume-2")),
+      h("button", {
+        className: "btn-menu",
+        attrs: { type: "button", "aria-haspopup": "dialog" },
+        onClick: () => openMenu("root"),
+      }, icon("menu"), h("span", {}, "Menu")),
+    ),
+  );
+}
+
+/** Seven squares: finished burns in their level color, the current one blinking. */
+function renderPips() {
+  const s = state.screen;
+  const current = s.name === "play" ? s.index : s.index + 1;
+  return h("div", { className: "pips", attrs: { "aria-label": `Burn ${Math.min(current + 1, 7)} of 7` } },
+    h("span", { className: "pips-label" }, `Burn ${Math.min(current + 1, 7)} of 7`),
+    h("ol", {}, s.mission.rounds.map((round, i) => {
+      const done = s.results[i];
+      const tier = done ? (done.hits.length ? bestTier(done.hits) : "drift") : null;
+      return h("li", {
+        className: ["pip", done ? `is-done tier-${tier}` : "", i === current ? "is-now" : ""].filter(Boolean).join(" "),
+        attrs: { title: `${i + 1}. ${kindOf(round).label}` },
+      });
+    })),
   );
 }
 
 function toggleMute() {
   setProfile({ ...state.profile, muted: !state.profile.muted });
-  rerenderKeepingBurn();
+  rerenderChrome();
 }
 
 function openMenu(page) {
   state.menu = page;
-  rerenderKeepingBurn();
+  rerenderChrome();
+  if (page) requestAnimationFrame(() => root.querySelector(".menu-sheet [data-autofocus]")?.focus());
 }
 
-/** Re-render chrome (menu, mute icon) without restarting a burn in progress. */
-function rerenderKeepingBurn() {
-  if (state.screen.name !== "play" || !burn) return render();
-  const deck = root.querySelector(".deck");
-  deck.querySelector(".deck-bar").replaceWith(renderDeckBar());
+/** Re-render the top bar and menu without restarting a burn in progress. */
+function rerenderChrome() {
+  if (state.screen.name !== "play" || !burn) {
+    const y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+    return;
+  }
+  root.querySelector(".topbar").replaceWith(renderTopBar());
   root.querySelector(".menu-layer")?.remove();
-  if (state.menu) root.prepend(renderMenu());
+  if (state.menu) root.append(renderMenu());
+  else burn.input?.focus();
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.menu) openMenu(null);
+});
 
 function stat(label, value, detail) {
   return h("div", { className: "stat" },
     h("p", { className: "stat-label" }, label),
     h("p", { className: "stat-value" }, value),
-    h("p", { className: "stat-detail" }, detail),
+    detail && h("p", { className: "stat-detail" }, detail),
   );
 }
 
-function rules() {
-  return h("div", { className: "rules" },
-    h("p", {}, "Each flight is seven timed burns, about half a minute to fifty seconds. The clock does not pause."),
-    h("p", {}, "Every answer has a rarity. The rarer it is, the farther it flies, and the more points it scores. Same price in every burn. Each burn hides exactly one Galaxy answer, the hardest one on the chart:"),
-    h("table", { className: "level-table" },
-      h("tbody", {}, LEVELS.map((l) =>
-        h("tr", { className: `tier-${l.id}` },
-          h("td", { className: "level-name" }, h("span", { className: "level-pill" }, l.name)),
-          h("td", {}, l.rarity),
-          h("td", {}, `${l.points} pts`),
-        ),
-      )),
-    ),
-    h("ol", {},
-      h("li", {}, `Single burns want one answer. You can retry until one locks. Up to 100 points.`),
-      h("li", {}, `Stack burns want as many correct names as you can type. Each one adds its points, up to ${LIST_CAP}.`),
-      h("li", {},
-        `Gauge burns want the closest thing on the chart. Galaxy only for the single closest answer, then ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}. Further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
-    ),
-    h("p", { className: "fine" },
-      `After the flight, tap any burn. It opens the best answer on that chart and a short fact. A perfect flight, ${PERFECT_SCORE.toLocaleString("en-US")} points, meets the Moon at ${formatKm(MOON_KM)}.`),
-  );
-}
-
-// ----- Pad -----
+// ----- Start screen -----
 
 function renderPad() {
   const flight = todaysFlight();
-  const fleet = state.fleet;
   const streak = state.profile.streak;
-  const fleetDetail = !fleetEnabled
-    ? "Fleet board not connected yet"
-    : fleet && fleet.pilots > 0
-      ? `${fleet.pilots} pilot${fleet.pilots === 1 ? "" : "s"} today`
-      : "No flights logged yet";
+  const lineup = buildFlight(day).rounds;
 
-  const input = h("input", {
-    value: state.callsign,
-    maxLength: 18,
-    placeholder: "Pilot",
-    attrs: { autocomplete: "off" },
-    onInput: (e) => (state.callsign = e.target.value),
-  });
+  const fleetStat = (() => {
+    const f = state.fleet;
+    if (state.fleetStatus === "loading") return stat("Today's average", "...", "Checking the fleet");
+    if (state.fleetStatus === "off") return stat("Today's average", "-", "Live on the real site");
+    if (state.fleetStatus === "error") return stat("Today's average", "-", "Couldn't reach the fleet");
+    if (!f || f.pilots === 0) return stat("Today's average", "-", "Be the first today");
+    return stat("Today's average", fmt(f.averageScore), `${f.pilots} pilot${f.pilots === 1 ? "" : "s"} today`);
+  })();
 
-  const rulesBtn = h("button", {
-    className: "text-btn",
-    attrs: { type: "button", "aria-expanded": String(state.rulesOpen) },
-    onClick: () => {
-      state.rulesOpen = !state.rulesOpen;
-      render();
-    },
-  }, state.rulesOpen ? "Hide the chart" : "How a burn scores");
-
-  return h("section", { className: "pad" },
-    h("img", { className: "pad-photo", src: art("stars.jpg"), alt: "" }),
-    h("img", { className: "hero-rocket", src: art("rocket-pixel.png"), alt: "" }),
-    h("div", { className: "pad-scrim" }),
-    h("article", { className: "folio" },
-      h("div", { className: "folio-top" },
-        h("p", { className: "kicker" }, `Flight ${flightNumber(day)} · ${formatDay(day)} UTC`),
-        h("button", { className: "text-btn", attrs: { type: "button" }, onClick: () => openMenu("root") }, "Menu"),
-      ),
-      h("h1", {}, "Fuelup"),
-      h("p", { className: "lede" }, "Seven burns. The obvious answer still lifts. The rare one goes farther."),
-      h("label", { className: "field" },
-        h("span", {}, "Callsign on your hull"),
-        input,
-        h("small", {}, "Stays on this device. The fleet average is anonymous."),
-      ),
-      h("div", { className: "stat-row" },
-        stat("Fleet average", fleet && fleet.pilots > 0 ? `${fleet.averageScore}` : "—", fleetDetail),
-        stat("Your flight", flight ? `${flight.score}` : "—",
-          flight ? flight.zone.name : streak > 1 ? `${streak} day streak` : "One ascent today"),
-      ),
-      h("div", { className: "actions" },
+  return h("main", { className: "pad-grid", id: "main" },
+    h("section", { className: "panel pad-panel" },
+      h("p", { className: "flight-tag" }, `Flight ${flightNumber(day)}, ${formatDay(day)}`),
+      h("h1", {}, "Fly to the Moon on what you know."),
+      h("p", { className: "lead" }, "Seven quick questions a day, the same for everyone. Rare answers fly highest."),
+      h("div", { className: "cta-row" },
         flight
-          ? h("button", { className: "btn btn-primary", attrs: { type: "button" },
-              onClick: () => go({ name: "report", flight, practice: false }) }, "Review today's ascent")
-          : h("button", { className: "btn btn-primary", attrs: { type: "button" },
-              onClick: () => startFlight(false) }, "Ignite today's flight"),
-        h("button", { className: "btn btn-ghost", attrs: { type: "button" }, onClick: () => startFlight(true) }, "Practice scramble"),
+          ? h("button", { className: "btn btn-gold", attrs: { type: "button" }, onClick: () => go({ name: "report", flight, practice: false }) },
+            icon("trophy"), "See today's result")
+          : h("button", { className: "btn btn-gold", attrs: { type: "button" }, onClick: () => startFlight(false) },
+            icon("play"), "Start today's flight"),
+        h("button", { className: "btn btn-line", attrs: { type: "button" }, onClick: () => startFlight(true) },
+          icon("reload"), "Practice"),
       ),
-      rulesBtn,
-      state.rulesOpen && rules(),
-      h("p", { className: "fine" },
-        `Same seven burns for every pilot on this UTC day. A perfect flight, ${PERFECT_SCORE.toLocaleString("en-US")} points, meets the Moon at ${formatKm(MOON_KM)}.`),
+      h("div", { className: "stats" },
+        stat("Your flight", flight ? fmt(flight.score) : "-", flight ? stageFor(flight.score).name : "Not flown yet"),
+        fleetStat,
+        stat("Streak", streak > 0 ? `${streak}` : "-", streak === 1 ? "day" : streak > 1 ? "days in a row" : "Fly today to start"),
+      ),
+      h("label", { className: "field" },
+        h("span", { className: "field-label" }, "Pilot name (optional)"),
+        h("input", {
+          value: state.callsign,
+          maxLength: 18,
+          placeholder: "Pilot",
+          attrs: { autocomplete: "off", "aria-describedby": "callsign-help" },
+          onInput: (e) => (state.callsign = e.target.value),
+        }),
+        h("small", { id: "callsign-help" }, "Shown only on this device. Scores on the board are anonymous."),
+      ),
+      h("section", { className: "lineup", attrs: { "aria-label": "Today's seven burns" } },
+        h("h2", {}, "Today's 7 burns"),
+        h("ol", {}, lineup.map((round, i) =>
+          h("li", {}, h("span", { className: "lineup-num" }, i + 1), icon(kindOf(round).icon), h("span", {}, kindOf(round).short)),
+        )),
+      ),
+      h("section", { className: "levels", attrs: { "aria-label": "Rarity levels" } },
+        h("h2", {}, "Rarer answers score more"),
+        h("ul", {}, LEVELS.map((l) =>
+          h("li", { className: `tier-${l.id}` }, h("span", { className: "level-swatch" }), h("b", {}, l.name), h("span", {}, l.rarity), h("em", {}, `${l.points}`)),
+        )),
+      ),
+      h("button", { className: "btn-text", attrs: { type: "button" }, onClick: () => openMenu("how") },
+        icon("info-box"), "How to play"),
+    ),
+    h("div", { className: "pad-art", attrs: { "aria-hidden": "true" } },
+      h("img", { className: "pad-rocket", src: asset("art/rocket-pixel.png"), alt: "" }),
     ),
   );
 }
 
-// ----- Burn (one timed round) -----
+// ----- Burn (one timed question) -----
 
 function renderBurn() {
   const s = state.screen;
   const round = s.mission.rounds[s.index];
+  const kind = kindOf(round);
   const seconds = round.seconds * 1000;
   burn = {
     round,
@@ -408,9 +459,9 @@ function renderBurn() {
   };
 
   const timer = h("p", { className: "timer", attrs: { role: "timer" } });
-  const meterFill = h("span");
-  const chips = h("ul", { className: "chips" });
-  const suggestList = h("ul", { className: "suggest", attrs: { role: "listbox" } });
+  const timeFill = h("span", { className: "timebar-fill" });
+  const chips = h("ul", { className: "chips", attrs: { "aria-label": "Your answers" } });
+  const suggestList = h("ul", { className: "suggest", attrs: { role: "listbox", "aria-label": "Suggestions" } });
   const note = h("p", { className: "note", attrs: { "aria-live": "polite" } });
   const lamps = rarityLamps(null);
 
@@ -422,7 +473,8 @@ function renderBurn() {
       spellcheck: "false",
       autocomplete: "off",
       enterkeyhint: round.kind === "list" ? "next" : "done",
-      placeholder: round.kind === "list" ? "Type a name, Enter, keep going" : "One answer",
+      placeholder: kind.placeholder,
+      "aria-describedby": "burn-hint",
     },
     onInput: (e) => {
       burn.draft = e.target.value;
@@ -451,39 +503,39 @@ function renderBurn() {
   function setNote(text, bad, tier) {
     note.textContent = text;
     note.className = bad ? "note is-bad" : tier ? `note tier-${tier}` : "note";
-    if (tier) paintLamps(lamps, tier);
+    if (tier !== undefined) paintLamps(lamps, tier);
     if (bad) {
-      void note.offsetWidth;
+      void note.offsetWidth; // restart the shake animation
       note.classList.add("shake");
     }
   }
 
   function defaultNote() {
-    const points = Math.min(LIST_CAP, sum(burn.hits));
-    return round.kind === "list" ? `${points} of ${LIST_CAP} points on this stack` : "A wrong try does not end the burn.";
+    return round.kind === "list"
+      ? `${fmt(Math.min(LIST_CAP, sum(burn.hits)))} of ${LIST_CAP} points so far.`
+      : "A wrong try doesn't end the burn. Keep going.";
   }
 
   function drawChips() {
     if (round.kind !== "list") return;
     chips.hidden = burn.hits.length === 0;
-    mount(chips, burn.hits.map((hit) => {
-      const hot = hit.tier === "deepspace" || hit.tier === "nebula" || hit.tier === "galaxy";
-      return h("li", { className: `chip tier-${hit.tier}` },
-        h("i", { className: `chip-lamp lamp-${hit.tier} is-lit${hot ? " is-here" : ""}`, attrs: { "aria-hidden": "true" } }),
-        h("span", {}, hit.canonical, h("small", { className: "chip-level" }, ` ${levelOf(hit.tier).name} +${hit.points}`)),
+    mount(chips, burn.hits.map((hit) =>
+      h("li", { className: `chip tier-${hit.tier}` },
+        h("span", { className: "chip-name" }, hit.canonical),
+        levelTag(hit.tier, `${levelOf(hit.tier).name} +${hit.points}`),
         h("button", {
+          className: "chip-remove",
           attrs: { type: "button", "aria-label": `Remove ${hit.canonical}` },
           onClick: () => {
             burn.hits = burn.hits.filter((x) => x.canonical !== hit.canonical);
             drawChips();
             stage.setScore(stageScore());
-            const best = bestTier(burn.hits);
-            setNote(defaultNote(), false, best || undefined);
-            if (!best) paintLamps(lamps, "");
+            setNote(defaultNote(), false, bestTier(burn.hits) ?? "");
+            input.focus();
           },
-        }, "×"),
-      );
-    }));
+        }, icon("close")),
+      ),
+    ));
   }
 
   function drawSuggestions() {
@@ -521,7 +573,7 @@ function renderBurn() {
     setNote(result.note, false, result.best);
     if (result.best) playHit(result.best, muted());
     stage.setScore(stageScore());
-    const top = result.best === "galaxy" ? result.hits.findLast((x) => x.tier === "galaxy") : null;
+    const top = result.best === TOP_LEVEL ? result.hits.findLast((x) => x.tier === TOP_LEVEL) : null;
     stage.boost(!!top);
     if (top) celebrateTop(top.canonical, top.points);
     if (round.kind === "list") input.focus();
@@ -531,10 +583,10 @@ function renderBurn() {
   burn.updateClock = () => {
     const left = Math.max(0, burn.deadline - Date.now());
     const secs = left / 1000;
-    timer.textContent = `${secs >= 10 ? Math.ceil(secs) : secs.toFixed(1)}s`;
+    timer.textContent = `${Math.ceil(secs)}`;
     timer.className = left < 5000 ? "timer is-low" : "timer";
     timer.setAttribute("aria-label", `${Math.ceil(secs)} seconds left`);
-    meterFill.style.width = `${Math.max(0, Math.min(100, (left / burn.total) * 100))}%`;
+    timeFill.style.transform = `scaleX(${Math.max(0, Math.min(1, left / burn.total))})`;
   };
 
   drawChips();
@@ -544,30 +596,31 @@ function renderBurn() {
   burn.input = input;
 
   return h("form", {
-    className: "folio play-card",
+    className: `panel burn kind-${round.kind}`,
+    attrs: { "aria-label": `Burn ${s.index + 1} of 7` },
     onSubmit: (e) => {
       e.preventDefault();
       commit();
     },
   },
-    h("div", { className: "play-top" },
-      h("p", { className: "kicker" }, `${burnLabel(s.index, round.kind)} · ${s.index + 1} of 7`),
-      timer,
+    h("div", { className: "burn-head" },
+      h("p", { className: "kind-badge" }, icon(kind.icon), kind.label),
+      h("div", { className: "timer-box" }, icon("clock"), timer),
     ),
-    h("div", { className: "meter", attrs: { "aria-hidden": "true" } }, meterFill),
-    h("h2", {}, round.prompt),
-    h("p", { className: "blurb" }, round.blurb),
+    h("div", { className: "timebar", attrs: { "aria-hidden": "true" } }, timeFill),
+    h("h2", { className: "prompt" }, round.prompt),
+    h("p", { className: "hint", id: "burn-hint" }, round.blurb || kind.how),
     round.kind === "list" && chips,
     h("div", { className: "answer-row" },
-      h("label", { className: "sr-only", attrs: { for: "burn-answer" } }, "Answer"),
+      h("label", { className: "sr-only", attrs: { for: "burn-answer" } }, "Your answer"),
       input,
-      h("button", { className: "btn btn-primary btn-inline", attrs: { type: "submit" } }, round.kind === "list" ? "Log" : "Lock"),
+      h("button", { className: "btn btn-gold", attrs: { type: "submit" } }, kind.submit),
     ),
     round.kind === "closest" && suggestList,
-    note,
-    lamps,
+    h("div", { className: "feedback" }, lamps, note),
     round.kind === "list" &&
-      h("button", { className: "text-btn", attrs: { type: "button" }, onClick: () => finishBurn("seal") }, "Seal this burn"),
+      h("button", { className: "btn btn-line btn-done", attrs: { type: "button" }, onClick: () => finishBurn("seal") },
+        icon("check"), "I'm done, next burn"),
   );
 }
 
@@ -595,77 +648,69 @@ function startBurnClock() {
   fallback();
 }
 
-// ----- Between burns -----
+// ----- Top answer celebration -----
 
 /**
- * Big moment for a top (Galaxy) answer: gold flash, a burst of stars,
+ * Big moment for a top (Galaxy) answer: gold flash, a burst of pixel stars,
  * a "Top answer" banner. Sits over the screen without taking focus.
  */
 function celebrateTop(name, points) {
   document.querySelector(".galaxy-burst")?.remove();
-  const colors = ["#f0b429", "#fff3cf", "#f4ead8", "#e08a3c", "#c79bff"];
-  const sparks = Array.from({ length: 46 }, (_, i) => {
-    const angle = (i / 46) * Math.PI * 2 + Math.random() * 0.4;
-    const dist = 140 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.45;
-    const star = i % 3 === 0;
-    const spark = h("span", { className: star ? "galaxy-spark is-star" : "galaxy-spark" }, star ? "✦" : null);
+  const colors = ["#ffc83d", "#fff4c2", "#eef0ff", "#c9a7ff", "#7fd4ff"];
+  const sparks = Array.from({ length: 40 }, (_, i) => {
+    const angle = (i / 40) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = 120 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.45;
+    const spark = h("span", { className: "galaxy-spark" });
     const vars = {
       "--dx": `${Math.cos(angle) * dist}px`,
       "--dy": `${Math.sin(angle) * dist}px`,
-      "--rot": `${Math.round(Math.random() * 540 - 270)}deg`,
-      "--size": `${4 + Math.random() * 7}px`,
+      "--size": `${4 + Math.round(Math.random() * 2) * 4}px`,
       "--color": colors[i % colors.length],
       "--delay": `${Math.random() * 0.18}s`,
     };
     for (const [prop, value] of Object.entries(vars)) spark.style.setProperty(prop, value);
     return spark;
   });
-  const burst = h("div", { className: "galaxy-burst", attrs: { "aria-live": "assertive" } },
+  const burst = h("div", { className: "galaxy-burst", attrs: { role: "status" } },
     h("div", { className: "galaxy-flash" }),
     sparks,
-    h("div", { className: "galaxy-banner tier-galaxy" },
-      h("p", { className: "kicker" }, "Top answer"),
+    h("div", { className: "galaxy-banner" },
+      h("p", { className: "galaxy-kicker" }, "Top answer"),
       h("strong", {}, name),
-      h("span", { className: "level-pill" }, `Galaxy · Ultra rare · +${points}`),
+      levelTag(TOP_LEVEL, `Galaxy, Ultra rare, +${points}`),
     ),
   );
   document.body.append(burst);
-  navigator.vibrate?.([30, 40, 80]);
+  try {
+    navigator.vibrate?.([30, 40, 80]);
+  } catch {
+    // Vibration is optional.
+  }
   setTimeout(() => burst.remove(), 2300);
 }
 
-/** The rarest level among some hits, or null. */
-function bestTier(hits) {
-  return hits.reduce((best, x) => (!best || TIER_RANK[x.tier] > TIER_RANK[best] ? x.tier : best), null);
-}
+// ----- Top answers for a finished burn -----
 
-/**
- * Every top answer on this burn's chart (e.g. all Galaxy answers), with the
- * player's own answers highlighted and listed first.
- */
+/** Every top answer on a burn's chart, with the player's own answers marked. */
 function topAnswersBlock(result) {
   const top = result.topAnswers ?? [{ name: result.gem, detail: null }]; // older saved flights
-  const level = levelOf(result.topLevel ?? "galaxy");
+  const level = levelOf(result.topLevel ?? TOP_LEVEL);
   const yours = new Set(result.hits.map((x) => x.canonical));
-  const ordered = result.kind === "closest" ? top : [...top.filter((t) => yours.has(t.name)), ...top.filter((t) => !yours.has(t.name))];
-  const max = 12;
-  const shown = ordered.slice(0, max);
   const found = top.filter((t) => yours.has(t.name)).length;
   const label =
-    result.kind === "closest"
-      ? top.length > 1 ? `Closest on the chart · ${level.name} · ${top.length} answers` : "Closest on the chart"
-      : `${level.name} answers · ${level.rarity} · ${top.length}`;
+    result.kind === "year" ? "The year it happened"
+      : result.kind === "closest" ? (top.length > 1 ? "Closest on the chart (a tie)" : "Closest on the chart")
+        : top.length > 1 ? "Top answers" : "Top answer";
   return h("div", { className: `top-answers tier-${level.id}` },
-    h("p", { className: "kicker" }, label),
-    h("ul", {}, shown.map((t) =>
-      h("li", { className: yours.has(t.name) ? "is-yours" : "" }, t.name, t.detail && h("small", {}, ` ${t.detail}`)),
+    h("p", { className: "top-label" }, icon("trophy"), label, levelTag(level.id)),
+    h("ul", {}, top.map((t) =>
+      h("li", { className: yours.has(t.name) ? "is-yours" : "" }, t.name, t.detail && h("small", {}, t.detail)),
     )),
-    ordered.length > max && h("p", { className: "fine" }, `+ ${ordered.length - max} more`),
-    found > 0
-      ? h("p", { className: "fine" }, top.length === 1 ? "You found it." : `You found ${found} of ${top.length}.`)
-      : h("p", { className: "fine" }, "None of yours this time."),
+    h("p", { className: "top-result" }, found > 0 ? (top.length === 1 ? "You got it." : `You got ${found} of ${top.length}.`) : "Not this time."),
   );
 }
+
+// ----- Between burns -----
 
 function renderBetween() {
   const s = state.screen;
@@ -673,35 +718,49 @@ function renderBetween() {
   const first = just.hits[0];
   const tier = just.kind === "list" ? bestTier(just.hits) ?? "drift" : first?.tier ?? "drift";
   const level = levelOf(tier);
+  const total = sum(s.results);
 
-  let title;
-  let pill = null;
+  let headline;
+  let sub;
   if (just.kind === "list") {
-    title = h("h2", {}, `${just.hits.length} logged`, h("span", {}, ` +${just.points}`));
-    if (just.hits.length) pill = h("span", { className: "level-pill" }, `Best: ${level.name}${just.capped ? ` · Stack full, ${LIST_CAP} max` : ""}`);
+    headline = h("h2", { className: "reveal-title" }, `${just.hits.length} answer${just.hits.length === 1 ? "" : "s"}`);
+    sub = just.hits.length
+      ? h("p", { className: "reveal-sub" }, "Best: ", levelTag(tier), just.capped ? ` Full stack, ${LIST_CAP} max.` : "")
+      : h("p", { className: "reveal-sub" }, just.timedOut ? "Time ran out before any answer." : "No answers this time.");
   } else if (first) {
-    title = h("h2", {}, h("span", { className: "level-word" }, level.name), h("span", {}, ` +${just.points}`));
-    pill = h("span", { className: "level-pill" }, just.kind === "closest" ? `Closeness · ${level.name}` : `${level.name} · ${level.rarity}`);
+    headline = h("h2", { className: `reveal-title tier-${tier}` }, level.name);
+    sub = h("p", { className: "reveal-sub" }, just.kind === "closest" || just.kind === "year" ? "Closeness: " : "Rarity: ", h("b", {}, just.kind === "closest" || just.kind === "year" ? level.name : level.rarity));
   } else {
-    title = h("h2", {}, "No answer", h("span", {}, " +0"));
+    headline = h("h2", { className: "reveal-title" }, "No answer");
+    sub = h("p", { className: "reveal-sub" }, just.timedOut ? "Time ran out." : "Nothing locked in.");
   }
 
-  return h("article", { className: `folio reveal tier-${tier}` },
-    h("p", { className: "kicker" }, `Burn ${s.index + 1} sealed`),
-    title,
-    pill && h("p", {}, pill),
+  const yourAnswer = first && just.kind !== "list" && h("p", { className: "you-said" },
+    "You said ", h("b", {}, first.canonical),
+    just.kind === "closest" && first.deltaPct != null ? `, ${formatDelta(first.deltaPct)}` : "",
+    just.kind === "year" && first.yearsOff != null ? `, ${formatYearsOff(first.yearsOff, first.direction)}` : "",
+  );
+
+  return h("article", { className: `panel reveal tier-${tier}`, attrs: { "aria-live": "polite" } },
+    h("div", { className: "reveal-head" },
+      h("p", { className: "burn-num" }, `Burn ${s.index + 1} of 7 done`),
+      h("p", { className: `reveal-points tier-${tier}` }, `+${just.points}`),
+    ),
+    headline,
+    sub,
     rarityLamps(just.hits.length ? tier : null),
-    first && just.kind !== "list" &&
-      h("p", { className: "reveal-name" }, `You said ${first.canonical}`, first.deltaPct != null && first.value != null ? ` · ${formatDelta(first.deltaPct)}` : ""),
+    yourAnswer,
     topAnswersBlock(just),
-    h("p", { className: "aside" }, just.aside),
-    h("p", { className: "running" }, `Flight total ${sum(s.results)} of ${PERFECT_SCORE.toLocaleString("en-US")}`),
-    h("button", { className: "btn btn-primary", attrs: { type: "button" }, onClick: () => nextBurn(s) },
-      s.index === 6 ? "Read the ascent" : "Next burn"),
+    h("p", { className: "fact" }, icon("book-open"), h("span", {}, just.aside)),
+    h("div", { className: "reveal-foot" },
+      h("p", { className: "running" }, "Total ", h("b", {}, fmt(total)), ` / ${fmt(PERFECT_SCORE)}`),
+      h("button", { className: "btn btn-gold", attrs: { type: "button", "data-autofocus": "" }, onClick: () => nextBurn(s) },
+        s.index === 6 ? "See my result" : "Next burn", icon("chevron-right")),
+    ),
   );
 }
 
-// ----- Report -----
+// ----- Result -----
 
 function renderReport() {
   const { flight, practice } = state.screen;
@@ -714,164 +773,213 @@ function renderReport() {
   if (yourIndex >= 8 && board[yourIndex]) shown.push(board[yourIndex]);
   let openId = null;
 
-  const fleetDetail = !fleetEnabled
-    ? "Fleet board not connected yet"
-    : state.fleetError
-      ? "Could not reach the fleet"
-      : diff == null
-        ? practice ? "Practice stays off the board" : fleet && fleet.pilots === 0 ? "You open the average" : "One flight per pilot"
-        : `${diff >= 0 ? "+" : ""}${diff} vs the fleet`;
+  const fleetStat = practice
+    ? stat("Today's average", "-", "Practice isn't counted")
+    : state.fleetStatus === "off"
+      ? stat("Today's average", "-", "Live on the real site")
+      : state.fleetStatus === "error"
+        ? stat("Today's average", "-", "Couldn't reach the fleet")
+        : average == null
+          ? stat("Today's average", "...", "Sending your flight")
+          : stat("Today's average", fmt(average), `You're ${diff >= 0 ? `${diff} above` : `${-diff} below`}`);
 
   const list = h("ol", { className: "burn-list" });
   const drawList = () =>
     mount(list, flight.rounds.map((r, i) => {
       const open = openId === r.id;
       const names = r.hits.map((x) => x.canonical).join(", ");
+      const tier = r.hits.length ? bestTier(r.hits) : "drift";
       return h("li", { className: open ? "is-open" : "" },
         h("button", {
-          className: "burn-toggle",
+          className: "burn-row",
           attrs: { type: "button", "aria-expanded": String(open) },
           onClick: () => {
             openId = open ? null : r.id;
             drawList();
           },
         },
-          h("div", {},
-            h("p", { className: "burn-index" }, i + 1),
-            h("div", {},
-              h("p", { className: "burn-prompt" }, r.prompt),
-              h("p", { className: "burn-answer" },
-                names || "No answer",
-                r.hits.length === 1 && h("em", { className: `tier-${r.hits[0].tier}` }, " ", h("span", { className: "level-pill" }, levelOf(r.hits[0].tier).name)),
-              ),
-            ),
+          h("span", { className: "burn-row-num" }, i + 1),
+          h("span", { className: "burn-row-text" },
+            h("span", { className: "burn-row-prompt" }, r.prompt),
+            h("span", { className: "burn-row-answer" }, names || "No answer", r.hits.length === 1 && levelTag(r.hits[0].tier)),
           ),
-          h("strong", { className: r.hits.length ? `tier-${bestTier(r.hits)}` : "" }, r.points),
+          h("strong", { className: `burn-row-points tier-${tier}` }, r.points),
+          icon(open ? "close" : "chevron-right"),
         ),
-        open && h("div", { className: "gem-pillow" },
+        open && h("div", { className: "burn-detail" },
           topAnswersBlock(r),
-          h("p", { className: "gem-fact" }, r.aside),
-          h("p", { className: "fine" }, names ? `You logged ${names}.` : "You logged nothing on this burn."),
+          h("p", { className: "fact" }, icon("book-open"), h("span", {}, r.aside)),
         ),
       );
     }));
   drawList();
 
-  const copyBtn = h("button", { className: "btn btn-primary", attrs: { type: "button" } }, "Copy the flight");
+  const copyBtn = h("button", { className: "btn btn-gold", attrs: { type: "button" } }, icon("copy"), "Copy result");
   copyBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(shareText(flight, callsignLabel(), average));
-      copyBtn.textContent = "Copied";
+      copyBtn.replaceChildren(icon("check"), "Copied");
     } catch {
-      copyBtn.textContent = "Copy the flight";
+      copyBtn.replaceChildren(icon("copy"), "Copy result");
     }
   });
 
-  return h("article", { className: "folio report" },
-    h("p", { className: "kicker" }, practice ? "Practice · not in today's average" : `Flight ${flight.mission} · ${formatDay(flight.day)}`),
-    h("h2", {}, flight.zone.name),
-    h("p", { className: "altitude" }, formatKm(flight.altitudeKm)),
-    h("p", { className: "zone-detail" }, flight.zone.detail),
-    h("div", { className: "stat-row" },
-      stat(callsignLabel(), `${flight.score}`, `of ${PERFECT_SCORE.toLocaleString("en-US")} points`),
-      stat("Fleet today", state.fleetError || average == null ? "—" : `${average}`, fleetDetail),
+  return h("article", { className: "panel report" },
+    h("p", { className: "flight-tag" }, practice ? "Practice flight, not counted" : `Flight ${flight.mission}, ${formatDay(flight.day)}`),
+    h("div", { className: "report-score" },
+      h("strong", {}, fmt(flight.score)),
+      h("span", {}, `/ ${fmt(PERFECT_SCORE)} points`),
     ),
-    !practice && state.profile.streak > 1 && h("p", { className: "streak" }, `${state.profile.streak} day streak`),
-    h("p", { className: "fine burn-hint" }, "Tap a burn for the best answer."),
+    h("p", { className: "report-stage" }, h("b", {}, stageFor(flight.score).name), `. ${toTheMoon(flight.score)}.`),
+    h("div", { className: "stats" },
+      stat(callsignLabel(), fmt(flight.score), "points"),
+      fleetStat,
+      !practice && stat("Streak", `${state.profile.streak}`, state.profile.streak === 1 ? "day" : "days in a row"),
+    ),
+    h("h2", { className: "section-title" }, "Your burns"),
+    h("p", { className: "section-hint" }, "Tap a burn to see the top answer and a fact."),
     list,
     !practice && shown.length > 0 &&
-      h("div", { className: "board" },
-        h("p", { className: "kicker" }, "Each pilot today", yourIndex >= 0 ? ` · you are ${yourIndex + 1} of ${fleet?.pilots}` : ""),
+      h("section", { className: "board" },
+        h("h2", { className: "section-title" }, "Today's pilots"),
+        yourIndex >= 0 && h("p", { className: "section-hint" }, `You're number ${yourIndex + 1} of ${fleet.pilots}.`),
         h("ol", {}, shown.map((x) =>
           h("li", { className: x.yours ? "is-you" : "" },
-            h("span", {}, x.yours ? callsignLabel() : `Pilot ${board.indexOf(x) + 1}`),
-            h("span", {}, `${x.score} · ${formatKm(x.altitudeKm)}`),
+            h("span", { className: "board-rank" }, board.indexOf(x) + 1),
+            h("span", { className: "board-name" }, x.yours ? `${callsignLabel()} (you)` : "Pilot"),
+            h("span", { className: "board-score" }, fmt(x.score)),
           ),
         )),
-        board.length > shown.length && h("p", { className: "fine" }, `${board.length - shown.length} more pilots out today.`),
+        board.length > shown.length && h("p", { className: "section-hint" }, `${board.length - shown.length} more pilots today.`),
       ),
-    h("div", { className: "actions" },
+    h("div", { className: "cta-row" },
       copyBtn,
-      h("button", { className: "btn btn-ghost", attrs: { type: "button" }, onClick: () => startFlight(true) }, "Practice scramble"),
+      h("button", { className: "btn btn-line", attrs: { type: "button" }, onClick: () => startFlight(true) }, icon("reload"), "Practice"),
+      h("button", { className: "btn-text", attrs: { type: "button" }, onClick: () => go({ name: "pad" }) }, icon("home"), "Back to start"),
     ),
-    h("button", { className: "text-btn", attrs: { type: "button" }, onClick: () => go({ name: "pad" }) }, "Back to the pad"),
   );
 }
 
 // ----- Menu -----
 
+function howToPlay() {
+  return h("div", { className: "how" },
+    h("section", {},
+      h("h3", {}, "The flight"),
+      h("p", {}, "Every day there's one flight of 7 timed burns. A burn is one question. Everyone gets the same 7, and you can fly once a day. Practice as much as you like."),
+    ),
+    h("section", {},
+      h("h3", {}, "Four kinds of burn"),
+      h("ul", { className: "how-kinds" }, Object.values(KINDS).map((k) =>
+        h("li", {}, icon(k.icon), h("div", {}, h("b", {}, k.label), h("p", {}, k.how))),
+      )),
+    ),
+    h("section", {},
+      h("h3", {}, "Rarer answers score more"),
+      h("p", {}, "Every answer has a rarity level. Same points in every burn. Each burn has exactly one Galaxy answer, the hardest one."),
+      h("table", { className: "level-table" },
+        h("tbody", {}, LEVELS.map((l) =>
+          h("tr", { className: `tier-${l.id}` },
+            h("td", {}, levelTag(l.id)),
+            h("td", {}, l.rarity),
+            h("td", {}, `${l.points} pts`),
+          ),
+        )),
+      ),
+    ),
+    h("section", {},
+      h("h3", {}, "How close counts"),
+      h("p", {}, `Closest number: only the single closest answer is Galaxy, then ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}.`),
+      h("p", {}, `Guess the year: ${YEAR_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}.`),
+      h("p", {}, `Anything further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
+    ),
+    h("section", {},
+      h("h3", {}, "Your altitude is your points"),
+      h("p", {}, `The rocket climbs 1 step for every point. ${fmt(PERFECT_SCORE)} points lands on the Moon. Every 200 points is a new stage.`),
+    ),
+  );
+}
+
 function renderMenu() {
   const page = state.menu;
   const s = state.screen.name;
-  const inBurn = s === "play";
-  const canLeave = s !== "pad";
-  const confirmLeave = s === "play" || s === "between";
+  const inFlight = s === "play" || s === "between";
   const close = () => openMenu(null);
   const toPage = (p) => () => openMenu(p);
   const leave = () => {
     state.menu = null;
     go({ name: "pad" });
   };
-  const back = () => h("button", { className: "text-btn", attrs: { type: "button" }, onClick: toPage("root") }, "Back to the menu");
-  const btn = (label, onClick, className) => h("button", { className, attrs: { type: "button" }, onClick }, label);
 
+  const row = (iconName, label, desc, onClick, extra) =>
+    h("li", {},
+      h("button", { className: "menu-row", attrs: { type: "button" }, onClick },
+        icon(iconName),
+        h("span", { className: "menu-row-text" }, h("b", {}, label), h("span", {}, desc)),
+        extra ?? icon("chevron-right"),
+      ),
+    );
+
+  let title;
   let content;
   if (page === "root") {
+    title = "Menu";
     content = [
-      h("p", { className: "kicker" }, "Fuelup"),
-      h("h2", {}, "Menu"),
-      inBurn && h("p", { className: "fine" }, "The clock keeps running while this is open."),
-      h("div", { className: "menu-list" },
-        canLeave && btn("Back to the pad", confirmLeave ? toPage("leave") : leave),
-        btn("How to play", toPage("how")),
-        btn("Terms", toPage("terms")),
-        btn("Privacy", toPage("privacy")),
-        btn(muted() ? "Sound on" : "Sound off", toggleMute),
-        btn("Close", close),
+      inFlight && h("p", { className: "menu-note" }, icon("clock"), "The timer keeps running while the menu is open."),
+      h("ul", { className: "menu-list" },
+        row("info-box", "How to play", "Burn types, rarity levels and points", toPage("how")),
+        row(muted() ? "volume-x" : "volume-2", "Sound", muted() ? "Sound is off" : "Sound is on", toggleMute,
+          h("span", { className: `switch ${muted() ? "" : "is-on"}`, attrs: { "aria-hidden": "true" } }, h("span", {}))),
+        row("shield", "Privacy", "What's stored, and what isn't", toPage("privacy")),
+        row("notes", "Terms", "The rules of the game", toPage("terms")),
+      ),
+      inFlight && h("ul", { className: "menu-list menu-danger" },
+        row("logout", "Leave this flight", "Back to start. This flight won't be saved.", toPage("leave")),
       ),
     ];
   } else if (page === "leave") {
+    title = "Leave this flight?";
     content = [
-      h("p", { className: "kicker" }, "Leave"),
-      h("h2", {}, "Back to the pad?"),
-      h("p", { className: "blurb" },
-        "Nothing is logged until all seven burns are finished. Leave now and this ascent is gone. You can still ignite today's flight."),
-      h("div", { className: "actions" },
-        btn("Leave the flight", leave, "btn btn-primary"),
-        btn("Stay", toPage("root"), "btn btn-ghost"),
+      h("p", { className: "menu-text" }, "Nothing is saved until all 7 burns are finished. If you leave now, this flight is lost. You can still start today's flight again."),
+      h("div", { className: "cta-row" },
+        h("button", { className: "btn btn-danger", attrs: { type: "button" }, onClick: leave }, icon("logout"), "Leave flight"),
+        h("button", { className: "btn btn-line", attrs: { type: "button", "data-autofocus": "" }, onClick: close }, "Keep flying"),
       ),
     ];
   } else if (page === "how") {
-    content = [h("p", { className: "kicker" }, "How to play"), h("h2", {}, "Seven burns"), rules(), back()];
+    title = "How to play";
+    content = [howToPlay()];
   } else if (page === "terms") {
-    content = [
-      h("p", { className: "kicker" }, "Terms"),
-      h("h2", {}, "The chart is the game"),
-      h("div", { className: "legal" },
-        h("p", {}, "Fuelup is a free daily game. One official flight per UTC day on this device. Practice does not change today's average."),
-        h("p", {}, "Points come from a fixed chart. A rarer listed answer scores more. Something true but missing from the chart scores nothing. That is the game, not a ruling on the world."),
-        h("p", {}, "Finish the seven burns and the score is what counts. Leaving early logs nothing."),
-        h("p", {}, "The fleet board is anonymous scores. Don't try to stuff it. The game is offered as-is, and it can change."),
-      ),
-      back(),
-    ];
+    title = "Terms";
+    content = [h("div", { className: "menu-text" },
+      h("p", {}, "Fuelup is a free daily game. One official flight per UTC day on this device. Practice doesn't count toward the board."),
+      h("p", {}, "Points come from a fixed chart. A rarer listed answer scores more. Something true but missing from the chart scores nothing. That's the game, not a ruling on the world."),
+      h("p", {}, "Finish all 7 burns and your score counts. Leaving early saves nothing."),
+      h("p", {}, "The board shows anonymous scores. Please don't try to stuff it. The game is offered as it is and may change."),
+    )];
   } else {
-    content = [
-      h("p", { className: "kicker" }, "Privacy"),
-      h("h2", {}, "No account"),
-      h("div", { className: "legal" },
-        h("p", {}, "You can play without a name, an email, or a sign-in."),
-        h("p", {}, "Your callsign stays in this browser. It is not sent with your score. A random id, invented on this device, is how today's average tells pilots apart. It says nothing about who you are."),
-        h("p", {}, "When you finish today's flight, the answers are checked so the score is real, then thrown away. What is kept is the day, that random id, the score, and the altitude. Practice answers stay on this device."),
-        h("p", {}, "There are no ads and nothing here is sold. Clearing this site's data removes the callsign and the id. A score already logged stays on the board as a number with no name."),
-      ),
-      back(),
-    ];
+    title = "Privacy";
+    content = [h("div", { className: "menu-text" },
+      h("p", {}, "You can play without a name, an email or a sign-in."),
+      h("p", {}, "Your pilot name stays in this browser and is never sent with your score. A random id, made on this device, tells today's pilots apart. It says nothing about who you are."),
+      h("p", {}, "When you finish today's flight, your answers are checked so the score is real, then thrown away. What's kept is the day, that random id and your score. Practice stays on this device."),
+      h("p", {}, "There are no ads and nothing is sold. Clearing this site's data removes your pilot name and id. A score already on the board stays there as a number with no name."),
+    )];
   }
 
-  return h("div", { className: "menu-layer", attrs: { role: "dialog", "aria-modal": "true", "aria-label": "Menu" } },
-    h("button", { className: "menu-scrim", attrs: { type: "button", "aria-label": "Close menu" }, onClick: close }),
-    h("div", { className: "menu-sheet" }, content),
+  const back = page !== "root" && page !== "leave" &&
+    h("button", { className: "btn-text menu-back", attrs: { type: "button" }, onClick: toPage("root") }, icon("arrow-left"), "Menu");
+
+  return h("div", { className: "menu-layer" },
+    h("button", { className: "menu-scrim", attrs: { type: "button", "aria-label": "Close menu", tabindex: "-1" }, onClick: close }),
+    h("div", { className: "panel menu-sheet", attrs: { role: "dialog", "aria-modal": "true", "aria-label": title } },
+      h("header", { className: "menu-head" },
+        back,
+        h("h2", {}, title),
+        h("button", { className: "btn-icon", attrs: { type: "button", "aria-label": "Close menu", "data-autofocus": "" }, onClick: close }, icon("close")),
+      ),
+      content,
+    ),
   );
 }
 

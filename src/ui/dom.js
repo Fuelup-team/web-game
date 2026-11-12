@@ -32,18 +32,21 @@ export function mount(el, ...children) {
   append(el, children);
 }
 
-const ICON_PATHS = {
-  "arrow-left": '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
-  menu: '<path d="M4 12h16"/><path d="M4 18h16"/><path d="M4 6h16"/>',
-  "volume-2":
-    '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>',
-  "volume-x":
-    '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
-};
+/** Path to a file in public/, respecting an optional base (window.__FUEL_BASE). */
+export function asset(path) {
+  const base = typeof window !== "undefined" && window.__FUEL_BASE ? window.__FUEL_BASE : "";
+  return `${base}public/${path}`;
+}
 
-/** A Lucide-style line icon. Only names from ICON_PATHS are allowed. */
+/**
+ * A pixel icon from public/icons (pixelarticons, MIT). Drawn with a CSS mask,
+ * so it takes the text color of wherever it sits.
+ */
 export function icon(name) {
-  const wrap = document.createElement("span");
-  wrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${name}" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
-  return wrap.firstElementChild;
+  const el = document.createElement("span");
+  el.className = "icon";
+  el.setAttribute("aria-hidden", "true");
+  // Full URL: a relative url() inside a CSS variable would be read relative to the stylesheet.
+  el.style.setProperty("--icon", `url("${new URL(asset(`icons/${name}.svg`), document.baseURI).href}")`);
+  return el;
 }

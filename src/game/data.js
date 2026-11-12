@@ -1539,3 +1539,76 @@ export const GAUGE_ROUNDS = [
     items: ATOMIC_NUMBERS,
   },
 ];
+
+// ---------- Year burns: "When did it happen?" ----------
+// Type the year. Exact year is the only Galaxy answer; see YEAR_BANDS in
+// engine.js for the rest. Years before 1 AD are negative (-44 = 44 BC).
+
+const YEAR_BLURB = "Type the year. Exact is Galaxy, within 2 years is Nebula, and every year further off costs height.";
+
+function when(id, prompt, year, aside) {
+  return { kind: "year", id, prompt, blurb: YEAR_BLURB, seconds: 22, year, aside };
+}
+
+export const YEAR_ROUNDS = [
+  when("shakespeare-death", "When did William Shakespeare die?", 1616,
+    "Shakespeare died in Stratford-upon-Avon in April 1616. Miguel de Cervantes died the same week in Madrid."),
+  when("titanic", "When did the Titanic sink?", 1912,
+    "The Titanic sank on 15 April 1912, on its maiden voyage, after hitting an iceberg in the North Atlantic."),
+  when("moon-landing", "When did humans first land on the Moon?", 1969,
+    "Apollo 11 landed on 20 July 1969. Neil Armstrong and Buzz Aldrin walked on the surface while Michael Collins orbited above."),
+  when("berlin-wall", "When did the Berlin Wall fall?", 1989,
+    "The Berlin Wall fell on 9 November 1989, after standing for 28 years."),
+  when("ww1-start", "When did the First World War begin?", 1914,
+    "Austria-Hungary declared war on Serbia on 28 July 1914, a month after Archduke Franz Ferdinand was shot in Sarajevo."),
+  when("ww2-end", "When did the Second World War end?", 1945,
+    "The war in Europe ended in May 1945, and Japan formally surrendered on 2 September 1945."),
+  when("columbus", "When did Christopher Columbus first reach the Americas?", 1492,
+    "Columbus made landfall in the Bahamas on 12 October 1492, believing he had reached Asia."),
+  when("us-independence", "When was the US Declaration of Independence adopted?", 1776,
+    "The Continental Congress adopted the Declaration on 4 July 1776, which is why the US celebrates on the Fourth of July."),
+  when("bastille", "When was the Bastille stormed, starting the French Revolution?", 1789,
+    "Crowds stormed the Bastille prison in Paris on 14 July 1789. France still celebrates the date as its national day."),
+  when("wright-flight", "When did the Wright brothers make the first powered aeroplane flight?", 1903,
+    "Orville Wright flew for 12 seconds at Kitty Hawk, North Carolina, on 17 December 1903."),
+  when("finland-independence", "When did Finland become independent?", 1917,
+    "Finland declared independence from Russia on 6 December 1917, still celebrated as Independence Day."),
+  when("iphone", "When was the first iPhone released?", 2007,
+    "Steve Jobs unveiled the iPhone in January 2007, and it went on sale in the US that June."),
+  when("waterloo", "When was Napoleon defeated at the Battle of Waterloo?", 1815,
+    "Napoleon lost at Waterloo, in present-day Belgium, on 18 June 1815, and was exiled to Saint Helena."),
+  when("ussr-end", "When did the Soviet Union break up?", 1991,
+    "Mikhail Gorbachev resigned on 25 December 1991, and the Soviet Union was dissolved the next day."),
+  when("sputnik", "When was Sputnik 1, the first artificial satellite, launched?", 1957,
+    "The Soviet Union launched Sputnik 1 on 4 October 1957. Its simple radio beep could be heard around the world."),
+  when("fire-of-london", "When did the Great Fire of London happen?", 1666,
+    "The Great Fire started in a bakery on Pudding Lane in September 1666 and burned for about four days."),
+  when("luther-theses", "When did Martin Luther publish his 95 Theses?", 1517,
+    "Luther's 95 Theses of 1517 are usually taken as the start of the Protestant Reformation."),
+  when("black-death", "When did the Black Death arrive in Europe?", 1347,
+    "The plague reached Sicily in 1347 on ships from the Black Sea, and spread across Europe over the next few years."),
+  when("mozart-death", "When did Wolfgang Amadeus Mozart die?", 1791,
+    "Mozart died in Vienna in December 1791, aged 35, leaving his Requiem unfinished."),
+  when("eiffel-tower", "When was the Eiffel Tower completed?", 1889,
+    "The Eiffel Tower was finished in 1889 for the Paris World's Fair, a hundred years after the French Revolution."),
+  when("origin-of-species", "When did Charles Darwin publish On the Origin of Species?", 1859,
+    "On the Origin of Species came out in November 1859, and the first printing sold out quickly."),
+  when("chernobyl", "When did the Chernobyl nuclear disaster happen?", 1986,
+    "Reactor 4 at Chernobyl, in Soviet Ukraine, exploded on 26 April 1986."),
+  when("mandela-president", "When was Nelson Mandela elected President of South Africa?", 1994,
+    "Mandela became president after South Africa's first fully democratic election in April 1994."),
+  when("wall-street-crash", "When did the Wall Street Crash happen?", 1929,
+    "The crash of October 1929 helped start the Great Depression of the 1930s."),
+  when("hastings", "When was the Battle of Hastings?", 1066,
+    "William the Conqueror defeated King Harold II at Hastings in October 1066 and took the English throne."),
+  when("magna-carta", "When was Magna Carta sealed?", 1215,
+    "King John sealed Magna Carta at Runnymede, near London, in June 1215."),
+  when("caesar-death", "In what year BC was Julius Caesar assassinated?", -44,
+    "Caesar was stabbed in Rome on the Ides of March, 15 March 44 BC."),
+  when("principia", "When did Isaac Newton publish his Principia, with the laws of motion?", 1687,
+    "Newton's Principia, published in 1687, set out his three laws of motion and the law of universal gravitation."),
+  when("relativity", "When did Albert Einstein publish his theory of special relativity?", 1905,
+    "1905 is called Einstein's miracle year: he published four major papers, including special relativity and E = mc²."),
+  when("first-www", "When did the first website go online?", 1991,
+    "Tim Berners-Lee put the first website online at CERN in 1991. It explained what the World Wide Web was."),
+];

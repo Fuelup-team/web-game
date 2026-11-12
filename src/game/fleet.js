@@ -1,24 +1,18 @@
 // Fleet board: today's anonymous scores from every pilot.
-//
-// The Grok demo kept these on Grok's own server, which we can't copy. Until we
-// add our own backend, FLEET_URL stays empty and the game runs without a board.
-//
-// To connect one, set FLEET_URL to an API with two endpoints:
-//   GET  {FLEET_URL}?day=YYYY-MM-DD&pilotKey=...
-//   POST {FLEET_URL}  body: { day, pilotKey, rounds: [{ id, inputs: [names] }] }
-// Both return: { pilots, averageScore, board: [{ score, altitudeKm, yours }] }
-// The server should re-score `rounds` itself (engine.js runs in Node too) so
-// nobody can post a fake score.
+// Talks to the Netlify function at /api/fleet (netlify/functions/fleet.mjs).
+// When running locally with a plain static server there is no API, so the
+// board is switched off on localhost.
 
-export const FLEET_URL = "";
+export const FLEET_URL = "/api/fleet";
 
-/** True when a fleet backend is configured. */
-export const fleetEnabled = Boolean(FLEET_URL);
+/** True where the fleet API exists (the live site and Netlify previews). */
+export const fleetEnabled =
+  typeof location !== "undefined" && !["localhost", "127.0.0.1", ""].includes(location.hostname);
 
 export async function fetchFleet(day, pilotKey) {
   if (!fleetEnabled) return null;
   const url = `${FLEET_URL}?day=${encodeURIComponent(day)}&pilotKey=${encodeURIComponent(pilotKey)}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Fleet ${res.status}`);
   return res.json();
 }
