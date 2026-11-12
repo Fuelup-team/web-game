@@ -1,0 +1,39 @@
+{
+  "topic": "Official languages of India",
+  "gem": "Konkani",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "india",
+      "prompt": "Name a language with official status in India.",
+      "blurb": "Hindi and English stay in the sky. The Eighth Schedule is long.",
+      "seconds": 30,
+      "fact": "Konkani is official in Goa, and it is the one almost nobody reaches for first."
+    }
+  ],
+  "answers": [
+    {"name": "Hindi", "level": "sky"},
+    {"name": "English", "level": "sky"},
+    {"name": "Bengali", "level": "sky", "also": ["bangla"]},
+    {"name": "Telugu", "level": "sky"},
+    {"name": "Marathi", "level": "sky"},
+    {"name": "Tamil", "level": "sky"},
+    {"name": "Urdu", "level": "sky"},
+    {"name": "Gujarati", "level": "sky"},
+    {"name": "Kannada", "level": "orbit"},
+    {"name": "Malayalam", "level": "orbit"},
+    {"name": "Odia", "level": "orbit", "also": ["oriya"]},
+    {"name": "Punjabi", "level": "orbit"},
+    {"name": "Assamese", "level": "orbit"},
+    {"name": "Sanskrit", "level": "orbit"},
+    {"name": "Nepali", "level": "deepspace"},
+    {"name": "Kashmiri", "level": "deepspace"},
+    {"name": "Konkani", "level": "galaxy"},
+    {"name": "Manipuri", "level": "deepspace", "also": ["meitei"]},
+    {"name": "Sindhi", "level": "deepspace"},
+    {"name": "Dogri", "level": "deepspace"},
+    {"name": "Santali", "level": "nebula"},
+    {"name": "Bodo", "level": "nebula"},
+    {"name": "Maithili", "level": "nebula"}
+  ]
+}

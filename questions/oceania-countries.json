@@ -1,0 +1,38 @@
+{
+  "topic": "Countries in Oceania",
+  "gem": "Nauru",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "oceania-list",
+      "prompt": "Name as many countries in Oceania as you can.",
+      "blurb": "There are 14. Australia and New Zealand are the easy two.",
+      "seconds": 36,
+      "fact": "Nauru is the world's smallest republic, about 21 square kilometres."
+    },
+    {
+      "kind": "rare",
+      "id": "oceania-one",
+      "prompt": "Name a country in Oceania.",
+      "blurb": "One country. Australia is everyone's answer.",
+      "seconds": 26,
+      "fact": "Nauru is the world's smallest republic, about 21 square kilometres."
+    }
+  ],
+  "answers": [
+    {"name": "Australia", "level": "sky"},
+    {"name": "New Zealand", "level": "sky", "also": ["aotearoa"]},
+    {"name": "Fiji", "level": "sky"},
+    {"name": "Papua New Guinea", "level": "sky", "also": ["png"]},
+    {"name": "Samoa", "level": "sky"},
+    {"name": "Tonga", "level": "orbit"},
+    {"name": "Vanuatu", "level": "orbit"},
+    {"name": "Solomon Islands", "level": "orbit", "also": ["solomons"]},
+    {"name": "Kiribati", "level": "deepspace"},
+    {"name": "Marshall Islands", "level": "deepspace"},
+    {"name": "Micronesia", "level": "deepspace", "also": ["federated states of micronesia"]},
+    {"name": "Palau", "level": "nebula"},
+    {"name": "Tuvalu", "level": "nebula"},
+    {"name": "Nauru", "level": "galaxy"}
+  ]
+}

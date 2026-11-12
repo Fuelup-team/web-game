@@ -1,0 +1,37 @@
+{
+  "topic": "Prime numbers from 10 to 100",
+  "gem": "97",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "prime",
+      "prompt": "Name a prime number between 10 and 100.",
+      "blurb": "11 and 13 are the crowd. A prime near 100 is a quieter burn.",
+      "seconds": 26,
+      "fact": "97 is prime, and it is about as far from a reflex as this chart goes."
+    }
+  ],
+  "answers": [
+    {"name": "11", "level": "sky"},
+    {"name": "13", "level": "sky"},
+    {"name": "17", "level": "sky"},
+    {"name": "19", "level": "sky"},
+    {"name": "23", "level": "sky"},
+    {"name": "29", "level": "sky"},
+    {"name": "31", "level": "sky"},
+    {"name": "37", "level": "orbit"},
+    {"name": "41", "level": "orbit"},
+    {"name": "43", "level": "orbit"},
+    {"name": "47", "level": "orbit"},
+    {"name": "53", "level": "orbit"},
+    {"name": "59", "level": "deepspace"},
+    {"name": "61", "level": "deepspace"},
+    {"name": "67", "level": "deepspace"},
+    {"name": "71", "level": "deepspace"},
+    {"name": "73", "level": "deepspace"},
+    {"name": "79", "level": "nebula"},
+    {"name": "83", "level": "nebula"},
+    {"name": "89", "level": "nebula"},
+    {"name": "97", "level": "galaxy"}
+  ]
+}

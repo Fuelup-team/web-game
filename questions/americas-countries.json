@@ -1,0 +1,47 @@
+{
+  "topic": "Countries in North and Central America and the Caribbean",
+  "gem": "Saint Kitts and Nevis",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "americas-list",
+      "prompt": "Name as many countries in North America, Central America and the Caribbean as you can.",
+      "blurb": "Independent countries only. The small Caribbean islands are where the height is.",
+      "seconds": 45,
+      "fact": "Saint Kitts and Nevis is the smallest country in the Americas, by both area and population."
+    },
+    {
+      "kind": "rare",
+      "id": "americas-one",
+      "prompt": "Name a country in North America, Central America or the Caribbean.",
+      "blurb": "One country. The USA barely leaves the pad.",
+      "seconds": 26,
+      "fact": "Saint Kitts and Nevis is the smallest country in the Americas, by both area and population."
+    }
+  ],
+  "answers": [
+    {"name": "United States", "level": "sky", "also": ["usa", "us", "america", "united states of america"]},
+    {"name": "Canada", "level": "sky"},
+    {"name": "Mexico", "level": "sky"},
+    {"name": "Cuba", "level": "sky"},
+    {"name": "Jamaica", "level": "sky"},
+    {"name": "Haiti", "level": "sky"},
+    {"name": "Dominican Republic", "level": "sky"},
+    {"name": "Costa Rica", "level": "sky"},
+    {"name": "Panama", "level": "orbit"},
+    {"name": "Guatemala", "level": "orbit"},
+    {"name": "Honduras", "level": "orbit"},
+    {"name": "El Salvador", "level": "orbit"},
+    {"name": "Nicaragua", "level": "orbit"},
+    {"name": "Bahamas", "level": "orbit", "also": ["the bahamas"]},
+    {"name": "Belize", "level": "deepspace"},
+    {"name": "Barbados", "level": "deepspace"},
+    {"name": "Trinidad and Tobago", "level": "deepspace", "also": ["trinidad"]},
+    {"name": "Grenada", "level": "deepspace"},
+    {"name": "Saint Lucia", "level": "deepspace", "also": ["st lucia"]},
+    {"name": "Antigua and Barbuda", "level": "nebula", "also": ["antigua"]},
+    {"name": "Dominica", "level": "nebula"},
+    {"name": "Saint Vincent and the Grenadines", "level": "nebula", "also": ["st vincent", "saint vincent", "st vincent and the grenadines"]},
+    {"name": "Saint Kitts and Nevis", "level": "galaxy", "also": ["st kitts and nevis", "st kitts", "saint kitts"]}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "topic": "Australian states and territories",
+  "gem": "Australian Capital Territory",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "australia-one",
+      "prompt": "Name an Australian state or territory.",
+      "blurb": "One of 8. New South Wales is the crowd.",
+      "seconds": 24,
+      "fact": "The Australian Capital Territory was created so Canberra could be built as the capital, between Sydney and Melbourne."
+    }
+  ],
+  "answers": [
+    {"name": "New South Wales", "level": "sky", "also": ["nsw"]},
+    {"name": "Victoria", "level": "sky"},
+    {"name": "Queensland", "level": "orbit"},
+    {"name": "Western Australia", "level": "orbit"},
+    {"name": "South Australia", "level": "deepspace"},
+    {"name": "Tasmania", "level": "deepspace"},
+    {"name": "Northern Territory", "level": "nebula"},
+    {"name": "Australian Capital Territory", "level": "galaxy", "also": ["act"]}
+  ]
+}

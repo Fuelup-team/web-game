@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fuelup question bank</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="../public/favicon.svg">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+15&family=Pixelify+Sans:wght@400;500&family=Press+Start+2P&display=swap">
+  <link rel="stylesheet" href="../src/ui/styles.css">
+  <style>
+    /* Question bank: every question and every accepted answer, by level.
+       For the two of us only: Netlify blocks /tools/ on the live site. */
+    .bank { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 24px; }
+    .bank-head { display: grid; gap: 12px; }
+    .bank-head h1 { font-size: clamp(36px, 5vw, 52px); }
+    .bank-head p { color: var(--dim); max-width: 70ch; }
+    .bank-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .bank-tools input { flex: 1 1 260px; height: 50px; padding: 0 14px; margin: var(--px); background: var(--night-0); border: 0; color: var(--text); font-size: 20px; --bc: var(--line);
+      box-shadow: 0 -4px 0 0 var(--bc), 0 4px 0 0 var(--bc), -4px 0 0 0 var(--bc), 4px 0 0 0 var(--bc); }
+    .bank-tools input:focus { outline: none; --bc: var(--accent); }
+    .bank-stats { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--dim); font-size: 16px; }
+    .bank-stats b { font-family: var(--font-pixel); font-weight: 400; color: var(--accent); font-size: 14px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bank-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bank-nav button { padding: 6px 12px; background: var(--raise); color: var(--dim); font-family: var(--font-display); font-size: 18px; }
+    .bank-nav button.is-on { background: var(--accent); color: var(--ink); }
+    .chart { display: grid; gap: 12px; }
+    .chart h2 { font-size: 30px; }
+    .chart-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--dim); font-size: 15px; }
+    .chart-rounds { display: grid; gap: 4px; color: var(--dim); font-size: 16px; }
+    .chart-rounds b { color: var(--text); font-family: var(--font-display); font-weight: 400; font-size: 18px; }
+    .level-group { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-top: 2px solid var(--raise); }
+    .level-group .level-tag { justify-self: start; }
+    .answers { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .answers span { font-size: 17px; }
+    .answers small { color: var(--faint); font-size: 14px; }
+    .answers mark { background: var(--accent); color: var(--ink); }
+    .fact { margin: 0; }
+    .years { display: grid; gap: 6px; }
+    .years div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 6px 0; border-top: 2px solid var(--raise); }
+    .years b { font-family: var(--font-pixel); font-weight: 400; color: var(--accent); font-size: 14px; }
+    .empty { color: var(--dim); }
+    @media (max-width: 640px) { .level-group { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="fuel-app">
+    <main class="bank" id="bank">
+      <header class="bank-head">
+        <p class="logo">Fuelup</p>
+        <h1>Question bank</h1>
+        <p>Every question and every accepted answer, grouped by level. Edit the files in <code>questions/</code>, then reload this page. Only for us: the live site blocks this page.</p>
+        <div class="bank-stats" id="stats"></div>
+        <div class="legend" id="legend"></div>
+        <div class="bank-tools">
+          <input id="search" type="search" placeholder="Search a topic, question or answer" autocomplete="off" aria-label="Search">
+        </div>
+        <div class="bank-nav" id="tabs"></div>
+      </header>
+      <div id="list" class="bank"></div>
+    </main>
+  </div>
+  <script type="module">
+    import { CHARTS, YEAR_ROUNDS, GAUGE_ROUNDS } from "../src/game/data.js";
+    import { LEVELS, levelOf } from "../src/game/engine.js";
+
+    const $ = (id) => document.getElementById(id);
+    const el = (tag, cls, ...kids) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      for (const k of kids.flat()) if (k != null) n.append(k instanceof Node ? k : document.createTextNode(String(k)));
+      return n;
+    };
+    const tag = (tier, text = levelOf(tier).name) => el("span", `level-tag tier-${tier}`, text);
+    const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+    const answerCount = CHARTS.reduce((n, c) => n + c.answers.length, 0);
+    const aliasCount = CHARTS.reduce((n, c) => n + c.answers.reduce((m, a) => m + (a.aliases?.length ?? 0), 0), 0);
+    const roundCount = CHARTS.reduce((n, c) => n + c.rounds.length, 0);
+    $("stats").append(
+      el("span", "", el("b", "", CHARTS.length), " topics"),
+      el("span", "", el("b", "", roundCount), " questions"),
+      el("span", "", el("b", "", answerCount), " answers"),
+      el("span", "", el("b", "", aliasCount), " other accepted names"),
+      el("span", "", el("b", "", YEAR_ROUNDS.length), " year questions"),
+      el("span", "", el("b", "", GAUGE_ROUNDS.length), " closest-number charts"),
+    );
+    $("legend").append(...LEVELS.map((l) => tag(l.id, `${l.name} · ${l.rarity} · ${l.points}`)));
+
+    let view = "topics";
+    const tabs = [["topics", "Topics"], ["years", "Years"], ["gauges", "Closest number"]];
+    function drawTabs() {
+      $("tabs").replaceChildren(...tabs.map(([id, label]) => {
+        const b = el("button", id === view ? "is-on" : "", label);
+        b.type = "button";
+        b.onclick = () => { view = id; drawTabs(); draw(); };
+        return b;
+      }));
+    }
+
+    function draw() {
+      const q = norm($("search").value.trim());
+      const hit = (s) => q && norm(s).includes(q);
+      const out = [];
+      if (view === "topics") {
+        for (const c of CHARTS) {
+          const text = [c.topic, ...c.rounds.map((r) => r.prompt), ...c.answers.flatMap((a) => [a.name, ...(a.aliases ?? [])])].join(" | ");
+          if (q && !norm(text).includes(q)) continue;
+          const groups = [...LEVELS].reverse().map((l) => {
+            const answers = c.answers.filter((a) => a.tier === l.id);
+            if (!answers.length) return null;
+            return el("div", "level-group",
+              tag(l.id, `${l.name} (${answers.length})`),
+              el("div", "answers", answers.map((a) => {
+                const name = hit(a.name) || (a.aliases ?? []).some(hit) ? el("mark", "", a.name) : a.name;
+                return el("span", "", name, a.aliases?.length ? el("small", "", ` (${a.aliases.join(", ")})`) : null);
+              })),
+            );
+          });
+          out.push(el("section", "panel chart",
+            el("h2", "", c.topic),
+            el("div", "chart-meta", el("span", "", `${c.answers.length} answers`), el("span", "", `Top answer: ${c.gem}`)),
+            el("div", "chart-rounds", c.rounds.map((r) => el("div", "", el("b", "", r.kind === "list" ? "Name as many" : "One answer"), `: ${r.prompt} (${r.seconds}s)`))),
+            el("p", "fact", c.rounds[0].fact),
+            groups,
+          ));
+        }
+      } else if (view === "years") {
+        const rows = YEAR_ROUNDS.filter((y) => !q || norm(`${y.prompt} ${y.year} ${y.aside}`).includes(q))
+          .sort((a, b) => a.year - b.year)
+          .map((y) => el("div", "", el("b", "", y.year < 0 ? `${-y.year} BC` : y.year), el("span", "", y.prompt, el("br"), el("small", "", y.aside))));
+        out.push(el("section", "panel years", rows));
+      } else {
+        for (const g of GAUGE_ROUNDS) {
+          if (q && !norm(`${g.id} ${g.noun} ${g.items.map((i) => i.name).join(" ")}`).includes(q)) continue;
+          out.push(el("section", "panel chart",
+            el("h2", "", `${g.noun[0].toUpperCase()}${g.noun.slice(1)}s (${g.unit})`),
+            el("div", "chart-meta", el("span", "", `${g.items.length} items`), el("span", "", `Targets: ${g.targets.join(", ")}`)),
+            el("div", "answers", g.items.map((i) => el("span", "", hit(i.name) ? el("mark", "", i.name) : i.name, el("small", "", ` ${i.value}`)))),
+          ));
+        }
+      }
+      $("list").replaceChildren(...(out.length ? out : [el("p", "empty", "Nothing matches that search.")]));
+    }
+
+    $("search").addEventListener("input", draw);
+    drawTabs();
+    draw();
+  </script>
+</body>
+</html>

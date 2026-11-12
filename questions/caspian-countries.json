@@ -1,0 +1,21 @@
+{
+  "topic": "Countries on the Caspian Sea",
+  "gem": "Turkmenistan",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "caspian",
+      "prompt": "Name a country that touches the Caspian Sea.",
+      "blurb": "Five countries. Russia is the one the room says first.",
+      "seconds": 28,
+      "fact": "Turkmenistan keeps a long, quiet Caspian coast. Russia is the crowded answer."
+    }
+  ],
+  "answers": [
+    {"name": "Russia", "level": "sky"},
+    {"name": "Iran", "level": "orbit"},
+    {"name": "Kazakhstan", "level": "deepspace"},
+    {"name": "Azerbaijan", "level": "nebula"},
+    {"name": "Turkmenistan", "level": "galaxy"}
+  ]
+}

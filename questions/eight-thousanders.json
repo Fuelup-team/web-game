@@ -1,0 +1,38 @@
+{
+  "topic": "Mountains over 8,000 metres",
+  "gem": "Shishapangma",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "eight-thousanders-list",
+      "prompt": "Name as many of the 14 mountains over 8,000 metres as you can.",
+      "blurb": "Everest and K2 come first. Then it gets thin up here.",
+      "seconds": 40,
+      "fact": "Shishapangma is the only 8,000-metre peak entirely inside China, in Tibet."
+    },
+    {
+      "kind": "rare",
+      "id": "eight-thousander-one",
+      "prompt": "Name one of the 14 mountains over 8,000 metres.",
+      "blurb": "One peak. Everest is everyone's answer.",
+      "seconds": 26,
+      "fact": "Shishapangma is the only 8,000-metre peak entirely inside China, in Tibet."
+    }
+  ],
+  "answers": [
+    {"name": "Mount Everest", "level": "sky", "also": ["everest", "mt everest", "sagarmatha", "chomolungma"]},
+    {"name": "K2", "level": "sky"},
+    {"name": "Annapurna", "level": "sky"},
+    {"name": "Kangchenjunga", "level": "sky", "also": ["kanchenjunga"]},
+    {"name": "Lhotse", "level": "sky"},
+    {"name": "Makalu", "level": "orbit"},
+    {"name": "Nanga Parbat", "level": "orbit"},
+    {"name": "Manaslu", "level": "orbit"},
+    {"name": "Cho Oyu", "level": "deepspace"},
+    {"name": "Dhaulagiri", "level": "deepspace"},
+    {"name": "Broad Peak", "level": "deepspace"},
+    {"name": "Gasherbrum I", "level": "nebula", "also": ["gasherbrum 1", "hidden peak"]},
+    {"name": "Gasherbrum II", "level": "nebula", "also": ["gasherbrum 2"]},
+    {"name": "Shishapangma", "level": "galaxy", "also": ["shisha pangma", "xixabangma"]}
+  ]
+}

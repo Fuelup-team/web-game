@@ -1,0 +1,51 @@
+{
+  "topic": "Members of the European Union",
+  "gem": "Malta",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "eu-list",
+      "prompt": "Name as many members of the European Union as you can.",
+      "blurb": "All 27. The founders come easy. The 2004 newcomers fly.",
+      "seconds": 42,
+      "fact": "Malta is the smallest EU member, both by area and by population."
+    },
+    {
+      "kind": "rare",
+      "id": "eu-one",
+      "prompt": "Name a member of the European Union.",
+      "blurb": "One country. Germany and France are the crowd.",
+      "seconds": 26,
+      "fact": "Malta is the smallest EU member, both by area and by population."
+    }
+  ],
+  "answers": [
+    {"name": "Germany", "level": "sky"},
+    {"name": "France", "level": "sky"},
+    {"name": "Italy", "level": "sky"},
+    {"name": "Spain", "level": "sky"},
+    {"name": "Netherlands", "level": "sky", "also": ["holland"]},
+    {"name": "Belgium", "level": "sky"},
+    {"name": "Poland", "level": "sky"},
+    {"name": "Sweden", "level": "sky"},
+    {"name": "Austria", "level": "sky"},
+    {"name": "Portugal", "level": "orbit"},
+    {"name": "Greece", "level": "orbit"},
+    {"name": "Ireland", "level": "orbit"},
+    {"name": "Denmark", "level": "orbit"},
+    {"name": "Finland", "level": "orbit"},
+    {"name": "Czechia", "level": "orbit", "also": ["czech republic"]},
+    {"name": "Hungary", "level": "orbit"},
+    {"name": "Romania", "level": "deepspace"},
+    {"name": "Croatia", "level": "deepspace"},
+    {"name": "Bulgaria", "level": "deepspace"},
+    {"name": "Slovakia", "level": "deepspace"},
+    {"name": "Slovenia", "level": "deepspace"},
+    {"name": "Estonia", "level": "deepspace"},
+    {"name": "Latvia", "level": "nebula"},
+    {"name": "Lithuania", "level": "nebula"},
+    {"name": "Luxembourg", "level": "nebula"},
+    {"name": "Cyprus", "level": "nebula"},
+    {"name": "Malta", "level": "galaxy"}
+  ]
+}

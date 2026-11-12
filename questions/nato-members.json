@@ -1,0 +1,48 @@
+{
+  "topic": "NATO members",
+  "gem": "Montenegro",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "nato",
+      "prompt": "Name a member country of NATO.",
+      "blurb": "One of the 32 members. The big founders are the crowd.",
+      "seconds": 26,
+      "fact": "Montenegro joined NATO in 2017, one of the alliance's newest members."
+    }
+  ],
+  "answers": [
+    {"name": "United States", "level": "sky", "also": ["usa", "us", "america"]},
+    {"name": "United Kingdom", "level": "sky", "also": ["uk", "britain", "great britain"]},
+    {"name": "France", "level": "sky"},
+    {"name": "Germany", "level": "sky"},
+    {"name": "Canada", "level": "sky"},
+    {"name": "Italy", "level": "sky"},
+    {"name": "Spain", "level": "sky"},
+    {"name": "Poland", "level": "sky"},
+    {"name": "Turkey", "level": "sky", "also": ["turkiye"]},
+    {"name": "Norway", "level": "sky"},
+    {"name": "Netherlands", "level": "sky", "also": ["holland"]},
+    {"name": "Finland", "level": "orbit"},
+    {"name": "Sweden", "level": "orbit"},
+    {"name": "Denmark", "level": "orbit"},
+    {"name": "Belgium", "level": "orbit"},
+    {"name": "Portugal", "level": "orbit"},
+    {"name": "Greece", "level": "orbit"},
+    {"name": "Estonia", "level": "orbit"},
+    {"name": "Latvia", "level": "orbit"},
+    {"name": "Lithuania", "level": "deepspace"},
+    {"name": "Czechia", "level": "deepspace", "also": ["czech republic"]},
+    {"name": "Hungary", "level": "deepspace"},
+    {"name": "Romania", "level": "deepspace"},
+    {"name": "Bulgaria", "level": "deepspace"},
+    {"name": "Slovakia", "level": "deepspace"},
+    {"name": "Iceland", "level": "deepspace"},
+    {"name": "Luxembourg", "level": "nebula"},
+    {"name": "Croatia", "level": "nebula"},
+    {"name": "Slovenia", "level": "nebula"},
+    {"name": "Albania", "level": "nebula"},
+    {"name": "North Macedonia", "level": "nebula", "also": ["macedonia"]},
+    {"name": "Montenegro", "level": "galaxy"}
+  ]
+}

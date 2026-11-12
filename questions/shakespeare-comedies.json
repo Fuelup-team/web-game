@@ -1,0 +1,31 @@
+{
+  "topic": "Shakespeare comedies",
+  "gem": "The Two Gentlemen of Verona",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "comedy",
+      "prompt": "Name a Shakespeare comedy.",
+      "blurb": "Tragedies do not count. Hamlet is a miss. Dream is the crowd.",
+      "seconds": 30,
+      "fact": "The Two Gentlemen of Verona is early, slight, and the comedy people cannot quite name."
+    }
+  ],
+  "answers": [
+    {"name": "A Midsummer Night's Dream", "level": "sky", "also": ["midsummer night's dream", "midsummer nights dream"]},
+    {"name": "Much Ado About Nothing", "level": "sky"},
+    {"name": "Twelfth Night", "level": "sky"},
+    {"name": "The Taming of the Shrew", "level": "sky", "also": ["taming of the shrew"]},
+    {"name": "The Tempest", "level": "sky", "also": ["tempest"]},
+    {"name": "The Merchant of Venice", "level": "orbit", "also": ["merchant of venice"]},
+    {"name": "As You Like It", "level": "orbit"},
+    {"name": "The Comedy of Errors", "level": "orbit", "also": ["comedy of errors"]},
+    {"name": "The Merry Wives of Windsor", "level": "orbit", "also": ["merry wives of windsor"]},
+    {"name": "The Winter's Tale", "level": "deepspace", "also": ["winters tale"]},
+    {"name": "Measure for Measure", "level": "deepspace"},
+    {"name": "Love's Labour's Lost", "level": "deepspace", "also": ["loves labours lost"]},
+    {"name": "All's Well That Ends Well", "level": "nebula", "also": ["alls well that ends well"]},
+    {"name": "The Two Gentlemen of Verona", "level": "galaxy", "also": ["two gentlemen of verona"]},
+    {"name": "Cymbeline", "level": "nebula"}
+  ]
+}

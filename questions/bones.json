@@ -1,0 +1,50 @@
+{
+  "topic": "Bones of the human body",
+  "gem": "Stapes",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "bones",
+      "prompt": "Name as many bones in the human body as you can.",
+      "blurb": "Skull and femur lift a little. The ear bones are the far burn.",
+      "seconds": 36,
+      "fact": "The stapes is the smallest bone in the body, a stirrup in the middle ear."
+    }
+  ],
+  "answers": [
+    {"name": "Skull", "level": "sky", "also": ["cranium"]},
+    {"name": "Femur", "level": "sky", "also": ["thigh bone"]},
+    {"name": "Rib", "level": "sky", "also": ["ribs"]},
+    {"name": "Spine", "level": "sky", "also": ["backbone", "vertebra", "vertebrae"]},
+    {"name": "Pelvis", "level": "sky", "also": ["hip", "hip bone"]},
+    {"name": "Tibia", "level": "sky", "also": ["shin", "shin bone"]},
+    {"name": "Fibula", "level": "sky"},
+    {"name": "Humerus", "level": "sky"},
+    {"name": "Radius", "level": "sky"},
+    {"name": "Ulna", "level": "sky"},
+    {"name": "Clavicle", "level": "sky", "also": ["collarbone"]},
+    {"name": "Patella", "level": "sky", "also": ["kneecap"]},
+    {"name": "Sternum", "level": "orbit", "also": ["breastbone"]},
+    {"name": "Scapula", "level": "orbit", "also": ["shoulder blade"]},
+    {"name": "Mandible", "level": "orbit", "also": ["jaw", "jawbone"]},
+    {"name": "Sacrum", "level": "orbit"},
+    {"name": "Coccyx", "level": "orbit", "also": ["tailbone"]},
+    {"name": "Talus", "level": "orbit"},
+    {"name": "Calcaneus", "level": "orbit", "also": ["heel", "heel bone"]},
+    {"name": "Hyoid", "level": "orbit"},
+    {"name": "Metacarpal", "level": "deepspace", "also": ["metacarpals"]},
+    {"name": "Metatarsal", "level": "deepspace", "also": ["metatarsals"]},
+    {"name": "Phalanx", "level": "deepspace", "also": ["phalanges", "finger bone"]},
+    {"name": "Ilium", "level": "deepspace"},
+    {"name": "Ischium", "level": "deepspace"},
+    {"name": "Pubis", "level": "deepspace"},
+    {"name": "Malleus", "level": "deepspace", "also": ["hammer"]},
+    {"name": "Incus", "level": "nebula", "also": ["anvil"]},
+    {"name": "Stapes", "level": "galaxy", "also": ["stirrup"]},
+    {"name": "Ethmoid", "level": "nebula"},
+    {"name": "Sphenoid", "level": "nebula"},
+    {"name": "Scaphoid", "level": "nebula"},
+    {"name": "Pisiform", "level": "nebula"},
+    {"name": "Vomer", "level": "nebula"}
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "topic": "Organs of the human body",
+  "gem": "Thymus",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "organs-list",
+      "prompt": "Name as many organs of the human body as you can.",
+      "blurb": "Heart and brain barely lift. Glands count.",
+      "seconds": 40,
+      "fact": "The thymus trains the immune system's T cells and slowly shrinks after puberty."
+    },
+    {
+      "kind": "rare",
+      "id": "organ-one",
+      "prompt": "Name an organ of the human body.",
+      "blurb": "One organ. Heart is everyone's first.",
+      "seconds": 26,
+      "fact": "The thymus trains the immune system's T cells and slowly shrinks after puberty."
+    }
+  ],
+  "answers": [
+    {"name": "Heart", "level": "sky"},
+    {"name": "Brain", "level": "sky"},
+    {"name": "Lungs", "level": "sky", "also": ["lung"]},
+    {"name": "Liver", "level": "sky"},
+    {"name": "Kidneys", "level": "sky", "also": ["kidney"]},
+    {"name": "Stomach", "level": "sky"},
+    {"name": "Skin", "level": "sky"},
+    {"name": "Intestines", "level": "sky", "also": ["intestine", "gut", "bowel", "bowels", "colon", "small intestine", "large intestine"]},
+    {"name": "Bladder", "level": "sky", "also": ["urinary bladder"]},
+    {"name": "Pancreas", "level": "orbit"},
+    {"name": "Spleen", "level": "orbit"},
+    {"name": "Appendix", "level": "orbit"},
+    {"name": "Gallbladder", "level": "orbit"},
+    {"name": "Eyes", "level": "orbit", "also": ["eye"]},
+    {"name": "Tongue", "level": "orbit"},
+    {"name": "Esophagus", "level": "orbit", "also": ["oesophagus", "gullet"]},
+    {"name": "Thyroid", "level": "deepspace", "also": ["thyroid gland"]},
+    {"name": "Uterus", "level": "deepspace", "also": ["womb"]},
+    {"name": "Ovaries", "level": "deepspace", "also": ["ovary"]},
+    {"name": "Testes", "level": "deepspace", "also": ["testicles", "testicle", "testis"]},
+    {"name": "Prostate", "level": "deepspace", "also": ["prostate gland"]},
+    {"name": "Larynx", "level": "deepspace", "also": ["voice box"]},
+    {"name": "Trachea", "level": "nebula", "also": ["windpipe"]},
+    {"name": "Adrenal glands", "level": "nebula", "also": ["adrenal gland", "adrenals"]},
+    {"name": "Pituitary gland", "level": "nebula", "also": ["pituitary"]},
+    {"name": "Pineal gland", "level": "nebula", "also": ["pineal"]},
+    {"name": "Thymus", "level": "galaxy", "also": ["thymus gland"]}
+  ]
+}

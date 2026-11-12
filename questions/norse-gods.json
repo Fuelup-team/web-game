@@ -1,0 +1,44 @@
+{
+  "topic": "Norse gods and goddesses",
+  "gem": "Forseti",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "norse-gods-list",
+      "prompt": "Name as many Norse gods and goddesses as you can.",
+      "blurb": "Odin, Thor and Loki barely lift.",
+      "seconds": 36,
+      "fact": "Forseti was the Norse god of justice, who settled disputes in his hall, Glitnir."
+    },
+    {
+      "kind": "rare",
+      "id": "norse-god-one",
+      "prompt": "Name a Norse god or goddess.",
+      "blurb": "One god. Thor is everyone's answer.",
+      "seconds": 26,
+      "fact": "Forseti was the Norse god of justice, who settled disputes in his hall, Glitnir."
+    }
+  ],
+  "answers": [
+    {"name": "Odin", "level": "sky", "also": ["woden", "wotan"]},
+    {"name": "Thor", "level": "sky"},
+    {"name": "Loki", "level": "sky"},
+    {"name": "Freya", "level": "sky", "also": ["freyja"]},
+    {"name": "Frigg", "level": "sky", "also": ["frigga"]},
+    {"name": "Baldur", "level": "sky", "also": ["baldr", "balder"]},
+    {"name": "Tyr", "level": "sky", "also": ["tiw"]},
+    {"name": "Heimdall", "level": "orbit", "also": ["heimdallr"]},
+    {"name": "Hel", "level": "orbit", "also": ["hela"]},
+    {"name": "Freyr", "level": "orbit", "also": ["frey"]},
+    {"name": "Njord", "level": "orbit", "also": ["njordr"]},
+    {"name": "Sif", "level": "orbit"},
+    {"name": "Idun", "level": "deepspace", "also": ["idunn", "iduna"]},
+    {"name": "Bragi", "level": "deepspace"},
+    {"name": "Skadi", "level": "deepspace"},
+    {"name": "Vidar", "level": "deepspace", "also": ["vidarr"]},
+    {"name": "Vali", "level": "nebula"},
+    {"name": "Ullr", "level": "nebula", "also": ["ull"]},
+    {"name": "Hodr", "level": "nebula", "also": ["hod", "hoder", "hodur"]},
+    {"name": "Forseti", "level": "galaxy"}
+  ]
+}

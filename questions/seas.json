@@ -1,0 +1,37 @@
+{
+  "topic": "Seas",
+  "gem": "Sea of Marmara",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "sea",
+      "prompt": "Name a sea that is not an ocean.",
+      "blurb": "The Mediterranean is the crowd. A sea with a small mouth scores more.",
+      "seconds": 28,
+      "fact": "The Sea of Marmara sits between the Bosphorus and the Dardanelles, inside Türkiye."
+    }
+  ],
+  "answers": [
+    {"name": "Mediterranean Sea", "level": "sky", "also": ["mediterranean", "the mediterranean"]},
+    {"name": "Caribbean Sea", "level": "sky", "also": ["caribbean"]},
+    {"name": "Red Sea", "level": "sky"},
+    {"name": "North Sea", "level": "sky"},
+    {"name": "Black Sea", "level": "sky"},
+    {"name": "Baltic Sea", "level": "sky", "also": ["baltic"]},
+    {"name": "South China Sea", "level": "sky"},
+    {"name": "Arabian Sea", "level": "orbit"},
+    {"name": "Caspian Sea", "level": "orbit", "also": ["caspian"]},
+    {"name": "Philippine Sea", "level": "orbit"},
+    {"name": "Sea of Japan", "level": "orbit", "also": ["east sea"]},
+    {"name": "Adriatic Sea", "level": "deepspace", "also": ["adriatic"]},
+    {"name": "Aegean Sea", "level": "deepspace", "also": ["aegean"]},
+    {"name": "Dead Sea", "level": "deepspace"},
+    {"name": "Coral Sea", "level": "deepspace"},
+    {"name": "Bering Sea", "level": "orbit"},
+    {"name": "Sargasso Sea", "level": "deepspace"},
+    {"name": "Ionian Sea", "level": "nebula"},
+    {"name": "Sea of Marmara", "level": "galaxy", "also": ["marmara"]},
+    {"name": "Sea of Azov", "level": "nebula", "also": ["azov"]},
+    {"name": "Tyrrhenian Sea", "level": "nebula", "also": ["tyrrhenian"]}
+  ]
+}

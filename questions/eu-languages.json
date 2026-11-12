@@ -1,0 +1,48 @@
+{
+  "topic": "Official languages of the European Union",
+  "gem": "Maltese",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "eu-languages-list",
+      "prompt": "Name as many official languages of the European Union as you can.",
+      "blurb": "There are 24. English and French barely lift. The small countries score.",
+      "seconds": 40,
+      "fact": "Maltese is the only official EU language that comes from Arabic, and it's written in the Latin alphabet."
+    },
+    {
+      "kind": "rare",
+      "id": "eu-language-one",
+      "prompt": "Name an official language of the European Union.",
+      "blurb": "One language. English barely lifts.",
+      "seconds": 26,
+      "fact": "Maltese is the only official EU language that comes from Arabic, and it's written in the Latin alphabet."
+    }
+  ],
+  "answers": [
+    {"name": "English", "level": "sky"},
+    {"name": "French", "level": "sky"},
+    {"name": "German", "level": "sky"},
+    {"name": "Spanish", "level": "sky"},
+    {"name": "Italian", "level": "sky"},
+    {"name": "Portuguese", "level": "sky"},
+    {"name": "Dutch", "level": "sky"},
+    {"name": "Polish", "level": "sky"},
+    {"name": "Swedish", "level": "orbit"},
+    {"name": "Greek", "level": "orbit"},
+    {"name": "Danish", "level": "orbit"},
+    {"name": "Finnish", "level": "orbit"},
+    {"name": "Czech", "level": "orbit"},
+    {"name": "Hungarian", "level": "orbit"},
+    {"name": "Romanian", "level": "deepspace"},
+    {"name": "Bulgarian", "level": "deepspace"},
+    {"name": "Croatian", "level": "deepspace"},
+    {"name": "Slovak", "level": "deepspace"},
+    {"name": "Slovenian", "level": "deepspace", "also": ["slovene"]},
+    {"name": "Estonian", "level": "nebula"},
+    {"name": "Latvian", "level": "nebula"},
+    {"name": "Lithuanian", "level": "nebula"},
+    {"name": "Irish", "level": "nebula", "also": ["irish gaelic", "gaelic"]},
+    {"name": "Maltese", "level": "galaxy"}
+  ]
+}

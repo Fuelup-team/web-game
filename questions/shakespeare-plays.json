@@ -1,0 +1,48 @@
+{
+  "topic": "Plays by Shakespeare",
+  "gem": "The Two Gentlemen of Verona",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "shakespeare",
+      "prompt": "Name as many plays by Shakespeare as you can.",
+      "blurb": "Tragedies, comedies, histories. Hamlet stays in the sky. The late romances do not.",
+      "seconds": 38,
+      "fact": "The Two Gentlemen of Verona is an early comedy, and it is the one the room forgets."
+    }
+  ],
+  "answers": [
+    {"name": "Hamlet", "level": "sky"},
+    {"name": "Romeo and Juliet", "level": "sky", "also": ["romeo juliet"]},
+    {"name": "Macbeth", "level": "sky"},
+    {"name": "Julius Caesar", "level": "sky"},
+    {"name": "Othello", "level": "sky"},
+    {"name": "King Lear", "level": "sky"},
+    {"name": "A Midsummer Night's Dream", "level": "sky", "also": ["midsummer night's dream", "midsummer nights dream"]},
+    {"name": "The Tempest", "level": "sky", "also": ["tempest"]},
+    {"name": "Twelfth Night", "level": "sky"},
+    {"name": "Much Ado About Nothing", "level": "sky"},
+    {"name": "The Merchant of Venice", "level": "sky", "also": ["merchant of venice"]},
+    {"name": "Richard III", "level": "orbit", "also": ["richard the third"]},
+    {"name": "Henry V", "level": "orbit", "also": ["henry the fifth"]},
+    {"name": "The Taming of the Shrew", "level": "orbit", "also": ["taming of the shrew"]},
+    {"name": "As You Like It", "level": "orbit"},
+    {"name": "Antony and Cleopatra", "level": "orbit"},
+    {"name": "The Comedy of Errors", "level": "orbit", "also": ["comedy of errors"]},
+    {"name": "Measure for Measure", "level": "orbit"},
+    {"name": "The Winter's Tale", "level": "orbit", "also": ["winters tale", "winter's tale"]},
+    {"name": "Richard II", "level": "deepspace"},
+    {"name": "Love's Labour's Lost", "level": "deepspace", "also": ["loves labours lost"]},
+    {"name": "All's Well That Ends Well", "level": "deepspace", "also": ["alls well that ends well"]},
+    {"name": "Coriolanus", "level": "deepspace"},
+    {"name": "Titus Andronicus", "level": "deepspace"},
+    {"name": "King John", "level": "deepspace"},
+    {"name": "Timon of Athens", "level": "deepspace"},
+    {"name": "Pericles", "level": "nebula"},
+    {"name": "Cymbeline", "level": "nebula"},
+    {"name": "The Two Gentlemen of Verona", "level": "galaxy", "also": ["two gentlemen of verona"]},
+    {"name": "Troilus and Cressida", "level": "nebula"},
+    {"name": "Henry VIII", "level": "nebula"},
+    {"name": "Henry VI", "level": "nebula", "also": ["henry vi part 1", "henry the sixth"]}
+  ]
+}

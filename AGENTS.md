@@ -8,9 +8,10 @@ file wins. Agree changes to these rules with each other before pushing them.
 
 - **Fuelup**: a daily trivia game. Seven timed "burns" per UTC day; rarer answers score more and fly the
   rocket higher. 1,000 points reaches the Moon. Rebuilt from Eeli's Grok demo.
-- **Stack: plain HTML, CSS and JavaScript (ES modules). No framework, no build step, no npm.**
-  `index.html` loads `src/ui/app.js` directly. Don't add a framework, bundler or package manager
-  without agreeing it together first.
+- **Stack: plain HTML, CSS and JavaScript (ES modules). No framework, no build step.**
+  `index.html` loads `src/ui/app.js` directly. The only npm dependency is `@netlify/blobs`, used by the
+  fleet board server (`netlify/functions/fleet.mjs`), never by the page. Don't add a framework, bundler
+  or other packages without agreeing it together first.
 - Live site deploys automatically from `main`.
 - Run locally with any static server from the repo root, e.g. `python3 -m http.server 5173`, then open
   http://localhost:5173. (Opening `index.html` as a file won't work: browsers block modules from `file://`.)
@@ -21,11 +22,15 @@ Keep to this layout so the two maintainers rarely edit the same files:
 
 | Path | What lives there | Main owner |
 |---|---|---|
-| `src/game/data.js` | All questions and answers with their rarity tiers | _fill in_ |
+| `questions/*.json` | **All questions and answers**, one file per topic (see `questions/README.md`) | _fill in_ |
+| `src/game/data.js` | Loads the question files (add an import line for each new topic) | _fill in_ |
+| `tools/question-bank.html` | Browse every question and answer by level (local only, blocked on the live site) | shared |
 | `src/game/engine.js` | Rules: matching answers, scoring, daily flight, altitude | _fill in_ |
-| `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board API | _fill in_ |
-| `src/ui/` | Screens (`app.js`), rocket backdrop (`stage.js`), `styles.css` | _fill in_ |
-| `public/` | Art, favicon, share image | shared |
+| `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board client | _fill in_ |
+| `src/ui/` | Screens (`app.js`), altitude meter (`stage.js`), `styles.css` | _fill in_ |
+| `src/server/fleet-core.js`, `netlify/functions/fleet.mjs` | Fleet board server (Netlify) | _fill in_ |
+| `scripts/check.mjs` | Safety check, runs before every deploy | shared |
+| `public/` | Art, pixel icons (pixelarticons, MIT), favicon, share image | shared |
 | `docs/` | Design notes and decisions | shared |
 
 ### Game rules to keep intact
@@ -40,8 +45,31 @@ Keep to this layout so the two maintainers rarely edit the same files:
   `nebula` Nebula (Very rare, 75) · `galaxy` Galaxy (Ultra rare, 100). Defined in `LEVELS` in `engine.js`.
 - Galaxy is the top answer: exactly one per round (two at most), and it must be the round's `gem`.
   `engine.js` refuses to load data that breaks this. Keep it very hard to find.
-- List burns cap at 250. A perfect flight is 1,000 points and reaches the Moon.
-- Every list and single round needs a `gem` that is one of its answers.
+- A flight is 7 burns: 2 "name as many" lists, 3 "one answer", 1 "closest number" and 1 "guess the
+  year" (`YEAR_ROUNDS` in `data.js`). Lists cap at 250. A perfect flight is 1,000 points.
+- **Altitude is points.** 1 point = 1 step, 1,000 = the Moon, a named stage every 200 (`STAGES`).
+  Don't reintroduce kilometres or curved scales.
+- **Questions live in `questions/`, never in code.** One JSON file per topic, answers one per line.
+- **Adding answers:** write each chart from most to least well known, then run
+  `node scripts/retier.mjs --write`. It sets the levels from that order: about 35% Sky (never more than
+  20), then Orbit, Deep Space, and only the obscure tail is Nebula. Galaxy is only the gem. High points
+  must need an obscure answer.
+- Prefer closed, checkable sets (every US president, every Greek letter) so a correct answer is never
+  missing from the chart. Add common alternative names as aliases ("hairless cat" for Sphynx).
+  Matching already ignores case, accents, spaces, plurals and category words like "cat" or "river".
+- Every list and single round needs a `gem` that is one of its answers. Every year round needs a
+  `year` (negative for BC) and an `aside` fact.
+
+### Look and feel
+
+- Pixel-art night theme. Square corners, pixel borders, the night sky behind everything.
+- One accent color: Galaxy gold `#ffc83d`. The five rarity levels each have one color, used for that
+  level everywhere (see `--lv-*` in `styles.css`). Don't bring back the old cream and copper.
+- Fonts, all pixel: "Press Start 2P" for the logo and numbers; "Jersey 15" for anything big or bold
+  (headings, questions, answer names, buttons); "Pixelify Sans" at regular weight for sentences.
+  Never use bold Pixelify: it smears.
+- Icons come from `public/icons` (pixelarticons). Add new ones there from the same set.
+- Use plain words for burn types: "Name as many as you can", "One answer", "Closest number", "Guess the year".
 
 Anyone can edit any folder. If you change the other person's area, mention it in the commit message.
 
@@ -75,8 +103,9 @@ Commit messages: short imperative summary line, e.g. `Add jump physics`, `Fix sc
 
 ## Before pushing to main
 
+- Run the safety check: `node scripts/check.mjs`. Netlify runs it too and **won't deploy** if it fails
+  (the live site keeps the last working version). GitHub shows a ✓ or ✗ on every push.
 - The game runs locally without console errors.
-- Tests and lint pass (once the stack adds them).
 - You pulled the latest `main` first.
 
 ## For AI assistants specifically

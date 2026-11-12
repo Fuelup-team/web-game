@@ -1,0 +1,35 @@
+{
+  "topic": "Greek gods beyond the Olympians",
+  "gem": "Nyx",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "deity",
+      "prompt": "Name a Greek deity who is not one of the twelve Olympians.",
+      "blurb": "Zeus does not count. Hades is the clever answer everyone reaches for.",
+      "seconds": 32,
+      "fact": "Nyx is night itself, older than the Olympians. Hades is the crowded detour."
+    }
+  ],
+  "answers": [
+    {"name": "Hades", "level": "sky"},
+    {"name": "Persephone", "level": "sky"},
+    {"name": "Pan", "level": "sky"},
+    {"name": "Eros", "level": "sky"},
+    {"name": "Hecate", "level": "sky"},
+    {"name": "Prometheus", "level": "sky"},
+    {"name": "Atlas", "level": "orbit"},
+    {"name": "Gaia", "level": "orbit"},
+    {"name": "Uranus", "level": "orbit"},
+    {"name": "Morpheus", "level": "orbit"},
+    {"name": "Iris", "level": "orbit"},
+    {"name": "Nemesis", "level": "deepspace"},
+    {"name": "Charon", "level": "deepspace"},
+    {"name": "Kronos", "level": "deepspace", "also": ["cronus", "chronos"]},
+    {"name": "Nyx", "level": "galaxy"},
+    {"name": "Thanatos", "level": "deepspace"},
+    {"name": "Hypnos", "level": "nebula"},
+    {"name": "Asclepius", "level": "nebula"},
+    {"name": "Tyche", "level": "nebula"}
+  ]
+}

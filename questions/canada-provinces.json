@@ -1,0 +1,37 @@
+{
+  "topic": "Canadian provinces and territories",
+  "gem": "Nunavut",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "canada-list",
+      "prompt": "Name as many Canadian provinces and territories as you can.",
+      "blurb": "There are 13. Ontario and Quebec are the easy ones.",
+      "seconds": 36,
+      "fact": "Nunavut became Canada's newest territory in 1999."
+    },
+    {
+      "kind": "rare",
+      "id": "canada-one",
+      "prompt": "Name a Canadian province or territory.",
+      "blurb": "One of 13. The north is quieter.",
+      "seconds": 26,
+      "fact": "Nunavut became Canada's newest territory in 1999."
+    }
+  ],
+  "answers": [
+    {"name": "Ontario", "level": "sky"},
+    {"name": "Quebec", "level": "sky"},
+    {"name": "British Columbia", "level": "sky", "also": ["bc"]},
+    {"name": "Alberta", "level": "sky"},
+    {"name": "Nova Scotia", "level": "orbit"},
+    {"name": "Manitoba", "level": "orbit"},
+    {"name": "Saskatchewan", "level": "orbit"},
+    {"name": "Newfoundland and Labrador", "level": "deepspace", "also": ["newfoundland"]},
+    {"name": "New Brunswick", "level": "deepspace"},
+    {"name": "Prince Edward Island", "level": "deepspace", "also": ["pei"]},
+    {"name": "Yukon", "level": "nebula"},
+    {"name": "Northwest Territories", "level": "nebula"},
+    {"name": "Nunavut", "level": "galaxy"}
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "topic": "Countries in South America",
+  "gem": "Suriname",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "south-america",
+      "prompt": "Name a country in South America.",
+      "blurb": "One country. Brazil is everyone's answer. The north coast is quieter.",
+      "seconds": 24,
+      "fact": "Suriname is the smallest country in South America, and the only one where Dutch is the official language."
+    }
+  ],
+  "answers": [
+    {"name": "Brazil", "level": "sky"},
+    {"name": "Argentina", "level": "sky"},
+    {"name": "Colombia", "level": "sky"},
+    {"name": "Chile", "level": "sky"},
+    {"name": "Peru", "level": "orbit"},
+    {"name": "Venezuela", "level": "orbit"},
+    {"name": "Ecuador", "level": "orbit"},
+    {"name": "Bolivia", "level": "deepspace"},
+    {"name": "Uruguay", "level": "deepspace"},
+    {"name": "Paraguay", "level": "nebula"},
+    {"name": "Guyana", "level": "nebula"},
+    {"name": "Suriname", "level": "galaxy", "also": ["surinam"]}
+  ]
+}

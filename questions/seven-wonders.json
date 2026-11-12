@@ -1,0 +1,23 @@
+{
+  "topic": "Seven Wonders of the Ancient World",
+  "gem": "Mausoleum at Halicarnassus",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "wonder-one",
+      "prompt": "Name one of the Seven Wonders of the Ancient World.",
+      "blurb": "The ancient list, not the new one. The pyramids are the crowd.",
+      "seconds": 26,
+      "fact": "The Mausoleum at Halicarnassus was the tomb of Mausolus, which is where the word mausoleum comes from."
+    }
+  ],
+  "answers": [
+    {"name": "Great Pyramid of Giza", "level": "sky", "also": ["great pyramid", "pyramids of giza", "pyramid of giza", "pyramids"]},
+    {"name": "Hanging Gardens of Babylon", "level": "sky", "also": ["hanging gardens"]},
+    {"name": "Colossus of Rhodes", "level": "orbit", "also": ["colossus"]},
+    {"name": "Lighthouse of Alexandria", "level": "orbit", "also": ["pharos of alexandria", "pharos"]},
+    {"name": "Statue of Zeus at Olympia", "level": "deepspace", "also": ["statue of zeus"]},
+    {"name": "Temple of Artemis at Ephesus", "level": "nebula", "also": ["temple of artemis"]},
+    {"name": "Mausoleum at Halicarnassus", "level": "galaxy", "also": ["mausoleum of halicarnassus", "mausoleum"]}
+  ]
+}

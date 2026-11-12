@@ -1,0 +1,22 @@
+{
+  "topic": "Countries where German is official",
+  "gem": "Liechtenstein",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "german",
+      "prompt": "Name a country where German is an official language.",
+      "blurb": "Official, not just widely spoken. Germany stays in the sky.",
+      "seconds": 28,
+      "fact": "Liechtenstein's official language is German. Luxembourg and Belgium keep it too, beside louder neighbours."
+    }
+  ],
+  "answers": [
+    {"name": "Germany", "level": "sky"},
+    {"name": "Austria", "level": "sky"},
+    {"name": "Switzerland", "level": "orbit"},
+    {"name": "Belgium", "level": "deepspace"},
+    {"name": "Luxembourg", "level": "nebula"},
+    {"name": "Liechtenstein", "level": "galaxy"}
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "topic": "Roman gods and goddesses",
+  "gem": "Terminus",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "roman-gods-list",
+      "prompt": "Name as many Roman gods and goddesses as you can.",
+      "blurb": "The planets are named after the easy ones. Look past them.",
+      "seconds": 40,
+      "fact": "Terminus was the Roman god of boundary stones."
+    },
+    {
+      "kind": "rare",
+      "id": "roman-god-one",
+      "prompt": "Name a Roman god or goddess.",
+      "blurb": "One god. Jupiter and Mars are the crowd.",
+      "seconds": 26,
+      "fact": "Terminus was the Roman god of boundary stones."
+    }
+  ],
+  "answers": [
+    {"name": "Jupiter", "level": "sky", "also": ["jove"]},
+    {"name": "Mars", "level": "sky"},
+    {"name": "Venus", "level": "sky"},
+    {"name": "Neptune", "level": "sky"},
+    {"name": "Mercury", "level": "sky"},
+    {"name": "Cupid", "level": "sky", "also": ["amor"]},
+    {"name": "Pluto", "level": "sky"},
+    {"name": "Apollo", "level": "sky"},
+    {"name": "Juno", "level": "sky"},
+    {"name": "Minerva", "level": "orbit"},
+    {"name": "Diana", "level": "orbit"},
+    {"name": "Saturn", "level": "orbit"},
+    {"name": "Vulcan", "level": "orbit"},
+    {"name": "Bacchus", "level": "orbit", "also": ["liber"]},
+    {"name": "Ceres", "level": "orbit"},
+    {"name": "Vesta", "level": "deepspace"},
+    {"name": "Janus", "level": "deepspace"},
+    {"name": "Aurora", "level": "deepspace"},
+    {"name": "Fortuna", "level": "deepspace"},
+    {"name": "Faunus", "level": "deepspace"},
+    {"name": "Sol", "level": "deepspace"},
+    {"name": "Luna", "level": "nebula"},
+    {"name": "Proserpina", "level": "nebula"},
+    {"name": "Quirinus", "level": "nebula"},
+    {"name": "Bellona", "level": "nebula"},
+    {"name": "Terminus", "level": "galaxy"}
+  ]
+}

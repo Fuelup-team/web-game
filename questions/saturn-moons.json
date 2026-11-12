@@ -1,0 +1,32 @@
+{
+  "topic": "Moons of Saturn",
+  "gem": "Daphnis",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "saturn-moon-one",
+      "prompt": "Name a moon of Saturn.",
+      "blurb": "Titan is everyone's first moon. Saturn has many more.",
+      "seconds": 26,
+      "fact": "Daphnis is a tiny moon that orbits inside a gap in Saturn's rings, raising waves at the ring edges."
+    }
+  ],
+  "answers": [
+    {"name": "Titan", "level": "sky"},
+    {"name": "Enceladus", "level": "sky"},
+    {"name": "Mimas", "level": "sky"},
+    {"name": "Rhea", "level": "sky"},
+    {"name": "Iapetus", "level": "sky"},
+    {"name": "Dione", "level": "orbit"},
+    {"name": "Tethys", "level": "orbit"},
+    {"name": "Hyperion", "level": "orbit"},
+    {"name": "Phoebe", "level": "orbit"},
+    {"name": "Janus", "level": "deepspace"},
+    {"name": "Epimetheus", "level": "deepspace"},
+    {"name": "Pandora", "level": "deepspace"},
+    {"name": "Prometheus", "level": "deepspace"},
+    {"name": "Atlas", "level": "nebula"},
+    {"name": "Pan", "level": "nebula"},
+    {"name": "Daphnis", "level": "galaxy"}
+  ]
+}
