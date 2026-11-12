@@ -8,10 +8,10 @@
  *          rarity levels each have their own color, used wherever that level
  *          appears (chips, tags, lamp, scores, reveal border).
  *   Type:  "Press Start 2P" for the logo, numbers and tiny labels only.
- *          "Lexend" (made for readability) for everything big or bold:
- *          headings, questions, answer names, buttons. Bold pixel letters
- *          smear together, so the pixel body font is only used at regular
- *          weight for sentences.
+ *          "Jersey 15" for everything big or bold: headings, questions,
+ *          answer names, buttons. It's a pixel font that stays readable
+ *          large (bold Pixelify smears). "Pixelify Sans" at regular weight
+ *          for sentences.
  *   Theme: dark only. It's a night sky.
  */
 
@@ -46,7 +46,7 @@
 
   --font-pixel: "Press Start 2P", ui-monospace, monospace;
   --font-body: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Jersey 15", "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
 
   --px: 4px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -77,6 +77,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   color-scheme: dark;
+  /* Never fake bold or italic: synthetic bold smears pixel fonts. */
+  font-synthesis: none;
 }
 body {
   min-height: 100dvh;
@@ -110,9 +112,9 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
   text-wrap: balance;
 }
 /* Anything bold uses the readable display font, not the pixel font. */
@@ -140,6 +142,9 @@ strong,
 .reveal-sub,
 .report-stage {
   font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-size-adjust: 0.56;
 }
 p {
   text-wrap: pretty;
@@ -228,9 +233,10 @@ p {
     0 calc(var(--px) * 4) 0 0 rgba(3, 5, 25, 0.55);
   animation: panel-in 0.24s steps(4) both;
 }
+/* Slide only, never start invisible: if animations are paused (hidden tab,
+   battery saver), the panel must still show. */
 @keyframes panel-in {
   from {
-    opacity: 0;
     transform: translateY(12px);
   }
 }
@@ -263,8 +269,8 @@ p {
   padding: 10px 20px 12px;
   background: var(--btn-bg);
   color: var(--btn-ink);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 23px;
+  font-weight: 400;
   line-height: 1;
   white-space: nowrap;
   box-shadow:
@@ -433,8 +439,8 @@ p {
   text-transform: uppercase;
 }
 .pad-panel h1 {
-  font-size: clamp(30px, 4.2vw, 42px);
-  max-width: 17ch;
+  font-size: clamp(36px, 4.6vw, 50px);
+  max-width: 20ch;
 }
 .lead {
   margin-top: -8px;
@@ -768,7 +774,7 @@ p {
 }
 .prompt {
   margin: 24px 0 10px;
-  font-size: clamp(24px, 3vw, 30px);
+  font-size: clamp(32px, 4vw, 42px);
 }
 .hint {
   color: var(--dim);
@@ -793,7 +799,6 @@ p {
 @keyframes chip-in {
   from {
     transform: scale(0.8);
-    opacity: 0;
   }
 }
 .chip-name {
@@ -963,7 +968,7 @@ p {
   color: var(--lv);
 }
 .reveal-title {
-  font-size: clamp(32px, 5vw, 44px);
+  font-size: clamp(44px, 7vw, 62px);
   margin-top: -4px;
 }
 .reveal-title[class*="tier-"] {
@@ -1209,7 +1214,6 @@ p {
 @keyframes sheet-in {
   from {
     transform: translateX(40px);
-    opacity: 0;
   }
 }
 .menu-head {
@@ -1396,7 +1400,7 @@ p {
   letter-spacing: 0.1em;
 }
 .galaxy-banner strong {
-  font-size: clamp(28px, 5vw, 40px);
+  font-size: clamp(40px, 7vw, 56px);
   line-height: 1.05;
   color: var(--accent);
   text-shadow: 3px 3px 0 #6b3d00;

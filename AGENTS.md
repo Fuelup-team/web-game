@@ -47,6 +47,13 @@ Keep to this layout so the two maintainers rarely edit the same files:
   year" (`YEAR_ROUNDS` in `data.js`). Lists cap at 250. A perfect flight is 1,000 points.
 - **Altitude is points.** 1 point = 1 step, 1,000 = the Moon, a named stage every 200 (`STAGES`).
   Don't reintroduce kilometres or curved scales.
+- **Adding answers:** write each chart from most to least well known, then run
+  `node scripts/retier.mjs --write`. It sets the levels from that order: about 35% Sky (never more than
+  20), then Orbit, Deep Space, and only the obscure tail is Nebula. Galaxy is only the gem. High points
+  must need an obscure answer.
+- Prefer closed, checkable sets (every US president, every Greek letter) so a correct answer is never
+  missing from the chart. Add common alternative names as aliases ("hairless cat" for Sphynx).
+  Matching already ignores case, accents, spaces, plurals and category words like "cat" or "river".
 - Every list and single round needs a `gem` that is one of its answers. Every year round needs a
   `year` (negative for BC) and an `aside` fact.
 
@@ -55,7 +62,9 @@ Keep to this layout so the two maintainers rarely edit the same files:
 - Pixel-art night theme. Square corners, pixel borders, the night sky behind everything.
 - One accent color: Galaxy gold `#ffc83d`. The five rarity levels each have one color, used for that
   level everywhere (see `--lv-*` in `styles.css`). Don't bring back the old cream and copper.
-- Fonts: "Press Start 2P" only for the logo, numbers and tiny labels; "Pixelify Sans" for reading.
+- Fonts, all pixel: "Press Start 2P" for the logo and numbers; "Jersey 15" for anything big or bold
+  (headings, questions, answer names, buttons); "Pixelify Sans" at regular weight for sentences.
+  Never use bold Pixelify: it smears.
 - Icons come from `public/icons` (pixelarticons). Add new ones there from the same set.
 - Use plain words for burn types: "Name as many as you can", "One answer", "Closest number", "Guess the year".
 

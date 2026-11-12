@@ -195,9 +195,11 @@ const hitFrom = (s, via) => ({ canonical: s.canonical, tier: s.tier, value: s.va
  * Find what the player meant, forgiving where it is safe:
  *  1. exact match on any spelling, ignoring case, accents, punctuation and spaces
  *     ("sanmarino", "San-Marino" → San Marino)
- *  2. typos: 1 for 4–6 letters, 2 for 7–9, 3 for 10+; swapped letters count once
+ *  2. extra category words or plurals ("Persian cat", "the Nile river", "Sphynxes")
+ *  3. typos: 1 for 4–6 letters, 2 for 7–9, 3 for 10+; swapped letters count once
  *     ("Liechtenstien", "Lichtenstein" → Liechtenstein)
- *  3. a start of a name, 5+ letters, that fits only one answer ("liecht" → Liechtenstein)
+ *  4. one distinctive word only one answer has ("Lundehund", "Cleopatra")
+ *  5. a start of a name, 5+ letters, that fits only one answer ("liecht" → Liechtenstein)
  * A typo or partial name that could mean two different answers is not guessed.
  */
 export function matchAnswer(items, input) {
@@ -208,6 +210,18 @@ export function matchAnswer(items, input) {
   const exact = all.find((s) => s.key === key) ?? all.find((s) => s.compact === compact);
   if (exact) return hitFrom(exact, "exact");
   if (/^\d+$/.test(compact)) return null;
+
+  // Same answer with extra category words or a plural: "Persian cat", "Nile river",
+  // "the Netherlands", "Sphynxes".
+  const inputCore = coreOf(key);
+  if (inputCore.length >= 3) {
+    const sameCore = unique(all.filter((s) => coreOf(s.key) === inputCore));
+    if (sameCore) return hitFrom(sameCore, "exact");
+  }
+
+  // The start of several different answers ("henry", "george") is ambiguous: don't guess.
+  const startsOf = new Set(all.filter((s) => s.compact.startsWith(compact)).map((s) => s.canonical));
+  if (startsOf.size > 1) return null;
 
   // Typos: closest answer wins, but only if no other answer is equally close.
   const limit = typoAllowance(compact.length);
@@ -222,13 +236,48 @@ export function matchAnswer(items, input) {
     if (ranked.length && (ranked.length === 1 || ranked[1].d > ranked[0].d)) return hitFrom(ranked[0].s, "fuzzy");
   }
 
+  // One distinctive word that only one answer has: "Lundehund", "Cleopatra", "leopard dog".
+  const words = coreWords(key);
+  if (words.length === 1 && words[0].length >= 5) {
+    const byWord = unique(all.filter((s) => coreWords(s.key).includes(words[0])));
+    if (byWord) return hitFrom(byWord, "fuzzy");
+  }
+
   // Start of a name, if it can only be one answer.
   if (compact.length >= 5) {
-    const starts = new Map();
-    for (const s of all) if (s.compact.startsWith(compact)) starts.set(s.canonical, s);
-    if (starts.size === 1) return hitFrom([...starts.values()][0], "fuzzy");
+    const starts = unique(all.filter((s) => s.compact.startsWith(compact)));
+    if (starts) return hitFrom(starts, "fuzzy");
   }
   return null;
+}
+
+/** Words that only say what kind of thing it is, ignored when matching. */
+const FILLER_WORDS = new Set([
+  "the", "a", "an", "of", "and", "cat", "cats", "dog", "dogs", "breed", "river", "sea", "ocean",
+  "mount", "mt", "mountain", "lake", "island", "islands", "republic", "kingdom", "state", "national",
+  "park", "cheese", "play", "bone", "constellation", "moon", "language", "nut", "city", "country",
+  "letter", "president", "tower", "element", "saint", "st",
+]);
+
+/** "sphynxes" → "sphynxe", "dogs" → "dog": drop a plain plural s (not "ss"). */
+function singular(word) {
+  return word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word;
+}
+
+/** Meaningful words of a normalized key, singular, without filler words. */
+function coreWords(key) {
+  return key.split(" ").filter((w) => w && !FILLER_WORDS.has(w)).map(singular);
+}
+
+/** Normalized key reduced to its meaningful letters: "the river nile" → "nile". */
+function coreOf(key) {
+  return coreWords(key).join("");
+}
+
+/** The single spelling if all of them belong to one answer, else null. */
+function unique(spellings) {
+  const answers = new Set(spellings.map((s) => s.canonical));
+  return answers.size === 1 ? spellings[0] : null;
 }
 
 /** Autocomplete suggestions for gauge rounds. */

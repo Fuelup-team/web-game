@@ -78,7 +78,21 @@ if (engine) {
     }
   });
 
-  // 5. A perfect flight is exactly the advertised maximum.
+  // 5. Every listed name and alias finds its own answer (no matching rule steals it).
+  check("every answer and alias matches itself", () => {
+    const bad = [];
+    for (const round of [...data.LIST_ROUNDS, ...data.SINGLE_ROUNDS]) {
+      for (const a of round.answers) {
+        for (const spelling of [a.name, ...(a.aliases ?? [])]) {
+          const m = engine.matchAnswer(round.answers, spelling);
+          if (m?.canonical !== a.name) bad.push(`${round.id}: "${spelling}" -> ${m?.canonical ?? "nothing"}`);
+        }
+      }
+    }
+    if (bad.length) throw new Error(bad.slice(0, 8).join("\n"));
+  });
+
+  // 6. A perfect flight is exactly the advertised maximum.
   check(`a perfect flight scores ${engine.PERFECT_SCORE}`, () => {
     for (const day of ["2026-01-01", "2026-06-15", "2026-11-12"]) {
       const flight = engine.buildFlight(day);
@@ -94,7 +108,7 @@ if (engine) {
   });
 }
 
-// 6. The fleet board server logic, against an in-memory stand-in for Netlify Blobs.
+// 7. The fleet board server logic, against an in-memory stand-in for Netlify Blobs.
 console.log("\nFleet board");
 try {
   const fleet = await import(pathToFileURL(join(root, "src/server/fleet-core.js")).href);
@@ -135,7 +149,7 @@ try {
   console.log(`  ✗ fleet board logic failed\n      ${err.message}`);
 }
 
-// 7. Every file the page points at exists.
+// 8. Every file the page points at exists.
 console.log("\nFiles");
 check("index.html links point at real files", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");
