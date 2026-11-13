@@ -10,8 +10,8 @@
  *   Type:  "Press Start 2P" for the logo, numbers and tiny labels only.
  *          "Jersey 15" for everything big or bold: headings, questions,
  *          answer names, buttons. It's a pixel font that stays readable
- *          large (bold Pixelify smears). "Pixelify Sans" at regular weight
- *          for sentences.
+ *          large. "DotGothic16" for sentences and the answer box:
+ *          its digits are unmistakable (Pixelify drew 5 like S and 2 like 8).
  *   Theme: dark only. It's a night sky.
  */
 
@@ -45,8 +45,8 @@
   --lv-drift: #ff806e;
 
   --font-pixel: "Press Start 2P", ui-monospace, monospace;
-  --font-body: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Jersey 15", "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "DotGothic16", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Jersey 15", "DotGothic16", ui-sans-serif, system-ui, sans-serif;
 
   --px: 4px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -504,7 +504,8 @@ p {
   background: var(--night-0);
   border: 0;
   color: var(--text);
-  font-size: 21px;
+  font-size: 24px;
+  letter-spacing: 0.02em;
   border-radius: 0;
   transition: box-shadow 0.15s var(--ease);
 }
@@ -778,6 +779,7 @@ p {
 }
 .hint {
   color: var(--dim);
+  font-size: 19px;
   max-width: 62ch;
 }
 .chips {

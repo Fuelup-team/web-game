@@ -67,8 +67,8 @@ Keep to this layout so the two maintainers rarely edit the same files:
 - One accent color: Galaxy gold `#ffc83d`. The five rarity levels each have one color, used for that
   level everywhere (see `--lv-*` in `styles.css`). Don't bring back the old cream and copper.
 - Fonts, all pixel: "Press Start 2P" for the logo and numbers; "Jersey 15" for anything big or bold
-  (headings, questions, answer names, buttons); "Pixelify Sans" at regular weight for sentences.
-  Never use bold Pixelify: it smears.
+  (headings, questions, answer names, buttons); "DotGothic16" for sentences and the answer box.
+  Don't use Pixelify Sans: its 5 looks like S and its 2 like 8, which breaks year answers.
 - Icons come from `public/icons` (pixelarticons). Add new ones there from the same set.
 - Use plain words for burn types: "Name as many as you can", "One answer", "Closest number", "Guess the year".
 
