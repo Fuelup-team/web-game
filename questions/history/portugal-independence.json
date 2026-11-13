@@ -1,0 +1,23 @@
+{
+  "topic": "Countries independent from Portugal",
+  "gem": "São Tomé and Príncipe",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "hi-portugal",
+      "prompt": "Name a country that became independent from Portugal.",
+      "blurb": "One country, on any continent. Brazil is the obvious one.",
+      "seconds": 24,
+      "fact": "São Tomé and Príncipe became independent in 1975, the same year as Angola, Mozambique and Cape Verde."
+    }
+  ],
+  "answers": [
+    {"name": "Brazil", "level": "sky"},
+    {"name": "Angola", "level": "sky"},
+    {"name": "Mozambique", "level": "orbit"},
+    {"name": "Cape Verde", "level": "orbit", "also": ["Cabo Verde"]},
+    {"name": "East Timor", "level": "deepspace", "also": ["Timor-Leste"]},
+    {"name": "Guinea-Bissau", "level": "nebula"},
+    {"name": "São Tomé and Príncipe", "level": "galaxy", "also": ["Sao Tome"]}
+  ]
+}

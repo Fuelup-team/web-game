@@ -1,0 +1,34 @@
+{
+  "topic": "Roman emperors, Augustus to Commodus",
+  "gem": "Lucius Verus",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "hi-roman-emperors",
+      "prompt": "Name as many Roman emperors from Augustus to Commodus as you can.",
+      "blurb": "27 BC to AD 192, Year of the Four Emperors included. Julius Caesar was never emperor.",
+      "seconds": 42,
+      "fact": "Lucius Verus ruled alongside Marcus Aurelius from 161 until he died in 169, the first time Rome had two emperors at once."
+    }
+  ],
+  "answers": [
+    {"name": "Augustus", "level": "sky", "also": ["Octavian", "Caesar Augustus"]},
+    {"name": "Nero", "level": "sky"},
+    {"name": "Caligula", "level": "sky", "also": ["Gaius"]},
+    {"name": "Marcus Aurelius", "level": "sky"},
+    {"name": "Hadrian", "level": "sky"},
+    {"name": "Claudius", "level": "sky"},
+    {"name": "Tiberius", "level": "orbit"},
+    {"name": "Trajan", "level": "orbit"},
+    {"name": "Commodus", "level": "orbit"},
+    {"name": "Vespasian", "level": "orbit"},
+    {"name": "Titus", "level": "deepspace"},
+    {"name": "Domitian", "level": "deepspace"},
+    {"name": "Antoninus Pius", "level": "deepspace", "also": ["Antoninus"]},
+    {"name": "Nerva", "level": "deepspace"},
+    {"name": "Galba", "level": "nebula"},
+    {"name": "Otho", "level": "nebula"},
+    {"name": "Vitellius", "level": "nebula"},
+    {"name": "Lucius Verus", "level": "galaxy", "also": ["Verus"]}
+  ]
+}

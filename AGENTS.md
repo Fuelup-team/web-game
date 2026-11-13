@@ -66,11 +66,13 @@ Keep to this layout so the two maintainers rarely edit the same files:
 
 ### Theme packs
 
-- A pack (Sports so far) is a replayable run on one subject: 2 lists, 2 one-answer, 2 pictures and
+- A pack (Sports and History so far) is a replayable run on one subject: 2 lists, 2 one-answer, 2 pictures and
   1 year, still 1,000 points max. Packs never touch the daily flight or the fleet board.
 - Each pack has its **own look** (`[data-theme="<id>"]` in `styles.css`) and its **own words** for the
   same levels and stages (`THEMES` in `packs.js`). Sports: Bench, Starter, All-Star, MVP, Hall of Fame;
-  a run is a season, a burn is a game, and 1,000 points is Champions. Points never change per theme.
+  a run is a season, a burn is a game, and 1,000 points is Champions. History: Shard, Coin, Scroll,
+  Crown, Lost Treasure; a run is a dig, a burn is a layer, and the score digs back to the Dawn of
+  history. Points never change per theme. Each theme picks its own single accent color.
 - **Picture questions** (`pictures.json`): a photo plus 1 to 3 parts, `who`, `where` or `when`. Each
   part is an equal share of 100 and gets one try. A `who`/`where` part lists answers with levels:
   exactly one Galaxy (full share) and optional partial ones (city = deepspace, half; country = orbit,

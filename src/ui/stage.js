@@ -22,6 +22,10 @@ function heightFor(tier) {
 export function createStage(themeId = "space") {
   const words = themeOf(themeId);
   const sports = themeId === "sports";
+  // History digs down instead of flying up: the scene is drawn the same way
+  // and flipped upside down in CSS (.is-dig), so the spade sinks through
+  // the layers as the score grows and the surface rises out of view.
+  const dig = themeId === "history";
   const flameColors = sports ? words.sparks : FLAME;
   const stageLabel = (score) => words.stages[stageFor(score).id];
   const points = h("p", { className: "climb-points" });
@@ -38,16 +42,22 @@ export function createStage(themeId = "space") {
 
   const sky = sports
     ? h("div", { className: "launch-sky stadium-sky" }, h("span", { className: "flood flood-l" }), h("span", { className: "flood flood-r" }))
-    : h("img", { className: "launch-sky", src: asset("art/stars.jpg"), alt: "" });
+    : dig
+      ? h("div", { className: "launch-sky dig-strata" })
+      : h("img", { className: "launch-sky", src: asset("art/stars.jpg"), alt: "" });
   const dark = h("div", { className: "launch-dark" });
   const station = sports
     ? h("div", { className: "launch-station stadium-ground" }, h("div", { className: "stadium-stands" }), h("div", { className: "stadium-pitch" }))
-    : h("img", { className: "launch-station", src: asset("art/station.png"), alt: "" });
+    : dig
+      ? h("div", { className: "launch-station dig-surface" })
+      : h("img", { className: "launch-station", src: asset("art/station.png"), alt: "" });
   const rocket = sports
     ? h("img", { className: "launch-rocket stadium-ball", src: asset("art/ball-pixel.svg"), alt: "" })
-    : h("img", { className: "launch-rocket", src: asset("art/rocket-pixel.png"), alt: "" });
+    : dig
+      ? h("img", { className: "launch-rocket dig-spade", src: asset("art/spade-pixel.svg"), alt: "" })
+      : h("img", { className: "launch-rocket", src: asset("art/rocket-pixel.png"), alt: "" });
   const ship = h("div", { className: "launch-ship" }, rocket);
-  const scene = h("div", { className: `launch-scene${sports ? " is-stadium" : ""}`, attrs: { "aria-hidden": "true" } }, sky, dark, station, ship);
+  const scene = h("div", { className: `launch-scene${sports ? " is-stadium" : ""}${dig ? " is-dig" : ""}`, attrs: { "aria-hidden": "true" } }, sky, dark, station, ship);
 
   const el = h("aside", { className: "climb", attrs: { "aria-label": "Your altitude" } },
     scene,

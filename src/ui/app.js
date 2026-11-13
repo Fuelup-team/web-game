@@ -200,12 +200,14 @@ function startFlight(practice) {
   if (callsign !== state.profile.callsign) setProfile({ ...state.profile, callsign });
   audio(); // unlock sound on this click
   const mission = practice ? buildFlight(`practice:${crypto.randomUUID()}`, true) : buildFlight(day, false);
+  stage = null; // a fresh climb: the last run's height doesn't carry over
   go({ name: "play", mission, index: 0, results: [] });
 }
 
 /** Start a new run of a theme pack (a new mix every time, never on the board). */
 function startPack(packId) {
   audio();
+  stage = null; // a fresh climb: the last run's height doesn't carry over
   go({ name: "play", mission: buildPackFlight(packId, crypto.randomUUID()), index: 0, results: [] });
 }
 
@@ -576,7 +578,7 @@ function renderPackLobby(pack) {
       ),
     ),
     h("div", { className: "pad-art", attrs: { "aria-hidden": "true" } },
-      h("img", { className: "pad-rocket pad-ball", src: asset("art/ball-pixel.svg"), alt: "" }),
+      h("img", { className: "pad-rocket pad-ball", src: pack.theme === "history" ? asset("art/spade-pixel.svg") : asset("art/ball-pixel.svg"), alt: "" }),
     ),
   );
 }

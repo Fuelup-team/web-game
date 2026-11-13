@@ -64,6 +64,10 @@ like, with its own look and its own words. Packs don't count toward the fleet bo
   hosts, hockey world champions, the Ryder Cup, Wimbledon, sports years and **picture questions**.
   Levels are Bench, Starter, All-Star, MVP and Hall of Fame; a run is a season, from Preseason to
   Champions at 1,000 points.
+- **History** (a dig site at night): Roman emperors, English and British monarchs, Soviet republics, US
+  presidents, Henry VIII's wives, the Seven Wonders, 21 dates and 13 picture questions. Finds are
+  Shard, Coin, Scroll, Crown and Lost Treasure, and your score digs back through time, from Present
+  day to the Dawn of history at 1,000 points.
 - **Picture questions** show a photo and ask who, where or when (one to three of them). Each part
   scores on its own, with partial credit: the right city instead of the stadium is half, a near year
   still scores. Photos are public domain or Creative Commons, credited under each picture.

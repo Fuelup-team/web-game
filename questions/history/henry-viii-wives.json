@@ -1,0 +1,22 @@
+{
+  "topic": "Wives of Henry VIII",
+  "gem": "Catherine Howard",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "hi-henry-wives",
+      "prompt": "Name one of Henry VIII's six wives.",
+      "blurb": "One wife, full name. Anne Boleyn is everyone's first answer.",
+      "seconds": 22,
+      "fact": "Catherine Howard was Henry's fifth wife. She was executed in 1542, less than two years after the wedding."
+    }
+  ],
+  "answers": [
+    {"name": "Anne Boleyn", "level": "sky", "also": ["Boleyn"]},
+    {"name": "Catherine of Aragon", "level": "sky", "also": ["Katherine of Aragon", "Aragon"]},
+    {"name": "Jane Seymour", "level": "orbit", "also": ["Seymour"]},
+    {"name": "Anne of Cleves", "level": "deepspace", "also": ["Cleves"]},
+    {"name": "Catherine Parr", "level": "nebula", "also": ["Katherine Parr", "Parr"]},
+    {"name": "Catherine Howard", "level": "galaxy", "also": ["Katherine Howard", "Howard"]}
+  ]
+}

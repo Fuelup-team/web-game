@@ -1,0 +1,144 @@
+[
+  {
+    "id": "hi-pic-aldrin",
+    "image": "pictures/aldrin-1969.jpg",
+    "prompt": "Who is in this spacesuit, and when was the photo taken? (Not the one holding the camera.)",
+    "credit": {"author": "Neil Armstrong, NASA", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11_original.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Buzz Aldrin", "level": "galaxy", "also": ["Aldrin", "Edwin Aldrin", "Edwin Buzz Aldrin"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1969}
+    ],
+    "fact": "Neil Armstrong took this photo of Buzz Aldrin on the Moon during Apollo 11 in July 1969. Armstrong is reflected in Aldrin's visor."
+  },
+  {
+    "id": "hi-pic-lincoln",
+    "image": "pictures/lincoln-1863.jpg",
+    "prompt": "Who is this, and when was the portrait taken?",
+    "credit": {"author": "Alexander Gardner", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Abraham_Lincoln_O-77_matte_collodion_print.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Abraham Lincoln", "level": "galaxy", "also": ["Lincoln", "Abe Lincoln"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1863}
+    ],
+    "fact": "Alexander Gardner took this portrait on 8 November 1863, eleven days before Lincoln gave the Gettysburg Address."
+  },
+  {
+    "id": "hi-pic-mlk",
+    "image": "pictures/mlk-1963.jpg",
+    "prompt": "Who is giving this speech, in which city, and when?",
+    "credit": {"author": "Rowland Scherman, US Information Agency", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Martin_Luther_King_-_March_on_Washington.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Martin Luther King Jr.", "level": "galaxy", "also": ["Martin Luther King", "MLK", "King", "Dr King"]}]},
+      {"ask": "where", "label": "Which city?", "answers": [{"name": "Washington", "level": "galaxy", "also": ["Washington DC", "Washington D.C.", "Lincoln Memorial"]}, {"name": "United States", "level": "orbit", "also": ["USA", "US", "America"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1963}
+    ],
+    "fact": "King gave his 'I Have a Dream' speech at the Lincoln Memorial on 28 August 1963, to a crowd of about 250,000 people."
+  },
+  {
+    "id": "hi-pic-wright",
+    "image": "pictures/wright-1903.jpg",
+    "prompt": "Whose flying machine is this, where is it, and when?",
+    "credit": {"author": "John T. Daniels", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:First_flight2.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Whose?", "answers": [{"name": "The Wright brothers", "level": "galaxy", "also": ["Wright brothers", "Wright", "Wrights", "Orville Wright", "Wilbur Wright", "Orville", "Wilbur"]}]},
+      {"ask": "where", "label": "Where?", "answers": [{"name": "Kitty Hawk", "level": "galaxy", "also": ["Kill Devil Hills"]}, {"name": "North Carolina", "level": "deepspace"}, {"name": "United States", "level": "orbit", "also": ["USA", "US", "America"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1903}
+    ],
+    "fact": "On 17 December 1903 Orville flew for 12 seconds while Wilbur ran alongside. A local lifesaving crewman, John T. Daniels, pressed the camera shutter."
+  },
+  {
+    "id": "hi-pic-hindenburg",
+    "image": "pictures/hindenburg-1937.jpg",
+    "prompt": "Which airship is burning, where, and when?",
+    "credit": {"author": "Sam Shere", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Hindenburg_disaster.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Which airship?", "answers": [{"name": "Hindenburg", "level": "galaxy", "also": ["LZ 129", "LZ 129 Hindenburg"]}]},
+      {"ask": "where", "label": "Where?", "answers": [{"name": "Lakehurst", "level": "galaxy", "also": ["Lakehurst New Jersey", "Naval Air Station Lakehurst"]}, {"name": "New Jersey", "level": "deepspace"}, {"name": "United States", "level": "orbit", "also": ["USA", "US", "America"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1937}
+    ],
+    "fact": "The Hindenburg caught fire while landing on 6 May 1937. 35 of the 97 people on board died, and one man on the ground."
+  },
+  {
+    "id": "hi-pic-gandhi",
+    "image": "pictures/gandhi-1930.jpg",
+    "prompt": "Who is leading this march, and when?",
+    "credit": {"author": "Unknown photographer", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Marche_sel.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Mahatma Gandhi", "level": "galaxy", "also": ["Gandhi", "Ghandi", "Mahatma Ghandi", "Mohandas Gandhi", "Mohandas Karamchand Gandhi", "Bapu"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1930}
+    ],
+    "fact": "This is the Salt March of spring 1930: about 385 km on foot to the sea at Dandi, in protest at Britain's tax on salt."
+  },
+  {
+    "id": "hi-pic-yalta",
+    "image": "pictures/yalta-1945.jpg",
+    "prompt": "Churchill, Roosevelt and Stalin meet. Where is this, and when?",
+    "credit": {"author": "US Army Signal Corps", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Yalta_Conference_(Churchill,_Roosevelt,_Stalin)_(B%26W).jpg"},
+    "parts": [
+      {"ask": "where", "label": "Where?", "answers": [{"name": "Yalta", "level": "galaxy", "also": ["Livadia Palace", "Livadia"]}, {"name": "Crimea", "level": "deepspace"}]},
+      {"ask": "when", "label": "Which year?", "year": 1945}
+    ],
+    "fact": "At Yalta in February 1945 the three leaders planned the end of the war and the shape of Europe after it. Roosevelt died two months later."
+  },
+  {
+    "id": "hi-pic-einstein",
+    "image": "pictures/einstein.jpg",
+    "prompt": "Who is this scientist, and when was the portrait taken?",
+    "credit": {"author": "Orren Jack Turner", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Albert_Einstein_Head.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Albert Einstein", "level": "galaxy", "also": ["Einstein"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1947}
+    ],
+    "fact": "Orren Jack Turner took this in Princeton in 1947. Einstein lived there from 1933 until he died in 1955."
+  },
+  {
+    "id": "hi-pic-berlin-wall",
+    "image": "pictures/berlin-wall-1989.jpg",
+    "prompt": "Crowds gather by a famous gate and a wall. Which city, and when?",
+    "credit": {"author": "Sue Ream", "license": "CC BY 3.0", "source": "https://commons.wikimedia.org/wiki/File:BerlinWall-BrandenburgGate.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which city?", "answers": [{"name": "Berlin", "level": "galaxy", "also": ["Brandenburg Gate", "East Berlin", "West Berlin"]}, {"name": "Germany", "level": "deepspace", "also": ["East Germany", "West Germany"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1989}
+    ],
+    "fact": "On 9 November 1989 East Germany opened its border. Within hours, crowds were standing on the Wall by the Brandenburg Gate."
+  },
+  {
+    "id": "hi-pic-colosseum",
+    "image": "pictures/colosseum.jpg",
+    "prompt": "Name this building. The city alone gets you half the points.",
+    "credit": {"author": "FeaturedPics (Wikimedia Commons)", "license": "CC BY-SA 4.0", "source": "https://commons.wikimedia.org/wiki/File:Colosseo_2020.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which building?", "answers": [{"name": "Colosseum", "level": "galaxy", "also": ["Colosseo", "Coliseum", "Flavian Amphitheatre"]}, {"name": "Rome", "level": "deepspace", "also": ["Roma"]}, {"name": "Italy", "level": "orbit"}]}
+    ],
+    "fact": "The Colosseum opened in AD 80 under Emperor Titus and held around 50,000 spectators."
+  },
+  {
+    "id": "hi-pic-machu-picchu",
+    "image": "pictures/machu-picchu.jpg",
+    "prompt": "Name this place. The country alone gets you half the points.",
+    "credit": {"author": "Pedro Szekely", "license": "CC BY-SA 2.0", "source": "https://commons.wikimedia.org/wiki/File:Machu_Picchu,_Peru.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which place?", "answers": [{"name": "Machu Picchu", "level": "galaxy", "also": ["Machu Pichu"]}, {"name": "Peru", "level": "deepspace"}, {"name": "Andes", "level": "orbit"}]}
+    ],
+    "fact": "The Inca built Machu Picchu high in the Andes in the 1400s. The wider world heard of it after Hiram Bingham's visit in 1911."
+  },
+  {
+    "id": "hi-pic-stonehenge",
+    "image": "pictures/stonehenge.jpg",
+    "prompt": "Name this monument. The country alone gets you a quarter of the points.",
+    "credit": {"author": "garethwiscombe (Flickr)", "license": "CC BY 2.0", "source": "https://commons.wikimedia.org/wiki/File:Stonehenge2007_07_30.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which monument?", "answers": [{"name": "Stonehenge", "level": "galaxy"}, {"name": "Salisbury Plain", "level": "nebula", "also": ["Salisbury", "Wiltshire", "Amesbury"]}, {"name": "England", "level": "orbit", "also": ["United Kingdom", "UK", "Great Britain", "Britain"]}]}
+    ],
+    "fact": "The big sarsen stones were raised around 2500 BC. The smaller bluestones were brought from the Preseli Hills in Wales, about 240 km away."
+  },
+  {
+    "id": "hi-pic-petra",
+    "image": "pictures/petra.jpg",
+    "prompt": "Which ancient city is this? The country alone gets you half the points.",
+    "credit": {"author": "Graham Racher (Flickr), cropped by MrPanyGoff", "license": "CC BY-SA 2.0", "source": "https://commons.wikimedia.org/wiki/File:Treasury_petra_crop.jpeg"},
+    "parts": [
+      {"ask": "where", "label": "Which city?", "answers": [{"name": "Petra", "level": "galaxy", "also": ["Al-Khazneh", "The Treasury"]}, {"name": "Jordan", "level": "deepspace"}]}
+    ],
+    "fact": "The Treasury (Al-Khazneh) was carved straight into the sandstone cliff by the Nabataeans about 2,000 years ago."
+  }
+]

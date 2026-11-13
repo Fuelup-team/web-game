@@ -1,0 +1,39 @@
+{
+  "topic": "Soviet republics",
+  "gem": "Turkmenistan",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "hi-soviet-republics",
+      "prompt": "Name as many of the 15 Soviet republics as you can.",
+      "blurb": "Every republic of the USSR, which became 15 countries in 1991.",
+      "seconds": 40,
+      "fact": "Turkmenistan became independent in October 1991. In 1995 the UN recognised it as permanently neutral."
+    },
+    {
+      "kind": "rare",
+      "id": "hi-soviet-one",
+      "prompt": "Name a country that was once a republic of the Soviet Union.",
+      "blurb": "One country. Russia and Ukraine are easy. Central Asia flies further.",
+      "seconds": 24,
+      "fact": "Turkmenistan became independent in October 1991. In 1995 the UN recognised it as permanently neutral."
+    }
+  ],
+  "answers": [
+    {"name": "Russia", "level": "sky"},
+    {"name": "Ukraine", "level": "sky"},
+    {"name": "Belarus", "level": "sky", "also": ["Byelorussia", "Belorussia"]},
+    {"name": "Kazakhstan", "level": "sky"},
+    {"name": "Georgia", "level": "sky"},
+    {"name": "Lithuania", "level": "orbit"},
+    {"name": "Latvia", "level": "orbit"},
+    {"name": "Estonia", "level": "orbit"},
+    {"name": "Armenia", "level": "orbit"},
+    {"name": "Azerbaijan", "level": "deepspace"},
+    {"name": "Uzbekistan", "level": "deepspace"},
+    {"name": "Moldova", "level": "deepspace", "also": ["Moldavia"]},
+    {"name": "Kyrgyzstan", "level": "nebula", "also": ["Kirghizia"]},
+    {"name": "Tajikistan", "level": "nebula"},
+    {"name": "Turkmenistan", "level": "galaxy"}
+  ]
+}
