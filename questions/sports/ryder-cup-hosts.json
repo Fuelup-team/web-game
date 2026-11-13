@@ -1,0 +1,24 @@
+{
+  "topic": "Ryder Cup host countries",
+  "gem": "Wales",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "sp-ryder-hosts",
+      "prompt": "Name a country that has hosted golf's Ryder Cup.",
+      "blurb": "One country, from 1927 to 2025. Europe's hosts are the tricky ones.",
+      "seconds": 24,
+      "fact": "Celtic Manor in Wales hosted in 2010. Rain pushed the last day to a Monday, a first for the Ryder Cup."
+    }
+  ],
+  "answers": [
+    {"name": "United States", "level": "sky", "also": ["USA", "US", "America"]},
+    {"name": "England", "level": "sky"},
+    {"name": "Scotland", "level": "orbit"},
+    {"name": "Ireland", "level": "orbit"},
+    {"name": "France", "level": "deepspace"},
+    {"name": "Italy", "level": "deepspace"},
+    {"name": "Spain", "level": "nebula"},
+    {"name": "Wales", "level": "galaxy"}
+  ]
+}

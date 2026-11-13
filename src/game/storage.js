@@ -10,7 +10,7 @@ function randomPilotKey() {
 }
 
 function freshProfile() {
-  return { version: 1, pilotKey: randomPilotKey(), callsign: "", muted: false, streak: 0, lastDay: null, flights: {} };
+  return { version: 1, pilotKey: randomPilotKey(), callsign: "", muted: false, streak: 0, lastDay: null, flights: {}, packs: {} };
 }
 
 /** Load the profile, or start a new one if nothing valid is stored. */
@@ -28,6 +28,7 @@ export function loadProfile() {
       streak: typeof p.streak === "number" ? p.streak : 0,
       lastDay: typeof p.lastDay === "string" ? p.lastDay : null,
       flights: p.flights && typeof p.flights === "object" ? p.flights : {},
+      packs: p.packs && typeof p.packs === "object" ? p.packs : {},
     };
   } catch {
     return freshProfile();
@@ -55,5 +56,14 @@ export function logFlight(profile, flight) {
     streak: Math.max(1, streak),
     lastDay: flight.day,
     flights: { ...profile.flights, [flight.day]: flight },
+  };
+}
+
+/** Record a finished theme-pack run: best score, runs played, last score. */
+export function logPackRun(profile, packId, score) {
+  const before = profile.packs?.[packId] ?? { best: 0, played: 0, last: null };
+  return {
+    ...profile,
+    packs: { ...profile.packs, [packId]: { best: Math.max(before.best, score), played: before.played + 1, last: score } },
   };
 }

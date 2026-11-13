@@ -122,15 +122,21 @@ export const CHART_FILES = [
 ];
 
 /** File answers { name, level, also } -> engine answers { name, tier, aliases }. */
-function toAnswer(a) {
+export function toAnswer(a) {
   return a.also ? { name: a.name, tier: a.level, aliases: a.also } : { name: a.name, tier: a.level };
 }
 
-/** Each chart with its answers converted once and shared by its rounds. */
-export const CHARTS = CHART_FILES.map((file) => ({ ...file, answers: file.answers.map(toAnswer) }));
+/** Chart files with their answers converted once and shared by their rounds. */
+export function chartsFrom(files) {
+  return files.map((file) => ({ ...file, answers: file.answers.map(toAnswer) }));
+}
 
-const roundsOf = (kind) =>
-  CHARTS.flatMap((chart) =>
+/** Each chart with its answers converted once and shared by its rounds. */
+export const CHARTS = chartsFrom(CHART_FILES);
+
+/** Every round of one kind ("list" or "rare") in some charts. */
+export const roundsFrom = (charts, kind) =>
+  charts.flatMap((chart) =>
     chart.rounds
       .filter((r) => r.kind === kind)
       .map((r) => ({
@@ -146,14 +152,14 @@ const roundsOf = (kind) =>
   );
 
 /** "Name as many as you can" rounds. */
-export const LIST_ROUNDS = roundsOf("list");
+export const LIST_ROUNDS = roundsFrom(CHARTS, "list");
 /** "One answer" rounds. */
-export const SINGLE_ROUNDS = roundsOf("rare");
+export const SINGLE_ROUNDS = roundsFrom(CHARTS, "rare");
 
 const YEAR_BLURB = "Type the year. Exact is Galaxy, within 2 years is Nebula, and every year further off costs height.";
 
-/** "Guess the year" rounds. Years before 1 AD are negative (-44 = 44 BC). */
-export const YEAR_ROUNDS = years.map((y) => ({
+/** "Guess the year" rounds from a years file. Years before 1 AD are negative (-44 = 44 BC). */
+export const yearRoundsFrom = (list) => list.map((y) => ({
   kind: "year",
   id: y.id,
   prompt: y.question,
@@ -162,6 +168,9 @@ export const YEAR_ROUNDS = years.map((y) => ({
   year: y.year,
   aside: y.fact,
 }));
+
+/** "Guess the year" rounds. */
+export const YEAR_ROUNDS = yearRoundsFrom(years);
 
 /** "Closest number" charts. */
 export const GAUGE_ROUNDS = gauges.map((g) => ({

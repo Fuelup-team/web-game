@@ -6,8 +6,10 @@ import {
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
   splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, TOP_LEVEL,
   LEVELS, OFF_COURSE, GAUGE_BANDS, YEAR_BANDS, levelOf, stageFor, toTheMoon,
+  buildPackFlight, scorePicturePart, PART_CREDIT, STAGES,
 } from "../game/engine.js";
-import { loadProfile, saveProfile, logFlight } from "../game/storage.js";
+import { PACKS, packById, themeOf } from "../game/packs.js";
+import { loadProfile, saveProfile, logFlight, logPackRun } from "../game/storage.js";
 import { audio, playHit, playMiss } from "../game/sound.js";
 import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
 
@@ -46,7 +48,39 @@ const KINDS = {
     placeholder: "Type a year, like 1969",
     submit: "Lock in",
   },
+  picture: {
+    label: "Picture",
+    short: "Picture",
+    icon: "image",
+    how: "Look at the photo and answer what it asks: who, where or when. Each part gets one try, and close answers still score.",
+    placeholder: "Type your answer",
+    submit: "Lock in",
+  },
 };
+
+// ---------- Theme words ----------
+//
+// The daily flight speaks space (Sky … Galaxy, the Moon). A theme pack has
+// its own words for the same levels and stages (Bench … Hall of Fame, Champions).
+
+let words = themeOf("space");
+
+/** Switch the look and the words: sets data-theme on <html> for styles.css. */
+function applyTheme(id) {
+  words = themeOf(id);
+  document.documentElement.dataset.theme = words.id;
+}
+
+/** This theme's name for a level: "Galaxy" or "Hall of Fame". */
+const lvName = (tier) => words.levels[tier] ?? levelOf(tier).name;
+/** This theme's name for the stage a score reaches. */
+const stageName = (score) => words.stages[stageFor(score).id];
+/** "580 points to the Moon" / "580 points to the title" */
+function toTheGoal(score) {
+  if (words.id === "space") return toTheMoon(score);
+  const left = PERFECT_SCORE - score;
+  return left > 0 ? `${fmt(left)} points to ${words.goal}` : `You won ${words.goal}`;
+}
 const kindOf = (round) => KINDS[round.kind] ?? KINDS.rare;
 
 // ---------- Rarity lamp (six pixels, Off course to Galaxy) ----------
@@ -57,11 +91,11 @@ function rarityLamps(tier) {
   const rank = LAMP_ORDER.indexOf(tier);
   return h("div", {
     className: "lamps",
-    attrs: { role: "img", "aria-label": tier ? `Rarity: ${levelOf(tier).name}` : "Rarity lamp" },
+    attrs: { role: "img", "aria-label": tier ? `Rarity: ${lvName(tier)}` : "Rarity lamp" },
   }, LAMP_ORDER.map((id, i) =>
     h("span", {
       className: ["lamp", `tier-${id}`, i <= rank ? "is-lit" : "", i === rank ? "is-here" : ""].filter(Boolean).join(" "),
-      attrs: { title: levelOf(id).name },
+      attrs: { title: lvName(id) },
     }),
   ));
 }
@@ -76,17 +110,16 @@ function paintLamps(lamps, tier) {
       if (i === rank) dot.classList.add("is-here");
     }
   });
-  lamps.setAttribute("aria-label", tier ? `Rarity: ${levelOf(tier).name}` : "Rarity lamp");
+  lamps.setAttribute("aria-label", tier ? `Rarity: ${lvName(tier)}` : "Rarity lamp");
 }
 
 /** "Galaxy, Ultra rare, +100" */
 function levelLine(tier, points = levelOf(tier).points) {
-  const level = levelOf(tier);
-  return `${level.name}, ${level.rarity}, +${points}`;
+  return `${lvName(tier)}, ${levelOf(tier).rarity}, +${points}`;
 }
 
 /** A small filled tag in a level's color. */
-function levelTag(tier, text = levelOf(tier).name) {
+function levelTag(tier, text = lvName(tier)) {
   return h("span", { className: `level-tag tier-${tier}` }, text);
 }
 
@@ -101,7 +134,7 @@ const state = {
   fleetStatus: fleetEnabled ? "loading" : "off", // loading | ready | error | off
   callsign: "",
   menu: null, // null | "root" | "leave" | "how" | "terms" | "privacy"
-  screen: { name: "pad" }, // pad | play | between | report
+  screen: { name: "pad" }, // pad | pack | play | between | report
 };
 state.callsign = state.profile.callsign;
 
@@ -115,6 +148,11 @@ function setProfile(next) {
 }
 
 const muted = () => state.profile.muted;
+/** Name of the pack on screen ("Sports"), or "" for the daily flight. */
+const packName = () => {
+  const s = state.screen;
+  return packById(s.pack ?? s.mission?.pack ?? s.flight?.pack)?.name ?? "";
+};
 const callsignLabel = () => (state.callsign.trim() || "Pilot").slice(0, 18);
 const todaysFlight = () => state.profile.flights[day];
 const sum = (items) => items.reduce((total, x) => total + x.points, 0);
@@ -165,6 +203,12 @@ function startFlight(practice) {
   go({ name: "play", mission, index: 0, results: [] });
 }
 
+/** Start a new run of a theme pack (a new mix every time, never on the board). */
+function startPack(packId) {
+  audio();
+  go({ name: "play", mission: buildPackFlight(packId, crypto.randomUUID()), index: 0, results: [] });
+}
+
 function stopBurn() {
   if (!burn) return;
   cancelAnimationFrame(burn.frame);
@@ -178,17 +222,25 @@ function finishBurn(reason) {
   if (!burn || burn.done || screen.name !== "play") return;
   burn.done = true;
   const round = screen.mission.rounds[screen.index];
-  let hits = burn.hits;
-  if (reason === "time" && burn.draft.trim()) {
-    const result = checkEntries(round, burn.draft, hits);
-    if (!result.bad) hits = result.hits;
+  let scored;
+  if (round.kind === "picture") {
+    // Locked parts keep their answer; when time runs out, what's typed is locked too.
+    const inputs = round.parts.map((_, i) => burn.parts[i]?.input ?? (reason === "time" ? burn.partDrafts[i] ?? "" : ""));
+    scored = { ...scoreRound(round, inputs), timedOut: reason === "time" };
+  } else {
+    let hits = burn.hits;
+    if (reason === "time" && burn.draft.trim()) {
+      const result = checkEntries(round, burn.draft, hits);
+      if (!result.bad) hits = result.hits;
+    }
+    scored = { ...scoreRound(round, hits.map((x) => x.canonical)), timedOut: reason === "time" };
   }
-  const scored = { ...scoreRound(round, hits.map((x) => x.canonical)), timedOut: reason === "time" };
   const results = [...screen.results, scored];
   stage?.boost();
 
   if (screen.index >= screen.mission.rounds.length - 1) {
-    const flight = finishFlight(screen.mission.day, screen.mission.number, results);
+    const flight = finishFlight(screen.mission.day, screen.mission.number, results, screen.mission.pack ?? null);
+    if (flight.pack) setProfile(logPackRun(state.profile, flight.pack, flight.score));
     go({ name: "report", flight, practice: screen.mission.practice });
     if (!screen.mission.practice) recordFlight(flight);
   } else {
@@ -259,12 +311,17 @@ function render() {
   const s = state.screen;
   root.className = ["fuel-app", `on-${s.name}`, root.classList.contains("is-keyboard") ? "is-keyboard" : ""].filter(Boolean).join(" ");
 
+  const pack = s.name === "pack" ? packById(s.pack) : packById(s.mission?.pack ?? s.flight?.pack);
+  const themeId = pack?.theme ?? "space";
+  if (words.id !== themeId) stage = null;
+  applyTheme(themeId);
+
   const children = [];
-  if (s.name === "pad") {
+  if (s.name === "pad" || s.name === "pack") {
     stage = null;
-    children.push(renderTopBar(), renderPad());
+    children.push(renderTopBar(), s.name === "pad" ? renderPad() : renderPackLobby(pack));
   } else {
-    if (!stage) stage = createStage();
+    if (!stage) stage = createStage(themeId);
     stage.setScore(stageScore());
     const panel = s.name === "play" ? renderBurn() : s.name === "between" ? renderBetween() : renderReport();
     children.push(renderTopBar(), h("main", { className: "flight-grid", id: "main" }, stage.el, panel));
@@ -280,7 +337,7 @@ function stageScore() {
   if (s.name === "report") return s.flight.score;
   const done = sum(s.results);
   if (s.name !== "play" || !burn) return done;
-  const live = sum(burn.hits);
+  const live = s.mission.rounds[s.index]?.kind === "picture" ? sum(burn.parts.filter(Boolean)) : sum(burn.hits);
   return done + (s.mission.rounds[s.index]?.kind === "list" ? Math.min(LIST_CAP, live) : live);
 }
 
@@ -293,12 +350,19 @@ function renderTopBar() {
     h("div", { className: "topbar-left" },
       s.name === "pad"
         ? h("p", { className: "logo" }, "Fuelup")
+        : s.name === "pack"
+          ? h("button", {
+            className: "btn-icon",
+            attrs: { type: "button", "aria-label": "Back to start" },
+            onClick: () => go({ name: "pad" }),
+          }, icon("arrow-left"))
         : h("button", {
           className: "btn-icon",
-          attrs: { type: "button", "aria-label": inFlight ? "Leave this flight" : "Back to start" },
+          attrs: { type: "button", "aria-label": inFlight ? `Leave this ${words.run}` : "Back to start" },
           onClick: () => (inFlight ? openMenu("leave") : go({ name: "pad" })),
         }, icon("arrow-left")),
-      s.name !== "pad" && h("p", { className: "logo logo-small" }, "Fuelup"),
+      s.name !== "pad" && h("p", { className: "logo logo-small" }, "Fuelup",
+        words.id !== "space" && h("span", { className: "logo-pack" }, packName())),
     ),
     inFlight && renderPips(),
     h("div", { className: "topbar-right" },
@@ -320,8 +384,8 @@ function renderTopBar() {
 function renderPips() {
   const s = state.screen;
   const current = s.name === "play" ? s.index : s.index + 1;
-  return h("div", { className: "pips", attrs: { "aria-label": `Burn ${Math.min(current + 1, 7)} of 7` } },
-    h("span", { className: "pips-label" }, `Burn ${Math.min(current + 1, 7)} of 7`),
+  return h("div", { className: "pips", attrs: { "aria-label": `${words.Round} ${Math.min(current + 1, 7)} of 7` } },
+    h("span", { className: "pips-label" }, `${words.Round} ${Math.min(current + 1, 7)} of 7`),
     h("ol", {}, s.mission.rounds.map((round, i) => {
       const done = s.results[i];
       const tier = done ? (done.hits.length ? bestTier(done.hits) : "drift") : null;
@@ -401,10 +465,11 @@ function renderPad() {
           icon("reload"), "Practice"),
       ),
       h("div", { className: "stats" },
-        stat("Your flight", flight ? fmt(flight.score) : "-", flight ? stageFor(flight.score).name : "Not flown yet"),
+        stat("Your flight", flight ? fmt(flight.score) : "-", flight ? stageName(flight.score) : "Not flown yet"),
         fleetStat,
         stat("Streak", streak > 0 ? `${streak}` : "-", streak === 1 ? "day" : streak > 1 ? "days in a row" : "Fly today to start"),
       ),
+      renderPackShelf(),
       h("label", { className: "field" },
         h("span", { className: "field-label" }, "Pilot name (optional)"),
         h("input", {
@@ -437,11 +502,91 @@ function renderPad() {
   );
 }
 
+// ----- Theme packs -----
+
+/** Cards on the start screen, one per pack. */
+function renderPackShelf() {
+  return h("section", { className: "packs", attrs: { "aria-label": "Theme packs" } },
+    h("h2", {}, "Theme packs"),
+    h("p", { className: "section-hint" }, "Play one subject as often as you like, each with its own look."),
+    h("ul", {}, PACKS.map((pack) => {
+      const mine = state.profile.packs?.[pack.id];
+      return h("li", {},
+        h("button", {
+          className: `pack-card pack-${pack.id}`,
+          attrs: { type: "button" },
+          onClick: () => go({ name: "pack", pack: pack.id }),
+        },
+          h("span", { className: "pack-card-art", attrs: { "aria-hidden": "true" } }, icon(pack.icon)),
+          h("span", { className: "pack-card-text" },
+            h("b", {}, pack.name),
+            h("span", {}, pack.tagline),
+            mine && h("small", {}, `Best ${fmt(mine.best)} · ${mine.played} played`),
+          ),
+          icon("chevron-right"),
+        ),
+      );
+    })),
+  );
+}
+
+/** A pack's own start screen, in its own look. */
+function renderPackLobby(pack) {
+  if (!pack) return renderPad();
+  const mine = state.profile.packs?.[pack.id];
+  const topics = [...new Set([...pack.lists, ...pack.singles].map((r) => r.prompt.replace(/^Name (as many |a |an |one of )?/, "").replace(/ as you can\.$|\.$/, "")))];
+  return h("main", { className: "pad-grid pack-lobby", id: "main" },
+    h("section", { className: "panel pad-panel" },
+      h("p", { className: "flight-tag" }, `Theme pack · ${words.Run} of 7 ${words.round}s`),
+      h("h1", {}, pack.name),
+      h("p", { className: "lead" }, pack.about),
+      h("div", { className: "cta-row" },
+        h("button", { className: "btn btn-gold", attrs: { type: "button" }, onClick: () => startPack(pack.id) },
+          icon("play"), mine ? `Play another ${words.run}` : `Start a ${words.run}`),
+        h("button", { className: "btn-text", attrs: { type: "button" }, onClick: () => go({ name: "pad" }) },
+          icon("home"), "Back to the daily flight"),
+      ),
+      h("div", { className: "stats" },
+        stat(`Best ${words.run}`, mine ? fmt(mine.best) : "-", mine ? stageName(mine.best) : `No ${words.run}s yet`),
+        stat("Last", mine?.last != null ? fmt(mine.last) : "-", mine ? stageName(mine.last) : "Play to start"),
+        stat("Played", mine ? `${mine.played}` : "-", "Not on the daily board"),
+      ),
+      h("section", { className: "lineup", attrs: { "aria-label": `A ${words.run}` } },
+        h("h2", {}, `Every ${words.run}: 7 ${words.round}s`),
+        h("ol", {}, ["list", "rare", "picture", "year", "list", "picture", "rare"].map((kind, i) =>
+          h("li", {}, h("span", { className: "lineup-num" }, i + 1), icon(KINDS[kind].icon), h("span", {}, KINDS[kind].short)),
+        )),
+      ),
+      h("section", { className: "levels", attrs: { "aria-label": "Levels" } },
+        h("h2", {}, "Rarer answers score more"),
+        h("ul", {}, LEVELS.map((l) =>
+          h("li", { className: `tier-${l.id}` }, h("span", { className: "level-swatch" }), h("b", {}, lvName(l.id)), h("span", {}, l.rarity), h("em", {}, `${l.points}`)),
+        )),
+      ),
+      h("section", { className: "levels season-path", attrs: { "aria-label": `How a ${words.run} goes` } },
+        h("h2", {}, `Your points are your ${words.meter.toLowerCase()}`),
+        h("ol", {}, STAGES.map((st) =>
+          h("li", {}, h("b", {}, words.stages[st.id]), h("em", {}, st.from === 1 ? "1+" : fmt(st.from))),
+        )),
+      ),
+      h("details", { className: "pack-topics" },
+        h("summary", {}, `What's in ${pack.name}`),
+        h("ul", {}, topics.map((t) => h("li", {}, t))),
+        h("p", { className: "section-hint" }, `Plus ${pack.pictures.length} picture questions and ${pack.years.length} "Guess the year" questions.`),
+      ),
+    ),
+    h("div", { className: "pad-art", attrs: { "aria-hidden": "true" } },
+      h("img", { className: "pad-rocket pad-ball", src: asset("art/ball-pixel.svg"), alt: "" }),
+    ),
+  );
+}
+
 // ----- Burn (one timed question) -----
 
 function renderBurn() {
   const s = state.screen;
   const round = s.mission.rounds[s.index];
+  if (round.kind === "picture") return renderPictureBurn(s, round);
   const kind = kindOf(round);
   const seconds = round.seconds * 1000;
   burn = {
@@ -513,7 +658,7 @@ function renderBurn() {
   function defaultNote() {
     return round.kind === "list"
       ? `${fmt(Math.min(LIST_CAP, sum(burn.hits)))} of ${LIST_CAP} points so far.`
-      : "A wrong try doesn't end the burn. Keep going.";
+      : `A wrong try doesn't end the ${words.round}. Keep going.`;
   }
 
   function drawChips() {
@@ -522,7 +667,7 @@ function renderBurn() {
     mount(chips, burn.hits.map((hit) =>
       h("li", { className: `chip tier-${hit.tier}` },
         h("span", { className: "chip-name" }, hit.canonical),
-        levelTag(hit.tier, `${levelOf(hit.tier).name} +${hit.points}`),
+        levelTag(hit.tier, `${lvName(hit.tier)} +${hit.points}`),
         h("button", {
           className: "chip-remove",
           attrs: { type: "button", "aria-label": `Remove ${hit.canonical}` },
@@ -597,7 +742,7 @@ function renderBurn() {
 
   return h("form", {
     className: `panel burn kind-${round.kind}`,
-    attrs: { "aria-label": `Burn ${s.index + 1} of 7` },
+    attrs: { "aria-label": `${words.Round} ${s.index + 1} of 7` },
     onSubmit: (e) => {
       e.preventDefault();
       commit();
@@ -620,7 +765,164 @@ function renderBurn() {
     h("div", { className: "feedback" }, lamps, note),
     round.kind === "list" &&
       h("button", { className: "btn btn-line btn-done", attrs: { type: "button" }, onClick: () => finishBurn("seal") },
-        icon("check"), "I'm done, next burn"),
+        icon("check"), `I'm done, next ${words.round}`),
+  );
+}
+
+/** Shared timer pieces for a burn. */
+function burnClock() {
+  const timer = h("p", { className: "timer", attrs: { role: "timer" } });
+  const timeFill = h("span", { className: "timebar-fill" });
+  const update = () => {
+    const left = Math.max(0, burn.deadline - Date.now());
+    const secs = left / 1000;
+    timer.textContent = `${Math.ceil(secs)}`;
+    timer.className = left < 5000 ? "timer is-low" : "timer";
+    timer.setAttribute("aria-label", `${Math.ceil(secs)} seconds left`);
+    timeFill.style.transform = `scaleX(${Math.max(0, Math.min(1, left / burn.total))})`;
+  };
+  return { timer, timeFill, update };
+}
+
+/** "Credit: Ira Rosenberg · Public domain · Source" under a picture. */
+function pictureCredit(round) {
+  const c = round.credit;
+  return h("figcaption", { className: "picture-credit" },
+    "Photo: ", c.author, " · ", c.license, " · ",
+    h("a", { href: c.source, attrs: { target: "_blank", rel: "noopener noreferrer" } }, "Source"),
+  );
+}
+
+/**
+ * Picture burn: a photo and one to three parts (who, where, when). Each part
+ * locks after one try and shows its points; the burn ends when every part
+ * is locked, or when time runs out.
+ */
+function renderPictureBurn(s, round) {
+  const kind = KINDS.picture;
+  const seconds = round.seconds * 1000;
+  burn = {
+    round,
+    hits: [],
+    parts: round.parts.map(() => null),
+    partDrafts: round.parts.map(() => ""),
+    done: false,
+    total: seconds,
+    deadline: Date.now() + seconds,
+    frame: 0,
+    fallback: 0,
+    lastTick: -1,
+  };
+  const clock = burnClock();
+  burn.updateClock = clock.update;
+  const lamps = rarityLamps(null);
+  const note = h("p", { className: "note", attrs: { "aria-live": "polite" } }, "Answer each part. You get one try per part.");
+  const partTotal = () => sum(burn.parts.filter(Boolean));
+
+  const rows = round.parts.map((part, i) => {
+    const id = `part-${i}`;
+    const result = h("p", { className: "part-result", attrs: { "aria-live": "polite" } });
+    const input = h("input", {
+      id,
+      attrs: {
+        autocapitalize: "off",
+        autocorrect: "off",
+        spellcheck: "false",
+        autocomplete: "off",
+        inputmode: part.ask === "when" ? "numeric" : "text",
+        enterkeyhint: i < round.parts.length - 1 ? "next" : "done",
+        placeholder: part.ask === "when" ? "Year, like 1969" : part.ask === "who" ? "Name" : "Place",
+      },
+      onInput: (e) => (burn.partDrafts[i] = e.target.value),
+      onFocus: () => {
+        burn.focus = i;
+        root.classList.add("is-typing");
+      },
+      onBlur: () => setTimeout(() => !root.querySelector(".part-row input:focus") && root.classList.remove("is-typing"), 180),
+    });
+    const lockBtn = h("button", {
+      className: "btn btn-line btn-lock",
+      attrs: { type: "button", "aria-label": `Lock in ${part.label}` },
+      onClick: () => lock(i),
+    }, icon("lock"));
+    const row = h("div", { className: `part-row ask-${part.ask}` },
+      h("label", { className: "part-label", attrs: { for: id } }, icon(part.ask === "when" ? "calendar" : part.ask === "who" ? "user" : "flag"), part.label),
+      h("div", { className: "part-input" }, input, lockBtn),
+      result,
+    );
+    return { row, input, lockBtn, result };
+  });
+
+  function lock(i) {
+    if (!burn || burn.done || burn.parts[i]) return;
+    const text = rows[i].input.value.trim();
+    if (!text) {
+      note.textContent = `Type an answer for "${round.parts[i].label}" first.`;
+      note.className = "note is-bad shake";
+      return;
+    }
+    if (round.parts[i].ask === "when" && !/\d/.test(text)) {
+      note.textContent = "Type a year, like 1969.";
+      note.className = "note is-bad shake";
+      return;
+    }
+    const r = scorePicturePart(round, i, text);
+    burn.parts[i] = r;
+    const { row, input, lockBtn, result } = rows[i];
+    input.readOnly = true;
+    lockBtn.disabled = true;
+    row.classList.add("is-locked", `tier-${r.tier}`);
+    result.replaceChildren(
+      r.points > 0
+        ? levelTag(r.tier, `${lvName(r.tier)} +${r.points}`)
+        : levelTag("drift", "No points"),
+      r.points > 0 && r.via === "fuzzy" ? h("span", {}, ` Read as ${r.canonical}.`) : "",
+      r.yearsOff ? h("span", {}, ` ${formatYearsOff(r.yearsOff, r.direction)}.`) : "",
+    );
+    paintLamps(lamps, r.tier);
+    if (r.points > 0) playHit(r.tier, muted());
+    else playMiss(muted());
+    stage.setScore(stageScore());
+    stage.boost(r.points > 0 ? r.tier : "sky");
+    note.textContent = `${fmt(partTotal())} of 100 points so far.`;
+    note.className = "note";
+    const next = burn.parts.findIndex((p) => !p);
+    if (next === -1) {
+      if (partTotal() >= 100) celebrateTop(round.parts.map((p, k) => burn.parts[k].canonical).join(" · "), 100);
+      setTimeout(() => finishBurn("seal"), 650);
+    } else {
+      rows[next].input.focus();
+    }
+  }
+
+  burn.input = rows[0].input;
+  clock.update();
+
+  return h("form", {
+    className: "panel burn kind-picture",
+    attrs: { "aria-label": `${words.Round} ${s.index + 1} of 7` },
+    onSubmit: (e) => {
+      e.preventDefault();
+      const focused = rows.findIndex((r) => r.input === document.activeElement);
+      lock(focused >= 0 ? focused : burn.parts.findIndex((p) => !p));
+    },
+  },
+    h("div", { className: "burn-head" },
+      h("p", { className: "kind-badge" }, icon(kind.icon), kind.label),
+      h("div", { className: "timer-box" }, icon("clock"), clock.timer),
+    ),
+    h("div", { className: "timebar", attrs: { "aria-hidden": "true" } }, clock.timeFill),
+    h("figure", { className: "picture" },
+      h("div", { className: "picture-frame" },
+        h("img", { src: asset(round.image), alt: "The photo for this question", attrs: { decoding: "async" } }),
+      ),
+      pictureCredit(round),
+    ),
+    h("h2", { className: "prompt" }, round.prompt),
+    h("p", { className: "hint" }, round.blurb),
+    h("div", { className: "parts" }, rows.map((r) => r.row)),
+    h("div", { className: "feedback" }, lamps, note),
+    h("button", { className: "btn btn-gold btn-done", attrs: { type: "submit" } }, icon("lock"), "Lock in"),
   );
 }
 
@@ -656,7 +958,7 @@ function startBurnClock() {
  */
 function celebrateTop(name, points) {
   document.querySelector(".galaxy-burst")?.remove();
-  const colors = ["#ffc83d", "#fff4c2", "#eef0ff", "#c9a7ff", "#7fd4ff"];
+  const colors = words.sparks;
   const sparks = Array.from({ length: 40 }, (_, i) => {
     const angle = (i / 40) * Math.PI * 2 + Math.random() * 0.4;
     const dist = 120 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.45;
@@ -675,9 +977,9 @@ function celebrateTop(name, points) {
     h("div", { className: "galaxy-flash" }),
     sparks,
     h("div", { className: "galaxy-banner" },
-      h("p", { className: "galaxy-kicker" }, "Top answer"),
+      h("p", { className: "galaxy-kicker" }, words.topKicker),
       h("strong", {}, name),
-      levelTag(TOP_LEVEL, `Galaxy, Ultra rare, +${points}`),
+      levelTag(TOP_LEVEL, `${lvName(TOP_LEVEL)}, Ultra rare, +${points}`),
     ),
   );
   document.body.append(burst);
@@ -695,10 +997,11 @@ function celebrateTop(name, points) {
 function topAnswersBlock(result) {
   const top = result.topAnswers ?? [{ name: result.gem, detail: null }]; // older saved flights
   const level = levelOf(result.topLevel ?? TOP_LEVEL);
-  const yours = new Set(result.hits.map((x) => x.canonical));
+  const yours = new Set(result.kind === "picture" ? (result.parts ?? []).filter((p) => p.points >= p.share).map((p) => p.answer) : result.hits.map((x) => x.canonical));
   const found = top.filter((t) => yours.has(t.name)).length;
   const label =
-    result.kind === "year" ? "The year it happened"
+    result.kind === "picture" ? "The answers"
+    : result.kind === "year" ? "The year it happened"
       : result.kind === "closest" ? (top.length > 1 ? "Closest on the chart (a tie)" : "Closest on the chart")
         : top.length > 1 ? "Top answers" : "Top answer";
   return h("div", { className: `top-answers tier-${level.id}` },
@@ -707,6 +1010,21 @@ function topAnswersBlock(result) {
       h("li", { className: yours.has(t.name) ? "is-yours" : "" }, t.name, t.detail && h("small", {}, t.detail)),
     )),
     h("p", { className: "top-result" }, found > 0 ? (top.length === 1 ? "You got it." : `You got ${found} of ${top.length}.`) : "Not this time."),
+  );
+}
+
+/** Each part of a finished picture burn: what you said, its points, the answer. */
+function pictureParts(result) {
+  return h("div", { className: "picture-result" },
+    result.image && h("img", { className: "picture-thumb", src: asset(result.image), alt: "" }),
+    h("ul", { className: "part-list" }, (result.parts ?? []).map((p) =>
+      h("li", { className: `tier-${p.tier}` },
+        h("span", { className: "part-list-label" }, p.label),
+        h("span", { className: "part-list-said" }, p.input ? p.canonical ?? p.input : "No answer",
+          p.yearsOff ? h("small", {}, formatYearsOff(p.yearsOff, p.direction)) : ""),
+        p.points > 0 ? levelTag(p.tier, `+${p.points}`) : levelTag("drift", "0"),
+      ),
+    )),
   );
 }
 
@@ -728,14 +1046,19 @@ function renderBetween() {
       ? h("p", { className: "reveal-sub" }, "Best: ", levelTag(tier), just.capped ? ` Full stack, ${LIST_CAP} max.` : "")
       : h("p", { className: "reveal-sub" }, just.timedOut ? "Time ran out before any answer." : "No answers this time.");
   } else if (first) {
-    headline = h("h2", { className: `reveal-title tier-${tier}` }, level.name);
-    sub = h("p", { className: "reveal-sub" }, just.kind === "closest" || just.kind === "year" ? "Closeness: " : "Rarity: ", h("b", {}, just.kind === "closest" || just.kind === "year" ? level.name : level.rarity));
+    headline = h("h2", { className: `reveal-title tier-${tier}` }, lvName(tier));
+    sub = h("p", { className: "reveal-sub" }, just.kind === "closest" || just.kind === "year" ? "Closeness: " : "Rarity: ", h("b", {}, just.kind === "closest" || just.kind === "year" ? lvName(tier) : level.rarity));
   } else {
     headline = h("h2", { className: "reveal-title" }, "No answer");
     sub = h("p", { className: "reveal-sub" }, just.timedOut ? "Time ran out." : "Nothing locked in.");
   }
 
-  const yourAnswer = first && just.kind !== "list" && h("p", { className: "you-said" },
+  if (just.kind === "picture") {
+    headline = h("h2", { className: `reveal-title tier-${tier}` }, just.points > 0 ? lvName(tier) : "No points");
+    sub = h("p", { className: "reveal-sub" }, just.timedOut ? "Time ran out. " : "", `${just.points} of 100 for the picture.`);
+  }
+
+  const yourAnswer = first && just.kind !== "list" && just.kind !== "picture" && h("p", { className: "you-said" },
     "You said ", h("b", {}, first.canonical),
     just.kind === "closest" && first.deltaPct != null ? `, ${formatDelta(first.deltaPct)}` : "",
     just.kind === "year" && first.yearsOff != null ? `, ${formatYearsOff(first.yearsOff, first.direction)}` : "",
@@ -743,19 +1066,20 @@ function renderBetween() {
 
   return h("article", { className: `panel reveal tier-${tier}`, attrs: { "aria-live": "polite" } },
     h("div", { className: "reveal-head" },
-      h("p", { className: "burn-num" }, `Burn ${s.index + 1} of 7 done`),
+      h("p", { className: "burn-num" }, `${words.Round} ${s.index + 1} of 7 done`),
       h("p", { className: `reveal-points tier-${tier}` }, `+${just.points}`),
     ),
     headline,
     sub,
     rarityLamps(just.hits.length ? tier : null),
     yourAnswer,
+    just.kind === "picture" && pictureParts(just),
     topAnswersBlock(just),
     h("p", { className: "fact" }, icon("book-open"), h("span", {}, just.aside)),
     h("div", { className: "reveal-foot" },
       h("p", { className: "running" }, "Total ", h("b", {}, fmt(total)), ` / ${fmt(PERFECT_SCORE)}`),
       h("button", { className: "btn btn-gold", attrs: { type: "button", "data-autofocus": "" }, onClick: () => nextBurn(s) },
-        s.index === 6 ? "See my result" : "Next burn", icon("chevron-right")),
+        s.index === 6 ? (words.id === "space" ? "See my result" : `See my ${words.run}`) : `Next ${words.round}`, icon("chevron-right")),
     ),
   );
 }
@@ -764,6 +1088,7 @@ function renderBetween() {
 
 function renderReport() {
   const { flight, practice } = state.screen;
+  if (flight.pack) return renderPackReport(flight);
   const fleet = state.fleet;
   const average = !practice && fleet && fleet.pilots > 0 ? fleet.averageScore : null;
   const diff = average == null ? null : flight.score - average;
@@ -830,7 +1155,7 @@ function renderReport() {
       h("strong", {}, fmt(flight.score)),
       h("span", {}, `/ ${fmt(PERFECT_SCORE)} points`),
     ),
-    h("p", { className: "report-stage" }, h("b", {}, stageFor(flight.score).name), `. ${toTheMoon(flight.score)}.`),
+    h("p", { className: "report-stage" }, h("b", {}, stageName(flight.score)), `. ${toTheMoon(flight.score)}.`),
     h("div", { className: "stats" },
       stat(callsignLabel(), fmt(flight.score), "points"),
       fleetStat,
@@ -860,6 +1185,78 @@ function renderReport() {
   );
 }
 
+/** End of a theme-pack run: score in the pack's own words, no fleet board. */
+function renderPackReport(flight) {
+  const pack = packById(flight.pack);
+  const mine = state.profile.packs?.[flight.pack];
+  const isBest = mine && flight.score >= mine.best && mine.played > 1;
+  let openId = null;
+  const list = h("ol", { className: "burn-list" });
+  const drawList = () =>
+    mount(list, flight.rounds.map((r, i) => {
+      const open = openId === r.id;
+      const tier = r.hits.length ? bestTier(r.hits) : "drift";
+      return h("li", { className: open ? "is-open" : "" },
+        h("button", {
+          className: "burn-row",
+          attrs: { type: "button", "aria-expanded": String(open) },
+          onClick: () => {
+            openId = open ? null : r.id;
+            drawList();
+          },
+        },
+          h("span", { className: "burn-row-num" }, i + 1),
+          h("span", { className: "burn-row-text" },
+            h("span", { className: "burn-row-prompt" }, r.prompt),
+            h("span", { className: "burn-row-answer" }, r.hits.map((x) => x.canonical).join(", ") || "No answer", r.hits.length === 1 && levelTag(r.hits[0].tier)),
+          ),
+          h("strong", { className: `burn-row-points tier-${tier}` }, r.points),
+          icon(open ? "close" : "chevron-right"),
+        ),
+        open && h("div", { className: "burn-detail" },
+          r.kind === "picture" && pictureParts(r),
+          topAnswersBlock(r),
+          h("p", { className: "fact" }, icon("book-open"), h("span", {}, r.aside)),
+        ),
+      );
+    }));
+  drawList();
+
+  const copyBtn = h("button", { className: "btn btn-line", attrs: { type: "button" } }, icon("copy"), "Copy result");
+  copyBtn.addEventListener("click", async () => {
+    const lines = [`FUELUP ${pack.name.toUpperCase()} · ${flight.score} / ${fmt(PERFECT_SCORE)} · ${stageName(flight.score)}`];
+    flight.rounds.forEach((r, i) => lines.push(`${i + 1}. ${r.hits.map((x) => x.canonical).join(", ") || "—"} · ${r.points}`));
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      copyBtn.replaceChildren(icon("check"), "Copied");
+    } catch {
+      copyBtn.replaceChildren(icon("copy"), "Copy result");
+    }
+  });
+
+  return h("article", { className: "panel report" },
+    h("p", { className: "flight-tag" }, `${pack.name} · ${words.Run} over`),
+    h("div", { className: "report-score" },
+      h("strong", {}, fmt(flight.score)),
+      h("span", {}, `/ ${fmt(PERFECT_SCORE)} points`),
+    ),
+    h("p", { className: "report-stage" }, h("b", {}, stageName(flight.score)), `. ${toTheGoal(flight.score)}.`),
+    h("div", { className: "stats" },
+      stat(`This ${words.run}`, fmt(flight.score), isBest ? "New best" : stageName(flight.score)),
+      stat(`Best ${words.run}`, mine ? fmt(mine.best) : "-", mine ? stageName(mine.best) : ""),
+      stat("Played", mine ? `${mine.played}` : "1", `${words.Run}s of ${pack.name}`),
+    ),
+    h("h2", { className: "section-title" }, `Your ${words.round}s`),
+    h("p", { className: "section-hint" }, `Tap a ${words.round} to see the answers and a fact.`),
+    list,
+    h("div", { className: "cta-row" },
+      h("button", { className: "btn btn-gold", attrs: { type: "button" }, onClick: () => startPack(pack.id) }, icon("reload"), `Play another ${words.run}`),
+      copyBtn,
+      h("button", { className: "btn-text", attrs: { type: "button" }, onClick: () => go({ name: "pad" }) }, icon("home"), "Back to start"),
+    ),
+  );
+}
+
 // ----- Menu -----
 
 function howToPlay() {
@@ -869,7 +1266,11 @@ function howToPlay() {
       h("p", {}, "Every day there's one flight of 7 timed burns. A burn is one question. Everyone gets the same 7, and you can fly once a day. Practice as much as you like."),
     ),
     h("section", {},
-      h("h3", {}, "Four kinds of burn"),
+      h("h3", {}, "Theme packs"),
+      h("p", {}, "Packs like Sports are one subject, played as often as you like. Each has its own look and its own words: in Sports a burn is a game, Galaxy is Hall of Fame, and 1,000 points makes you Champions. Packs have picture questions too. They don't count toward the daily board."),
+    ),
+    h("section", {},
+      h("h3", {}, "Kinds of burn"),
       h("ul", { className: "how-kinds" }, Object.values(KINDS).map((k) =>
         h("li", {}, icon(k.icon), h("div", {}, h("b", {}, k.label), h("p", {}, k.how))),
       )),
@@ -889,13 +1290,16 @@ function howToPlay() {
     ),
     h("section", {},
       h("h3", {}, "How close counts"),
-      h("p", {}, `Closest number: only the single closest answer is Galaxy, then ${GAUGE_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}.`),
-      h("p", {}, `Guess the year: ${YEAR_BANDS.map((b) => `${levelOf(b.tier).name} ${b.label}`).join(", ")}.`),
-      h("p", {}, `Anything further off is ${OFF_COURSE.name}, ${OFF_COURSE.points} points.`),
+      h("p", {}, `Closest number: only the single closest answer is ${lvName(TOP_LEVEL)}, then ${GAUGE_BANDS.map((b) => `${lvName(b.tier)} ${b.label}`).join(", ")}.`),
+      h("p", {}, `Guess the year: ${YEAR_BANDS.map((b) => `${lvName(b.tier)} ${b.label}`).join(", ")}.`),
+      h("p", {}, `Anything further off is ${lvName(OFF_COURSE.id)}, ${OFF_COURSE.points} points.`),
+      h("p", {}, "Picture: each part (who, where, when) is an equal share of 100. The exact answer gets the full share; the right city instead of the stadium gets half, and a near year gets part of it."),
     ),
     h("section", {},
-      h("h3", {}, "Your altitude is your points"),
-      h("p", {}, `The rocket climbs 1 step for every point. ${fmt(PERFECT_SCORE)} points lands on the Moon. Every 200 points is a new stage.`),
+      h("h3", {}, `Your ${words.meter.toLowerCase()} is your points`),
+      h("p", {}, words.id === "space"
+        ? `The rocket climbs 1 step for every point. ${fmt(PERFECT_SCORE)} points lands on the Moon. Every 200 points is a new stage.`
+        : `Every point moves your ${words.run} on. Every 200 points is a new stage: ${STAGES.slice(1).map((st) => words.stages[st.id]).join(", ")}.`),
     ),
   );
 }
@@ -908,7 +1312,8 @@ function renderMenu() {
   const toPage = (p) => () => openMenu(p);
   const leave = () => {
     state.menu = null;
-    go({ name: "pad" });
+    const packId = state.screen.mission?.pack;
+    go(packId ? { name: "pack", pack: packId } : { name: "pad" });
   };
 
   const row = (iconName, label, desc, onClick, extra) =>
@@ -934,16 +1339,18 @@ function renderMenu() {
         row("notes", "Terms", "The rules of the game", toPage("terms")),
       ),
       inFlight && h("ul", { className: "menu-list menu-danger" },
-        row("logout", "Leave this flight", "Back to start. This flight won't be saved.", toPage("leave")),
+        row("logout", `Leave this ${words.run}`, `Back to start. This ${words.run} won't be saved.`, toPage("leave")),
       ),
     ];
   } else if (page === "leave") {
-    title = "Leave this flight?";
+    title = `Leave this ${words.run}?`;
     content = [
-      h("p", { className: "menu-text" }, "Nothing is saved until all 7 burns are finished. If you leave now, this flight is lost. You can still start today's flight again."),
+      h("p", { className: "menu-text" }, words.id === "space"
+        ? "Nothing is saved until all 7 burns are finished. If you leave now, this flight is lost. You can still start today's flight again."
+        : `Nothing is saved until all 7 ${words.round}s are finished. If you leave now, this ${words.run} is lost.`),
       h("div", { className: "cta-row" },
-        h("button", { className: "btn btn-danger", attrs: { type: "button" }, onClick: leave }, icon("logout"), "Leave flight"),
-        h("button", { className: "btn btn-line", attrs: { type: "button", "data-autofocus": "" }, onClick: close }, "Keep flying"),
+        h("button", { className: "btn btn-danger", attrs: { type: "button" }, onClick: leave }, icon("logout"), `Leave ${words.run}`),
+        h("button", { className: "btn btn-line", attrs: { type: "button", "data-autofocus": "" }, onClick: close }, words.id === "space" ? "Keep flying" : "Keep playing"),
       ),
     ];
   } else if (page === "how") {

@@ -43,8 +43,9 @@ for (const file of [...filesUnder(join(root, "src"), ".js"), ...filesUnder(join(
 
 // 2. Every question file is valid and connected to the game.
 console.log("\nQuestion files");
-check("every questions/*.json file is valid JSON", () => {
-  for (const f of readdirSync(join(root, "questions")).filter((f) => f.endsWith(".json"))) {
+const questionFiles = filesUnder(join(root, "questions"), ".json").map((f) => f.slice(join(root, "questions").length + 1));
+check("every questions/**/*.json file is valid JSON", () => {
+  for (const f of questionFiles) {
     try {
       JSON.parse(readFileSync(join(root, "questions", f), "utf8"));
     } catch (err) {
@@ -52,10 +53,9 @@ check("every questions/*.json file is valid JSON", () => {
     }
   }
 });
-check("every topic file is imported in src/game/data.js", () => {
-  const loader = readFileSync(join(root, "src/game/data.js"), "utf8");
-  const missing = readdirSync(join(root, "questions"))
-    .filter((f) => f.endsWith(".json") && !loader.includes(`questions/${f}"`));
+check("every question file is imported in src/game/data.js or src/game/packs.js", () => {
+  const loaders = ["src/game/data.js", "src/game/packs.js"].map((f) => readFileSync(join(root, f), "utf8")).join("\n");
+  const missing = questionFiles.filter((f) => !loaders.includes(`questions/${f}"`));
   if (missing.length) throw new Error(`not imported: ${missing.join(", ")}`);
 });
 
@@ -130,7 +130,75 @@ if (engine) {
   });
 }
 
-// 7. The fleet board server logic, against an in-memory stand-in for Workers KV.
+// 7. Theme packs: every round's top answer works, and a perfect run is 1,000.
+let packs;
+try {
+  packs = await import(pathToFileURL(join(root, "src/game/packs.js")).href);
+} catch (err) {
+  failures++;
+  console.log(`  ✗ packs.js failed to load\n      ${err.message}`);
+}
+if (engine && packs) {
+  console.log("\nTheme packs");
+  const perfectInputs = (round) =>
+    round.kind === "picture" ? round.parts.map(engine.partAnswer)
+      : round.kind === "year" ? [String(round.year)]
+        : round.kind === "rare" ? [round.gem]
+          : round.answers.map((a) => a.name);
+  for (const pack of packs.PACKS) {
+    check(`${pack.name}: every answer and alias matches itself`, () => {
+      const bad = [];
+      for (const round of [...pack.lists, ...pack.singles]) {
+        for (const a of round.answers) {
+          for (const spelling of [a.name, ...(a.aliases ?? [])]) {
+            const m = engine.matchAnswer(round.answers, spelling);
+            if (m?.canonical !== a.name) bad.push(`${round.id}: "${spelling}" -> ${m?.canonical ?? "nothing"}`);
+          }
+        }
+      }
+      for (const round of pack.pictures) {
+        round.parts.forEach((part, i) => {
+          for (const a of part.answers ?? []) {
+            for (const spelling of [a.name, ...(a.aliases ?? [])]) {
+              const r = engine.scorePicturePart(round, i, spelling);
+              if (r.canonical !== a.name) bad.push(`${round.id}: "${spelling}" -> ${r.canonical ?? "nothing"}`);
+            }
+          }
+        });
+      }
+      if (bad.length) throw new Error(bad.slice(0, 8).join("\n"));
+    });
+    check(`${pack.name}: every top answer scores the maximum`, () => {
+      for (const round of [...pack.lists, ...pack.singles, ...pack.years, ...pack.pictures]) {
+        const r = engine.scoreRound(round, perfectInputs(round));
+        const best = round.kind === "list" ? r.hits.some((h) => h.tier === engine.TOP_LEVEL) : r.points === 100;
+        if (!best) throw new Error(`${round.id}: the top answer did not score the maximum`);
+      }
+    });
+    check(`${pack.name}: 300 runs build, and a perfect run scores ${engine.PERFECT_SCORE}`, () => {
+      for (let i = 0; i < 300; i++) {
+        const run = engine.buildPackFlight(pack.id, `check-${i}`);
+        if (run.rounds.length !== 7) throw new Error(`${run.rounds.length} burns, expected 7`);
+        const empty = run.rounds.reduce((sum, r) => sum + engine.scoreRound(r, []).points, 0);
+        if (empty !== 0) throw new Error(`an empty run scored ${empty}`);
+        const perfect = run.rounds.reduce((sum, r) => sum + engine.scoreRound(r, perfectInputs(r)).points, 0);
+        if (perfect !== engine.PERFECT_SCORE) throw new Error(`a perfect run scored ${perfect}`);
+      }
+    });
+    check(`${pack.name}: every picture exists and is credited`, () => {
+      const missing = pack.pictures.filter((p) => !existsSync(join(root, "public", p.image))).map((p) => p.image);
+      if (missing.length) throw new Error(`missing in public/: ${missing.join(", ")}`);
+    });
+    check(`${pack.name}: has words for its theme`, () => {
+      const t = packs.THEMES[pack.theme];
+      if (!t) throw new Error(`no THEMES entry for "${pack.theme}"`);
+      for (const id of ["sky", "orbit", "deepspace", "nebula", "galaxy", "drift"]) if (!t.levels[id]) throw new Error(`no name for level ${id}`);
+      for (const s of engine.STAGES) if (!t.stages[s.id]) throw new Error(`no name for stage ${s.id}`);
+    });
+  }
+}
+
+// 8. The fleet board server logic, against an in-memory stand-in for Workers KV.
 console.log("\nFleet board");
 try {
   const fleet = await import(pathToFileURL(join(root, "src/server/fleet-core.js")).href);
@@ -171,7 +239,7 @@ try {
   console.log(`  ✗ fleet board logic failed\n      ${err.message}`);
 }
 
-// 8. Every file the page points at exists.
+// 9. Every file the page points at exists.
 console.log("\nFiles");
 check("index.html links point at real files", () => {
   const html = readFileSync(join(root, "index.html"), "utf8");

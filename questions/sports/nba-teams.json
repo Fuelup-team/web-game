@@ -1,0 +1,46 @@
+{
+  "topic": "NBA teams",
+  "gem": "Memphis Grizzlies",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "sp-nba-teams",
+      "prompt": "Name as many NBA teams as you can.",
+      "blurb": "All 30 teams of the 2025-26 season. The team name alone counts.",
+      "seconds": 45,
+      "fact": "The Grizzlies began in Vancouver in 1995 and moved to Memphis in 2001."
+    }
+  ],
+  "answers": [
+    {"name": "Los Angeles Lakers", "level": "sky", "also": ["Lakers", "LA Lakers"]},
+    {"name": "Boston Celtics", "level": "sky", "also": ["Celtics"]},
+    {"name": "Chicago Bulls", "level": "sky", "also": ["Bulls"]},
+    {"name": "Golden State Warriors", "level": "sky", "also": ["Warriors"]},
+    {"name": "Miami Heat", "level": "sky", "also": ["Heat"]},
+    {"name": "New York Knicks", "level": "sky", "also": ["Knicks"]},
+    {"name": "Brooklyn Nets", "level": "sky", "also": ["Nets"]},
+    {"name": "Los Angeles Clippers", "level": "sky", "also": ["Clippers", "LA Clippers"]},
+    {"name": "San Antonio Spurs", "level": "sky", "also": ["Spurs"]},
+    {"name": "Houston Rockets", "level": "sky", "also": ["Rockets"]},
+    {"name": "Philadelphia 76ers", "level": "orbit", "also": ["76ers", "Sixers"]},
+    {"name": "Dallas Mavericks", "level": "orbit", "also": ["Mavericks", "Mavs"]},
+    {"name": "Cleveland Cavaliers", "level": "orbit", "also": ["Cavaliers", "Cavs"]},
+    {"name": "Toronto Raptors", "level": "orbit", "also": ["Raptors"]},
+    {"name": "Phoenix Suns", "level": "orbit", "also": ["Suns"]},
+    {"name": "Denver Nuggets", "level": "orbit", "also": ["Nuggets"]},
+    {"name": "Milwaukee Bucks", "level": "orbit", "also": ["Bucks"]},
+    {"name": "Oklahoma City Thunder", "level": "orbit", "also": ["Thunder", "OKC Thunder"]},
+    {"name": "Detroit Pistons", "level": "deepspace", "also": ["Pistons"]},
+    {"name": "Atlanta Hawks", "level": "deepspace", "also": ["Hawks"]},
+    {"name": "Orlando Magic", "level": "deepspace", "also": ["Magic"]},
+    {"name": "Portland Trail Blazers", "level": "deepspace", "also": ["Trail Blazers", "Blazers"]},
+    {"name": "Indiana Pacers", "level": "deepspace", "also": ["Pacers"]},
+    {"name": "Utah Jazz", "level": "deepspace", "also": ["Jazz"]},
+    {"name": "Minnesota Timberwolves", "level": "deepspace", "also": ["Timberwolves", "Wolves"]},
+    {"name": "Sacramento Kings", "level": "nebula", "also": ["Kings"]},
+    {"name": "Washington Wizards", "level": "nebula", "also": ["Wizards"]},
+    {"name": "Charlotte Hornets", "level": "nebula", "also": ["Hornets"]},
+    {"name": "New Orleans Pelicans", "level": "nebula", "also": ["Pelicans"]},
+    {"name": "Memphis Grizzlies", "level": "galaxy", "also": ["Grizzlies"]}
+  ]
+}

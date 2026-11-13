@@ -53,7 +53,22 @@ special top-answer effect.
 Perfect flight: 3 × 100 + 100 + 100 + 2 × 250 = 1,000. Your points are your altitude: 1,000 lands on
 the Moon, with a named stage every 200 points.
 
-Questions and answers live in [src/game/data.js](src/game/data.js).
+Questions and answers live in [questions/](questions/), one JSON file per topic.
+
+## Theme packs
+
+Below the daily flight is a **Theme packs** shelf. A pack is one subject you can replay as often as you
+like, with its own look and its own words. Packs don't count toward the fleet board.
+
+- **Sports** (stadium at night): NBA and NHL teams, martial arts, World Cup hosts and winners, Olympic
+  hosts, hockey world champions, the Ryder Cup, Wimbledon, sports years and **picture questions**.
+  Levels are Bench, Starter, All-Star, MVP and Hall of Fame; a run is a season, from Preseason to
+  Champions at 1,000 points.
+- **Picture questions** show a photo and ask who, where or when (one to three of them). Each part
+  scores on its own, with partial credit: the right city instead of the stadium is half, a near year
+  still scores. Photos are public domain or Creative Commons, credited under each picture.
+
+To add a pack, see the top of [src/game/packs.js](src/game/packs.js).
 
 ## Fleet board
 

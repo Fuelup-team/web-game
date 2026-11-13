@@ -1,0 +1,20 @@
+[
+  {"id": "sp-athens-1896", "question": "When were the first modern Olympic Games held in Athens?", "year": 1896, "fact": "About 240 athletes from 14 nations competed in Athens in April 1896. Winners got a silver medal and an olive branch."},
+  {"id": "sp-super-bowl-1", "question": "When was the first Super Bowl played?", "year": 1967, "fact": "The Green Bay Packers beat the Kansas City Chiefs 35–10 on 15 January 1967 in Los Angeles. It wasn't sold out."},
+  {"id": "sp-miracle-on-ice", "question": "When did US college players beat the Soviet Union in the 'Miracle on Ice'?", "year": 1980, "fact": "The 4–3 win came at the Lake Placid Winter Olympics in February 1980. The US then beat Finland to take gold."},
+  {"id": "sp-four-minute-mile", "question": "When did Roger Bannister run the first mile under four minutes?", "year": 1954, "fact": "Bannister ran 3:59.4 in Oxford on 6 May 1954. His record lasted just 46 days."},
+  {"id": "sp-hand-of-god", "question": "When did Diego Maradona score his 'Hand of God' goal against England?", "year": 1986, "fact": "Four minutes later, in the same 1986 World Cup quarter-final in Mexico City, he dribbled past five England players to score again."},
+  {"id": "sp-bolt-958", "question": "When did Usain Bolt run his 100 m world record of 9.58 seconds?", "year": 2009, "fact": "Bolt set it at the 2009 World Championships in Berlin, in the same stadium where Jesse Owens won in 1936."},
+  {"id": "sp-finland-hockey-1995", "question": "When did Finland win its first men's Ice Hockey World Championship?", "year": 1995, "fact": "Finland beat Sweden 4–1 in the 1995 final in Stockholm. Ville Peltonen scored a hat-trick."},
+  {"id": "sp-chamonix-1924", "question": "When were the first Winter Olympics held, in Chamonix?", "year": 1924, "fact": "Chamonix 1924 was first called 'International Winter Sports Week'. It was named the first Winter Olympics afterwards."},
+  {"id": "sp-tiger-masters", "question": "When did Tiger Woods win his first Masters?", "year": 1997, "fact": "Woods was 21 and won by 12 strokes, still the biggest winning margin in Masters history."},
+  {"id": "sp-leicester-title", "question": "When did Leicester City win the Premier League as 5000-to-1 outsiders?", "year": 2016, "fact": "Leicester had nearly been relegated the season before. Bookmakers paid out millions on the 5000–1 odds."},
+  {"id": "sp-comaneci-10", "question": "When did Nadia Comăneci score the first perfect 10 in Olympic gymnastics?", "year": 1976, "fact": "She was 14, in Montreal. The scoreboard could only show three digits, so it read 1.00."},
+  {"id": "sp-wimbledon-first", "question": "When were the first Wimbledon Championships played?", "year": 1877, "fact": "Only men's singles were played in 1877. Spencer Gore won in front of about 200 spectators."},
+  {"id": "sp-world-cup-first", "question": "When was the first FIFA World Cup played?", "year": 1930, "fact": "Uruguay hosted and won the first World Cup in 1930, beating Argentina 4–2 in Montevideo."},
+  {"id": "sp-jackie-robinson", "question": "When did Jackie Robinson break Major League Baseball's colour line?", "year": 1947, "fact": "Robinson debuted for the Brooklyn Dodgers on 15 April 1947. Every MLB player now wears his number 42 on that day."},
+  {"id": "sp-rumble-jungle", "question": "When did Muhammad Ali beat George Foreman in the 'Rumble in the Jungle'?", "year": 1974, "fact": "Ali used his 'rope-a-dope' tactic in Kinshasa, Zaire, and knocked Foreman out in the eighth round."},
+  {"id": "sp-phelps-eight", "question": "When did Michael Phelps win eight gold medals at one Olympics?", "year": 2008, "fact": "Phelps won eight golds in Beijing in 2008, beating Mark Spitz's record of seven from 1972."},
+  {"id": "sp-basketball-invented", "question": "When did James Naismith invent basketball?", "year": 1891, "fact": "Naismith nailed two peach baskets to a gym balcony in Springfield, Massachusetts, in December 1891."},
+  {"id": "sp-tour-de-france-first", "question": "When was the first Tour de France raced?", "year": 1903, "fact": "The 1903 Tour had six stages, some longer than 400 km. Maurice Garin won it."}
+]

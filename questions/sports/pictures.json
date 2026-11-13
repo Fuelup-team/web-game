@@ -1,0 +1,101 @@
+[
+  {
+    "id": "sp-pic-ali",
+    "image": "pictures/ali-1967.jpg",
+    "prompt": "Who is this boxer, and when was the photo taken?",
+    "credit": {"author": "Ira Rosenberg, New York World-Telegram", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Muhammad_Ali_NYWTS.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Muhammad Ali", "level": "galaxy", "also": ["Ali", "Cassius Clay", "Mohammed Ali", "Mohamed Ali"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1967}
+    ],
+    "fact": "Taken in 1967, the year Ali refused to join the US Army. He was stripped of his world title and banned from boxing for over three years."
+  },
+  {
+    "id": "sp-pic-ruth",
+    "image": "pictures/ruth-1920.jpg",
+    "prompt": "Who is this baseball player, and when was the photo taken?",
+    "credit": {"author": "Bain News Service", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:1920_Babe_Ruth_by_Bain.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Babe Ruth", "level": "galaxy", "also": ["Ruth", "George Herman Ruth", "George Ruth", "Bambino", "The Bambino"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1920}
+    ],
+    "fact": "1920 was Ruth's first season with the New York Yankees after Boston sold him. He hit 54 home runs, a record at the time."
+  },
+  {
+    "id": "sp-pic-nurmi",
+    "image": "pictures/nurmi-1924.jpg",
+    "prompt": "Who is this runner, and when was the photo taken?",
+    "credit": {"author": "Unknown newspaper photographer", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Paavo_Nurmi,_1924_photo.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Paavo Nurmi", "level": "galaxy", "also": ["Nurmi", "Flying Finn", "The Flying Finn"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1924}
+    ],
+    "fact": "In 1924 Nurmi won five gold medals at the Paris Olympics, two of them, the 1500 m and the 5000 m, within about an hour."
+  },
+  {
+    "id": "sp-pic-pele",
+    "image": "pictures/pele-1958.jpg",
+    "prompt": "A World Cup has just been won. Who is the young player in tears, where is this, and when?",
+    "credit": {"author": "Aftonbladet", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:1958_VM-final_Sverige-Brasilien.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Pelé", "level": "galaxy", "also": ["Edson Arantes do Nascimento", "Edson"]}]},
+      {"ask": "where", "label": "Which country?", "answers": [{"name": "Sweden", "level": "galaxy", "also": ["Stockholm", "Solna", "Rasunda"]}]},
+      {"ask": "when", "label": "Which year?", "year": 1958}
+    ],
+    "fact": "Pelé was 17 when Brazil beat hosts Sweden 5–2 in the 1958 final in Solna. He scored twice and wept at the final whistle."
+  },
+  {
+    "id": "sp-pic-owens",
+    "image": "pictures/owens-1936.jpg",
+    "prompt": "Who is this long jumper, in which city, and when?",
+    "credit": {"author": "US National Archives", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Photograph_of_Jesse_Owens_at_the_1936_Olympics_in_Berlin,_Germany_-_DPLA_-_4da1d9c3055db6d180835b91c32ce4ec.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Jesse Owens", "level": "galaxy", "also": ["Owens", "James Cleveland Owens"]}]},
+      {"ask": "where", "label": "Which city?", "answers": [{"name": "Berlin", "level": "galaxy", "also": ["Olympiastadion"]}, {"name": "Germany", "level": "deepspace"}]},
+      {"ask": "when", "label": "Which year?", "year": 1936}
+    ],
+    "fact": "At the 1936 Berlin Olympics Owens won four golds: the 100 m, the 200 m, the long jump and the 4 × 100 m relay."
+  },
+  {
+    "id": "sp-pic-bolt",
+    "image": "pictures/bolt-2008.jpg",
+    "prompt": "Who is this sprinter, celebrating an Olympic 100 m win? In which city, and when?",
+    "credit": {"author": "Richard Giles", "license": "CC BY-SA 2.0", "source": "https://commons.wikimedia.org/wiki/File:Usain_Bolt_Olympics_Celebration.jpg"},
+    "parts": [
+      {"ask": "who", "label": "Who?", "answers": [{"name": "Usain Bolt", "level": "galaxy", "also": ["Bolt"]}]},
+      {"ask": "where", "label": "Which city?", "answers": [{"name": "Beijing", "level": "galaxy", "also": ["Peking", "Bird's Nest", "Beijing National Stadium"]}, {"name": "China", "level": "deepspace"}]},
+      {"ask": "when", "label": "Which year?", "year": 2008}
+    ],
+    "fact": "Bolt won the 2008 Olympic 100 m in a world record 9.69 seconds, even though he slowed down to celebrate before the line."
+  },
+  {
+    "id": "sp-pic-maracana",
+    "image": "pictures/maracana.jpg",
+    "prompt": "Name this stadium. The city alone gets you half the points.",
+    "credit": {"author": "Rob (Flickr)", "license": "CC BY 2.0", "source": "https://commons.wikimedia.org/wiki/File:Maracana_Stadium_2013.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which stadium?", "answers": [{"name": "Maracanã", "level": "galaxy", "also": ["Estadio do Maracana", "Estadio Mario Filho", "Mario Filho"]}, {"name": "Rio de Janeiro", "level": "deepspace", "also": ["Rio"]}, {"name": "Brazil", "level": "orbit"}]}
+    ],
+    "fact": "The Maracanã hosted the deciding matches of the 1950 and 2014 World Cups. An estimated 200,000 people saw Uruguay beat Brazil there in 1950."
+  },
+  {
+    "id": "sp-pic-wembley",
+    "image": "pictures/wembley.jpg",
+    "prompt": "Name the stadium under the arch. The city alone gets you half the points.",
+    "credit": {"author": "Andreas Praefcke", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Wembley_Stadium_aerial_2011.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which stadium?", "answers": [{"name": "Wembley Stadium", "level": "galaxy", "also": ["Wembley"]}, {"name": "London", "level": "deepspace"}, {"name": "England", "level": "orbit", "also": ["United Kingdom", "UK", "Great Britain", "Britain"]}]}
+    ],
+    "fact": "The new Wembley opened in 2007 on the site of the old one. Its 133-metre arch can be seen from across London."
+  },
+  {
+    "id": "sp-pic-centre-court",
+    "image": "pictures/centre-court.jpg",
+    "prompt": "Which famous tennis venue is this? The city alone gets you half the points.",
+    "credit": {"author": "Daniel (Flickr)", "license": "CC BY 2.0", "source": "https://commons.wikimedia.org/wiki/File:Centre_Court,_28_March_2012.jpg"},
+    "parts": [
+      {"ask": "where", "label": "Which venue?", "answers": [{"name": "Wimbledon", "level": "galaxy", "also": ["Centre Court", "Wimbledon Centre Court", "All England Club", "All England Lawn Tennis Club", "AELTC"]}, {"name": "London", "level": "deepspace"}, {"name": "England", "level": "orbit", "also": ["United Kingdom", "UK", "Great Britain", "Britain"]}]}
+    ],
+    "fact": "Centre Court has stood on Church Road since 1922. Its sliding roof was first used in 2009, so rain no longer stops play."
+  }
+]

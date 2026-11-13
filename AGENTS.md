@@ -24,7 +24,10 @@ Keep to this layout so the two maintainers rarely edit the same files:
 | Path | What lives there | Main owner |
 |---|---|---|
 | `questions/*.json` | **All questions and answers**, one file per topic (see `questions/README.md`) | _fill in_ |
+| `questions/<pack>/` | A theme pack's own questions, e.g. `questions/sports/` (charts, `years.json`, `pictures.json`) | _fill in_ |
 | `src/game/data.js` | Loads the question files (add an import line for each new topic) | _fill in_ |
+| `src/game/packs.js` | Theme packs: which files each pack uses, and each theme's own words (`THEMES`) | _fill in_ |
+| `public/pictures/` | Photos for picture questions (public domain or Creative Commons, credited) | shared |
 | `tools/question-bank.html` | Browse every question and answer by level (local only, blocked on the live site) | shared |
 | `src/game/engine.js` | Rules: matching answers, scoring, daily flight, altitude | _fill in_ |
 | `src/game/storage.js`, `sound.js`, `fleet.js` | Saved profile, sound effects, fleet board client | _fill in_ |
@@ -60,6 +63,21 @@ Keep to this layout so the two maintainers rarely edit the same files:
   Matching already ignores case, accents, spaces, plurals and category words like "cat" or "river".
 - Every list and single round needs a `gem` that is one of its answers. Every year round needs a
   `year` (negative for BC) and an `aside` fact.
+
+### Theme packs
+
+- A pack (Sports so far) is a replayable run on one subject: 2 lists, 2 one-answer, 2 pictures and
+  1 year, still 1,000 points max. Packs never touch the daily flight or the fleet board.
+- Each pack has its **own look** (`[data-theme="<id>"]` in `styles.css`) and its **own words** for the
+  same levels and stages (`THEMES` in `packs.js`). Sports: Bench, Starter, All-Star, MVP, Hall of Fame;
+  a run is a season, a burn is a game, and 1,000 points is Champions. Points never change per theme.
+- **Picture questions** (`pictures.json`): a photo plus 1 to 3 parts, `who`, `where` or `when`. Each
+  part is an equal share of 100 and gets one try. A `who`/`where` part lists answers with levels:
+  exactly one Galaxy (full share) and optional partial ones (city = deepspace, half; country = orbit,
+  a quarter). A `when` part uses the year bands.
+- **Only use photos we may use**: public domain or Creative Commons, from Wikimedia Commons. Fill in
+  `credit` (author, licence, source link); the game shows it under the photo. Never take photos from
+  Google Images, news sites or social media. Crop out captions that give the answer away.
 
 ### Look and feel
 

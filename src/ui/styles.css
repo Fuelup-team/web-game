@@ -1695,3 +1695,461 @@ p {
   position: relative;
   z-index: 2;
 }
+
+/* ======================================================================
+ * Theme packs
+ * ====================================================================== */
+
+/* ---------- Pack shelf (start screen) ---------- */
+
+.packs h2 {
+  margin-bottom: 4px;
+  font-size: 17px;
+  color: var(--dim);
+}
+.packs .section-hint {
+  margin-bottom: 12px;
+}
+.packs ul {
+  display: grid;
+  gap: 12px;
+}
+.pack-card {
+  --bc: var(--line-hi);
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: calc(100% - var(--px) * 2);
+  margin: var(--px);
+  padding: 0 16px 0 0;
+  background: var(--raise);
+  text-align: left;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--bc),
+    0 var(--px) 0 0 var(--bc),
+    calc(var(--px) * -1) 0 0 0 var(--bc),
+    var(--px) 0 0 0 var(--bc);
+  transition: transform 0.12s var(--ease), filter 0.15s var(--ease);
+}
+.pack-card:hover {
+  filter: brightness(1.12);
+}
+.pack-card:active {
+  transform: translateY(3px);
+}
+.pack-card-art {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-height: 76px;
+  color: #ffb21f;
+  /* A strip of floodlit pitch: mowing stripes and a halfway line. */
+  background:
+    linear-gradient(90deg, transparent calc(50% - 2px), rgba(244, 247, 239, 0.55) calc(50% - 2px) calc(50% + 2px), transparent calc(50% + 2px)),
+    repeating-linear-gradient(90deg, #1d6b33 0 12px, #18602d 12px 24px);
+}
+.pack-card-art .icon {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 3px 0 #0b1a10);
+}
+.pack-card-text {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+}
+.pack-card-text b {
+  font-size: 24px;
+  font-weight: 400;
+  font-family: var(--font-display);
+}
+.pack-card-text span,
+.pack-card-text small {
+  color: var(--dim);
+  font-size: 15px;
+}
+.pack-card-text small {
+  color: var(--faint);
+}
+.logo-pack {
+  margin-left: 10px;
+  padding: 3px 6px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 9px;
+  vertical-align: middle;
+}
+
+/* ---------- Pack lobby ---------- */
+
+.season-path ol {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.season-path li {
+  display: grid;
+  gap: 4px;
+  padding: 8px 6px;
+  background: var(--raise);
+  border-top: 4px solid var(--accent);
+  font-size: 14px;
+  line-height: 1.15;
+}
+.season-path li b {
+  color: var(--text);
+  font-size: 16px;
+}
+.pack-topics summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--dim);
+}
+.pack-topics ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.pack-topics li {
+  padding: 4px 10px;
+  background: var(--raise);
+  font-size: 15px;
+}
+.pad-ball {
+  width: min(170px, 18vw);
+}
+
+/* ---------- Picture burns ---------- */
+
+.picture {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.picture-frame {
+  --bc: var(--line-hi);
+  display: grid;
+  place-items: center;
+  margin: var(--px);
+  background: #000;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--bc),
+    0 var(--px) 0 0 var(--bc),
+    calc(var(--px) * -1) 0 0 0 var(--bc),
+    var(--px) 0 0 0 var(--bc);
+}
+.picture-frame {
+  min-height: 160px;
+}
+.picture-frame img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(46vh, 420px);
+}
+.picture-credit {
+  font-size: 13px;
+  color: var(--faint);
+}
+.picture-credit a {
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.parts {
+  display: grid;
+  gap: 12px;
+}
+.part-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-areas: "label input" ". result";
+  align-items: center;
+  gap: 4px 14px;
+}
+.part-label {
+  grid-area: label;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.part-input {
+  grid-area: input;
+  display: flex;
+  gap: 10px;
+}
+.part-input input {
+  --bc: var(--line);
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  margin: var(--px);
+  padding: 0 14px;
+  background: var(--night-0);
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  font-size: 22px;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--bc),
+    0 var(--px) 0 0 var(--bc),
+    calc(var(--px) * -1) 0 0 0 var(--bc),
+    var(--px) 0 0 0 var(--bc);
+}
+.part-input input:focus {
+  outline: none;
+  --bc: var(--accent);
+}
+.part-input input::placeholder {
+  color: var(--faint);
+}
+.part-row.is-locked input {
+  --bc: var(--lv);
+  color: var(--lv);
+}
+.btn-lock {
+  min-width: 52px;
+  padding: 0 12px;
+}
+.btn-lock:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.part-result {
+  grid-area: result;
+  min-height: 0;
+  font-size: 15px;
+  color: var(--dim);
+}
+.part-result:empty {
+  display: none;
+}
+
+/* Parts on the reveal and in the result list */
+.picture-result {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.picture-thumb {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  background: #000;
+}
+.part-list {
+  display: grid;
+  gap: 8px;
+}
+.part-list li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--raise);
+  border-left: 4px solid var(--lv);
+}
+.part-list-label {
+  color: var(--dim);
+  font-size: 15px;
+}
+.part-list-said {
+  display: grid;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+.part-list-said small {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--faint);
+}
+
+@media (max-width: 860px) {
+  .season-path ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .picture-frame img {
+    max-height: min(34vh, 300px);
+  }
+  .part-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "label" "input" "result";
+  }
+  .picture-result {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .picture-thumb {
+    display: none;
+  }
+  .part-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .part-list-label {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ======================================================================
+ * Sports theme: a floodlit stadium at night.
+ * Pitch-green night, chalk-white text, one scoreboard-amber accent, LED
+ * scoreboard numbers. Same pixel fonts and borders as the space theme.
+ * ====================================================================== */
+
+[data-theme="sports"] {
+  --night-0: #031109;
+  --night-1: #072314;
+  --night-2: #0c331d;
+  --panel: rgba(4, 19, 10, 0.93);
+  --raise: #0f3520;
+  --raise-hi: #154629;
+  --line: #2d6a41;
+  --line-hi: #5fae74;
+  --text: #f4f7ef;
+  --dim: #bcd6c0;
+  --faint: #8fb79a;
+  --ink: #071409;
+
+  --accent: #ffb21f;
+  --accent-edge: #7a4a00;
+  --accent-shade: #d48a06;
+
+  /* Bench, Starter, All-Star, MVP, Hall of Fame */
+  --lv-sky: #c6d4c3;
+  --lv-orbit: #5ab0ff;
+  --lv-deepspace: #ff7a45;
+  --lv-nebula: #d98bff;
+  --lv-galaxy: #ffd23d;
+  --lv-drift: #ff6b6b;
+}
+
+/* Background: night sky over two floodlights, then the pitch with mowing stripes. */
+[data-theme="sports"] .fuel-app::before {
+  background:
+    radial-gradient(ellipse 40% 26% at 12% 6%, rgba(255, 246, 214, 0.28), transparent 70%),
+    radial-gradient(ellipse 40% 26% at 88% 6%, rgba(255, 246, 214, 0.28), transparent 70%),
+    linear-gradient(180deg, transparent 62%, rgba(0, 0, 0, 0.14) 62%) 0 0 / 128px 100%,
+    linear-gradient(180deg, #050d1a 0%, #0a1f24 34%, #13301f 52%, #0d2a17 62%, #165c2c 62%, #165c2c 100%);
+  image-rendering: auto;
+}
+[data-theme="sports"] .lamp {
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+[data-theme="sports"] .field input::placeholder,
+[data-theme="sports"] .answer-row input::placeholder {
+  color: var(--faint);
+}
+
+/* Jersey trim on panels: two thin stripes along the top. */
+[data-theme="sports"] .panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 8px;
+  background: linear-gradient(180deg, var(--accent) 0 3px, transparent 3px 5px, var(--text) 5px 6px, transparent 6px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Scoreboard numbers: amber LED on black. */
+[data-theme="sports"] .climb-points strong,
+[data-theme="sports"] .report-score strong,
+[data-theme="sports"] .reveal-points,
+[data-theme="sports"] .stat-value {
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(255, 178, 31, 0.45);
+}
+[data-theme="sports"] .report-score strong {
+  display: inline-block;
+  padding: 10px 14px 6px;
+  background: #020604;
+  box-shadow: inset 0 0 0 4px #1a1a1a, inset 0 0 0 6px #2d6a41;
+}
+[data-theme="sports"] .timer {
+  color: var(--accent);
+}
+[data-theme="sports"] .climb-fill {
+  background: repeating-linear-gradient(0deg, var(--accent) 0 12px, var(--accent-shade) 12px 16px);
+}
+[data-theme="sports"] .pad-ball {
+  filter: drop-shadow(0 18px 0 rgba(0, 0, 0, 0.35));
+}
+[data-theme="sports"] .galaxy-flash {
+  background: radial-gradient(circle, rgba(255, 210, 61, 0.55), rgba(255, 210, 61, 0) 70%);
+}
+
+/* The scene behind a sports run: floodlights, stands and the pitch. */
+.launch-scene.is-stadium {
+  background: #050d1a;
+}
+.stadium-sky {
+  background:
+    radial-gradient(ellipse 30% 22% at 10% 8%, rgba(255, 246, 214, 0.35), transparent 70%),
+    radial-gradient(ellipse 30% 22% at 90% 8%, rgba(255, 246, 214, 0.35), transparent 70%),
+    linear-gradient(180deg, #040a16 0%, #0a1d26 60%, #10291f 100%);
+}
+.flood {
+  position: absolute;
+  top: 6%;
+  width: 56px;
+  height: 20px;
+  background:
+    repeating-linear-gradient(90deg, #fff6d6 0 10px, #9b977f 10px 14px);
+  box-shadow: 0 0 40px 14px rgba(255, 246, 214, 0.25);
+}
+.flood::after {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 20px;
+  width: 8px;
+  height: 60vh;
+  background: #1b2a24;
+}
+.flood-l {
+  left: 6%;
+}
+.flood-r {
+  right: 6%;
+}
+.stadium-ground {
+  width: 100vw;
+  height: 42vh;
+}
+.stadium-stands {
+  height: 38%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.0) 0 6px, rgba(255, 210, 61, 0.35) 6px 8px, rgba(0, 0, 0, 0) 8px 14px, rgba(90, 176, 255, 0.35) 14px 16px, rgba(0, 0, 0, 0) 16px 22px),
+    repeating-linear-gradient(180deg, #1b2532 0 6px, #141c27 6px 12px);
+  border-bottom: 8px solid #2b3a33;
+}
+.stadium-pitch {
+  height: 62%;
+  background:
+    linear-gradient(180deg, rgba(244, 247, 239, 0.7) 0 4px, transparent 4px),
+    linear-gradient(90deg, transparent calc(50% - 2px), rgba(244, 247, 239, 0.55) calc(50% - 2px) calc(50% + 2px), transparent calc(50% + 2px)),
+    repeating-linear-gradient(90deg, #1d6b33 0 48px, #18602d 48px 96px);
+}
+.launch-ship .stadium-ball {
+  width: 44%;
+  margin: 0 auto;
+}
+.launch-scene.is-stadium .launch-ship {
+  left: 46%;
+  width: min(22vw, 110px);
+}
+
+@media (max-width: 860px) {
+  .pack-card {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "topic": "Men's FIFA World Cup hosts",
+  "gem": "Chile",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "sp-wc-hosts",
+      "prompt": "Name as many countries that have hosted the men's FIFA World Cup as you can.",
+      "blurb": "Every host from Uruguay 1930 to the 2026 World Cup. Co-hosts count.",
+      "seconds": 40,
+      "fact": "Chile hosted in 1962, two years after the 1960 Valdivia earthquake, the strongest ever recorded."
+    },
+    {
+      "kind": "rare",
+      "id": "sp-wc-host-one",
+      "prompt": "Name a country that has hosted the men's FIFA World Cup.",
+      "blurb": "One country, 1930 to 2026. Recent hosts are easy. The early ones fly further.",
+      "seconds": 24,
+      "fact": "Chile hosted in 1962, two years after the 1960 Valdivia earthquake, the strongest ever recorded."
+    }
+  ],
+  "answers": [
+    {"name": "Brazil", "level": "sky"},
+    {"name": "Germany", "level": "sky", "also": ["West Germany"]},
+    {"name": "France", "level": "sky"},
+    {"name": "Qatar", "level": "sky"},
+    {"name": "Russia", "level": "sky"},
+    {"name": "England", "level": "sky"},
+    {"name": "Italy", "level": "orbit"},
+    {"name": "Spain", "level": "orbit"},
+    {"name": "United States", "level": "orbit", "also": ["USA", "US", "America"]},
+    {"name": "South Africa", "level": "orbit"},
+    {"name": "Mexico", "level": "orbit"},
+    {"name": "Japan", "level": "deepspace"},
+    {"name": "South Korea", "level": "deepspace", "also": ["Korea"]},
+    {"name": "Argentina", "level": "deepspace"},
+    {"name": "Canada", "level": "deepspace"},
+    {"name": "Uruguay", "level": "nebula"},
+    {"name": "Sweden", "level": "nebula"},
+    {"name": "Switzerland", "level": "nebula"},
+    {"name": "Chile", "level": "galaxy"}
+  ]
+}

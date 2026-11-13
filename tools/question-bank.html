@@ -63,7 +63,8 @@
   </div>
   <script type="module">
     import { CHARTS, YEAR_ROUNDS, GAUGE_ROUNDS } from "../src/game/data.js";
-    import { LEVELS, levelOf } from "../src/game/engine.js";
+    import { LEVELS, levelOf, partAnswer } from "../src/game/engine.js";
+    import { PACKS, themeOf } from "../src/game/packs.js";
 
     const $ = (id) => document.getElementById(id);
     const el = (tag, cls, ...kids) => {
@@ -89,7 +90,7 @@
     $("legend").append(...LEVELS.map((l) => tag(l.id, `${l.name} · ${l.rarity} · ${l.points}`)));
 
     let view = "topics";
-    const tabs = [["topics", "Topics"], ["years", "Years"], ["gauges", "Closest number"]];
+    const tabs = [["topics", "Topics"], ["years", "Years"], ["gauges", "Closest number"], ...PACKS.map((p) => [`pack:${p.id}`, `${p.name} pack`])];
     function drawTabs() {
       $("tabs").replaceChildren(...tabs.map(([id, label]) => {
         const b = el("button", id === view ? "is-on" : "", label);
@@ -131,6 +132,50 @@
           .sort((a, b) => a.year - b.year)
           .map((y) => el("div", "", el("b", "", y.year < 0 ? `${-y.year} BC` : y.year), el("span", "", y.prompt, el("br"), el("small", "", y.aside))));
         out.push(el("section", "panel years", rows));
+      } else if (view.startsWith("pack:")) {
+        const pack = PACKS.find((p) => `pack:${p.id}` === view);
+        const words = themeOf(pack.theme);
+        const name = (tier) => `${words.levels[tier]} (${levelOf(tier).name})`;
+        const seen = new Set();
+        for (const r of [...pack.lists, ...pack.singles]) {
+          if (seen.has(r.answers)) continue;
+          seen.add(r.answers);
+          const rounds = [...pack.lists, ...pack.singles].filter((x) => x.answers === r.answers);
+          const text = [...rounds.map((x) => x.prompt), ...r.answers.flatMap((a) => [a.name, ...(a.aliases ?? [])])].join(" | ");
+          if (q && !norm(text).includes(q)) continue;
+          out.push(el("section", "panel chart",
+            el("div", "chart-rounds", rounds.map((x) => el("div", "", el("b", "", x.kind === "list" ? "Name as many" : "One answer"), `: ${x.prompt} (${x.seconds}s)`))),
+            el("p", "fact", r.aside),
+            [...LEVELS].reverse().map((l) => {
+              const answers = r.answers.filter((a) => a.tier === l.id);
+              if (!answers.length) return null;
+              return el("div", "level-group", tag(l.id, `${name(l.id)} (${answers.length})`),
+                el("div", "answers", answers.map((a) => el("span", "", hit(a.name) || (a.aliases ?? []).some(hit) ? el("mark", "", a.name) : a.name, a.aliases?.length ? el("small", "", ` (${a.aliases.join(", ")})`) : null))));
+            }),
+          ));
+        }
+        for (const p of pack.pictures) {
+          const text = [p.prompt, p.aside, ...p.parts.flatMap((x) => x.answers ? x.answers.flatMap((a) => [a.name, ...(a.aliases ?? [])]) : [String(x.year)])].join(" | ");
+          if (q && !norm(text).includes(q)) continue;
+          const img = el("img", "bank-thumb");
+          img.src = `../public/${p.image}`;
+          img.alt = "";
+          out.push(el("section", "panel chart",
+            el("h2", "", `Picture: ${p.parts.map(partAnswer).join(" · ")}`),
+            img,
+            el("div", "chart-rounds", el("div", "", el("b", "", "Picture"), `: ${p.prompt} (${p.seconds}s)`)),
+            p.parts.map((x) => el("div", "level-group", el("b", "", x.label),
+              el("div", "answers", x.answers
+                ? x.answers.map((a) => el("span", "", tag(a.tier, words.levels[a.tier]), " ", a.name, a.aliases?.length ? el("small", "", ` (${a.aliases.join(", ")})`) : null))
+                : [el("span", "", `${x.year} (year bands, like "Guess the year")`)]))),
+            el("p", "fact", p.aside),
+            el("small", "", `Photo: ${p.credit.author} · ${p.credit.license} · ${p.credit.source}`),
+          ));
+        }
+        const years = pack.years.filter((y) => !q || norm(`${y.prompt} ${y.year} ${y.aside}`).includes(q))
+          .sort((a, b) => a.year - b.year)
+          .map((y) => el("div", "", el("b", "", y.year), el("span", "", y.prompt, el("br"), el("small", "", y.aside))));
+        if (years.length) out.push(el("section", "panel years", el("h2", "", "Guess the year"), years));
       } else {
         for (const g of GAUGE_ROUNDS) {
           if (q && !norm(`${g.id} ${g.noun} ${g.items.map((i) => i.name).join(" ")}`).includes(q)) continue;
@@ -148,5 +193,8 @@
     drawTabs();
     draw();
   </script>
+  <style>
+    .bank-thumb { display: block; max-width: 220px; max-height: 160px; margin: 8px 0; }
+  </style>
 </body>
 </html>

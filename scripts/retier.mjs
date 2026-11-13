@@ -14,7 +14,7 @@
 //
 // Usage:  node scripts/retier.mjs           (shows what would change)
 //         node scripts/retier.mjs --write   (updates the files)
-import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -61,7 +61,16 @@ export function formatChart(chart) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let changed = 0;
-  const files = readdirSync(dir).filter((f) => f.endsWith(".json") && f !== "years.json" && f !== "gauges.json").sort();
+  // Answer charts in questions/ and in each pack folder (questions/sports/...).
+  // Years, gauges and pictures are not charts and are left alone.
+  const NOT_CHARTS = ["years.json", "gauges.json", "pictures.json"];
+  const chartsIn = (sub) =>
+    readdirSync(join(dir, sub))
+      .filter((f) => f.endsWith(".json") && !NOT_CHARTS.includes(f))
+      .map((f) => (sub ? `${sub}/${f}` : f))
+      .sort();
+  const packs = readdirSync(dir).filter((f) => statSync(join(dir, f)).isDirectory()).sort();
+  const files = [...chartsIn(""), ...packs.flatMap(chartsIn)];
   for (const file of files) {
     const path = join(dir, file);
     const chart = JSON.parse(readFileSync(path, "utf8"));

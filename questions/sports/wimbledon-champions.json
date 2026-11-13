@@ -1,0 +1,29 @@
+{
+  "topic": "Wimbledon men's singles champions since 1990",
+  "gem": "Michael Stich",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "sp-wimbledon",
+      "prompt": "Name a man who won the Wimbledon singles title between 1990 and 2025.",
+      "blurb": "One player. The big names are everywhere. One-time champions fly further.",
+      "seconds": 26,
+      "fact": "Michael Stich won Wimbledon in 1991, beating Boris Becker in the only all-German men's final there."
+    }
+  ],
+  "answers": [
+    {"name": "Roger Federer", "level": "sky", "also": ["Federer"]},
+    {"name": "Novak Djokovic", "level": "sky", "also": ["Djokovic"]},
+    {"name": "Rafael Nadal", "level": "sky", "also": ["Nadal", "Rafa Nadal"]},
+    {"name": "Andy Murray", "level": "sky", "also": ["Murray"]},
+    {"name": "Pete Sampras", "level": "orbit", "also": ["Sampras"]},
+    {"name": "Carlos Alcaraz", "level": "orbit", "also": ["Alcaraz"]},
+    {"name": "Andre Agassi", "level": "orbit", "also": ["Agassi"]},
+    {"name": "Jannik Sinner", "level": "deepspace", "also": ["Sinner"]},
+    {"name": "Lleyton Hewitt", "level": "deepspace", "also": ["Hewitt"]},
+    {"name": "Goran Ivanisevic", "level": "deepspace", "also": ["Ivanisevic"]},
+    {"name": "Stefan Edberg", "level": "nebula", "also": ["Edberg"]},
+    {"name": "Richard Krajicek", "level": "nebula", "also": ["Krajicek"]},
+    {"name": "Michael Stich", "level": "galaxy", "also": ["Stich"]}
+  ]
+}

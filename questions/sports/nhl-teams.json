@@ -1,0 +1,48 @@
+{
+  "topic": "NHL teams",
+  "gem": "Utah Mammoth",
+  "rounds": [
+    {
+      "kind": "list",
+      "id": "sp-nhl-teams",
+      "prompt": "Name as many NHL teams as you can.",
+      "blurb": "All 32 teams of the 2025-26 season. The team name alone counts.",
+      "seconds": 45,
+      "fact": "Utah's team joined in 2024 as the Utah Hockey Club and took the name Mammoth in 2025."
+    }
+  ],
+  "answers": [
+    {"name": "Toronto Maple Leafs", "level": "sky", "also": ["Maple Leafs", "Leafs"]},
+    {"name": "Montreal Canadiens", "level": "sky", "also": ["Canadiens", "Habs"]},
+    {"name": "Boston Bruins", "level": "sky", "also": ["Bruins"]},
+    {"name": "Chicago Blackhawks", "level": "sky", "also": ["Blackhawks"]},
+    {"name": "Detroit Red Wings", "level": "sky", "also": ["Red Wings"]},
+    {"name": "New York Rangers", "level": "sky", "also": ["Rangers"]},
+    {"name": "Pittsburgh Penguins", "level": "sky", "also": ["Penguins", "Pens"]},
+    {"name": "Edmonton Oilers", "level": "sky", "also": ["Oilers"]},
+    {"name": "Philadelphia Flyers", "level": "sky", "also": ["Flyers"]},
+    {"name": "Vancouver Canucks", "level": "sky", "also": ["Canucks"]},
+    {"name": "Washington Capitals", "level": "sky", "also": ["Capitals", "Caps"]},
+    {"name": "Calgary Flames", "level": "orbit", "also": ["Flames"]},
+    {"name": "Tampa Bay Lightning", "level": "orbit", "also": ["Lightning"]},
+    {"name": "Colorado Avalanche", "level": "orbit", "also": ["Avalanche", "Avs"]},
+    {"name": "Los Angeles Kings", "level": "orbit", "also": ["Kings", "LA Kings"]},
+    {"name": "Vegas Golden Knights", "level": "orbit", "also": ["Golden Knights"]},
+    {"name": "Ottawa Senators", "level": "orbit", "also": ["Senators", "Sens"]},
+    {"name": "New York Islanders", "level": "orbit", "also": ["Islanders"]},
+    {"name": "Florida Panthers", "level": "orbit", "also": ["Panthers"]},
+    {"name": "Dallas Stars", "level": "deepspace", "also": ["Stars"]},
+    {"name": "St. Louis Blues", "level": "deepspace", "also": ["Blues"]},
+    {"name": "Buffalo Sabres", "level": "deepspace", "also": ["Sabres"]},
+    {"name": "Winnipeg Jets", "level": "deepspace", "also": ["Jets"]},
+    {"name": "New Jersey Devils", "level": "deepspace", "also": ["Devils"]},
+    {"name": "San Jose Sharks", "level": "deepspace", "also": ["Sharks"]},
+    {"name": "Anaheim Ducks", "level": "deepspace", "also": ["Ducks"]},
+    {"name": "Nashville Predators", "level": "nebula", "also": ["Predators", "Preds"]},
+    {"name": "Minnesota Wild", "level": "nebula", "also": ["Wild"]},
+    {"name": "Carolina Hurricanes", "level": "nebula", "also": ["Hurricanes", "Canes"]},
+    {"name": "Seattle Kraken", "level": "nebula", "also": ["Kraken"]},
+    {"name": "Columbus Blue Jackets", "level": "nebula", "also": ["Blue Jackets"]},
+    {"name": "Utah Mammoth", "level": "galaxy", "also": ["Mammoth", "Utah Hockey Club"]}
+  ]
+}

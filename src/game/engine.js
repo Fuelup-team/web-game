@@ -1,6 +1,7 @@
 // Fuelup game engine: matching answers, scoring burns, building the daily flight.
 // Ported from the Grok demo. Pure functions only — no DOM here.
 import { LIST_ROUNDS, SINGLE_ROUNDS, GAUGE_ROUNDS, YEAR_ROUNDS } from "./data.js";
+import { PACKS, packById } from "./packs.js";
 
 /**
  * Rarity levels, from most common to rarest. The farther the answer flies,
@@ -201,8 +202,10 @@ const hitFrom = (s, via) => ({ canonical: s.canonical, tier: s.tier, value: s.va
  *  4. one distinctive word only one answer has ("Lundehund", "Cleopatra")
  *  5. a start of a name, 5+ letters, that fits only one answer ("liecht" → Liechtenstein)
  * A typo or partial name that could mean two different answers is not guessed.
+ * With { loose: false } (picture questions, where the chart is only the right
+ * answer) step 4 is skipped, so a single shared word is not enough.
  */
-export function matchAnswer(items, input) {
+export function matchAnswer(items, input, { loose = true } = {}) {
   const key = normalize(input);
   if (!key) return null;
   const compact = key.replace(/ /g, "");
@@ -238,7 +241,7 @@ export function matchAnswer(items, input) {
 
   // One distinctive word that only one answer has: "Lundehund", "Cleopatra", "leopard dog".
   const words = coreWords(key);
-  if (words.length === 1 && words[0].length >= 5) {
+  if (loose && words.length === 1 && words[0].length >= 5) {
     const byWord = unique(all.filter((s) => coreWords(s.key).includes(words[0])));
     if (byWord) return hitFrom(byWord, "fuzzy");
   }
@@ -256,7 +259,7 @@ const FILLER_WORDS = new Set([
   "the", "a", "an", "of", "and", "cat", "cats", "dog", "dogs", "breed", "river", "sea", "ocean",
   "mount", "mt", "mountain", "lake", "island", "islands", "republic", "kingdom", "state", "national",
   "park", "cheese", "play", "bone", "constellation", "moon", "language", "nut", "city", "country",
-  "letter", "president", "tower", "element", "saint", "st",
+  "letter", "president", "tower", "element", "saint", "st", "stadium",
 ]);
 
 /** "sphynxes" → "sphynxe", "dogs" → "dog": drop a plain plural s (not "ss"). */
@@ -408,6 +411,72 @@ function yearHit(round, text) {
   };
 }
 
+// ---------- Picture burns (who / where / when) ----------
+//
+// A picture asks one to three parts. Each part is worth an equal share of
+// 100 and scores by level: Galaxy is the full share, a nearer miss less
+// (the city instead of the stadium, a year that is close).
+
+/** Share of a part's points each level earns. */
+export const PART_CREDIT = { galaxy: 1, nebula: 0.75, deepspace: 0.5, orbit: 0.25, sky: 0.1, drift: 0 };
+const PART_SHARES = { 1: [100], 2: [50, 50], 3: [34, 33, 33] };
+
+/** Level of a whole picture burn, from its points. */
+export function pictureTier(points) {
+  if (points >= 100) return "galaxy";
+  if (points >= 75) return "nebula";
+  if (points >= 50) return "deepspace";
+  if (points >= 25) return "orbit";
+  return points > 0 ? "sky" : OFF_COURSE.id;
+}
+
+/** The full-marks answer for one part: "Muhammad Ali", "1967". */
+export function partAnswer(part) {
+  return part.ask === "when" ? formatYear(part.year) : part.answers.find((a) => a.tier === TOP_LEVEL).name;
+}
+
+/**
+ * Score one part of a picture burn. One try: a name that doesn't match
+ * scores nothing for that part. Returns a part result.
+ */
+export function scorePicturePart(round, index, input) {
+  const part = round.parts[index];
+  const share = PART_SHARES[round.parts.length][index];
+  const text = String(input ?? "").trim();
+  const base = { ask: part.ask, label: part.label, input: text, answer: partAnswer(part), share };
+  if (!text) return { ...base, canonical: null, tier: OFF_COURSE.id, points: 0 };
+  if (part.ask === "when") {
+    const hit = yearHit(part, text);
+    if (!hit) return { ...base, canonical: null, tier: OFF_COURSE.id, points: 0, reason: "Type a year, like 1969." };
+    return { ...base, canonical: hit.canonical, tier: hit.tier, points: Math.round(PART_CREDIT[hit.tier] * share), yearsOff: hit.yearsOff, direction: hit.direction };
+  }
+  const m = matchAnswer(part.answers, text, { loose: false });
+  if (!m) return { ...base, canonical: null, tier: OFF_COURSE.id, points: 0 };
+  return { ...base, canonical: m.canonical, tier: m.tier, points: Math.round(PART_CREDIT[m.tier] * share), via: m.via };
+}
+
+/** Whole picture burn from one input per part (missing parts score 0). */
+function scorePicture(round, inputs) {
+  const parts = round.parts.map((_, i) => scorePicturePart(round, i, inputs[i]));
+  const points = parts.reduce((sum, p) => sum + p.points, 0);
+  const tier = pictureTier(points);
+  const said = parts.map((p) => p.canonical ?? "—").join(" · ");
+  return {
+    id: round.id,
+    kind: "picture",
+    prompt: round.prompt,
+    image: round.image,
+    parts,
+    hits: points > 0 ? [{ input: inputs.join(" / "), canonical: said, tier, points, via: "exact" }] : [],
+    points,
+    gem: round.parts.map(partAnswer).join(" · "),
+    gemDetail: round.parts.map(partAnswer).join(" · "),
+    gemHit: points >= 100,
+    aside: round.aside,
+    capped: false,
+  };
+}
+
 /**
  * Check one typed answer during a burn.
  * Returns { ok: true, hit } or { ok: false, reason }.
@@ -432,7 +501,7 @@ export function tryAnswer(round, input, alreadyLogged) {
   }
 
   const m = matchAnswer(round.answers, text);
-  if (!m) return { ok: false, reason: "Not on the chart. Spell it again, or burn a different answer." };
+  if (!m) return { ok: false, reason: "Not on the chart. Check the spelling, or try a different answer." };
   if (alreadyLogged.includes(m.canonical)) return { ok: false, reason: `${m.canonical} is already on the stack.` };
   return { ok: true, hit: { input: text, canonical: m.canonical, tier: m.tier, points: pointsFor(m.tier), via: m.via } };
 }
@@ -443,6 +512,9 @@ export function tryAnswer(round, input, alreadyLogged) {
  * Returns { level, answers: [{ name, detail }] }.
  */
 export function topAnswers(round) {
+  if (round.kind === "picture") {
+    return { level: TOP_LEVEL, answers: round.parts.map((p) => ({ name: partAnswer(p), detail: p.label })) };
+  }
   if (round.kind === "year") return { level: TOP_LEVEL, answers: [{ name: formatYear(round.year), detail: null }] };
   if (round.kind === "closest") {
     const miss = (v) => Math.max(v, round.target) / Math.min(v, round.target);
@@ -466,6 +538,7 @@ export function scoreRound(round, inputs) {
 }
 
 function scoreRoundPoints(round, inputs) {
+  if (round.kind === "picture") return scorePicture(round, inputs);
   if (round.kind === "year") {
     const hit = inputs.map((input) => yearHit(round, String(input))).find(Boolean) ?? null;
     return {
@@ -613,10 +686,32 @@ export function buildFlight(seed, practice = false) {
   };
 }
 
+/** Order of burns in a theme-pack run: 2 lists, 2 singles, 2 pictures, 1 year = 1,000. */
+export const PACK_ORDER = ["list", "rare", "picture", "year", "list", "picture", "rare"];
+
+/**
+ * Build a theme-pack run. Packs are replayable: every seed gives a new mix.
+ * Not part of the daily flight or the fleet board.
+ */
+export function buildPackFlight(packId, seed) {
+  const pack = packById(packId);
+  if (!pack) throw new Error(`No pack "${packId}"`);
+  const random = seededRandom(hash(`${packId}:${seed}`));
+  const pools = {
+    list: pick(pack.lists, random, 2),
+    rare: pick(pack.singles, random, 2),
+    picture: pick(pack.pictures, random, 2),
+    year: pick(pack.years, random, 1),
+  };
+  const rounds = PACK_ORDER.map((kind) => pools[kind].shift());
+  if (rounds.some((r) => !r)) throw new Error(`Pack ${packId} is short a burn.`);
+  return { seed, day: todayUtc(), number: 0, practice: true, pack: pack.id, theme: pack.theme, rounds };
+}
+
 /** Summary of a finished flight. */
-export function finishFlight(day, mission, rounds) {
+export function finishFlight(day, mission, rounds, pack = null) {
   const score = rounds.reduce((sum, r) => sum + r.points, 0);
-  return { day, mission, score, rounds };
+  return pack ? { day, mission, score, rounds, pack } : { day, mission, score, rounds };
 }
 
 /** Plain-text summary for the clipboard. */
@@ -656,30 +751,74 @@ export function splitEntries(text) {
 
 // ---------- Data checks (run once on load, like the demo) ----------
 
-function validate() {
-  const ids = [...LIST_ROUNDS, ...SINGLE_ROUNDS, ...GAUGE_ROUNDS, ...YEAR_ROUNDS].map((r) => r.id);
-  if (new Set(ids).size !== ids.length) throw new Error("Duplicate prompt id");
-  for (const round of [...LIST_ROUNDS, ...SINGLE_ROUNDS]) {
-    const keys = new Set();
-    for (const a of round.answers) {
-      if (!LEVELS.some((l) => l.id === a.tier)) throw new Error(`Unknown level "${a.tier}" for ${a.name} in ${round.id}`);
-      for (const s of [a.name, ...(a.aliases ?? [])]) {
-        const k = normalize(s);
-        if (!k) throw new Error(`Empty answer in ${round.id}`);
-        if (keys.has(k)) throw new Error(`Duplicate answer ${k} in ${round.id}`);
-        keys.add(k);
-      }
+function validateAnswers(where, answers) {
+  const keys = new Set();
+  for (const a of answers) {
+    if (!LEVELS.some((l) => l.id === a.tier)) throw new Error(`Unknown level "${a.tier}" for ${a.name} in ${where}`);
+    for (const s of [a.name, ...(a.aliases ?? [])]) {
+      const k = normalize(s);
+      if (!k) throw new Error(`Empty answer in ${where}`);
+      if (keys.has(k)) throw new Error(`Duplicate answer ${k} in ${where}`);
+      keys.add(k);
     }
-    if (!keys.has(normalize(round.gem))) throw new Error(`Gem ${round.gem} missing from ${round.id}`);
-    const top = round.answers.filter((a) => a.tier === TOP_LEVEL);
-    if (top.length < 1 || top.length > 2) throw new Error(`${round.id} needs 1 or 2 ${TOP_LEVEL} answers, has ${top.length}`);
-    if (!top.some((a) => a.name === round.gem)) throw new Error(`Gem ${round.gem} in ${round.id} must be ${TOP_LEVEL}`);
   }
-  for (const y of YEAR_ROUNDS) {
+}
+
+function validateYears(rounds) {
+  for (const y of rounds) {
     if (y.kind !== "year") throw new Error(`${y.id} must have kind "year"`);
     if (!Number.isInteger(y.year) || y.year < -5000 || y.year > 2100) throw new Error(`${y.id} has a bad year ${y.year}`);
     if (!y.prompt || !y.aside) throw new Error(`${y.id} needs a prompt and an aside`);
   }
+}
+
+function validatePictures(rounds) {
+  for (const p of rounds) {
+    if (!p.image || !p.prompt || !p.aside) throw new Error(`${p.id} needs an image, a prompt and a fact`);
+    if (!p.credit?.author || !p.credit?.license || !p.credit?.source) throw new Error(`${p.id} needs a credit: author, license and source`);
+    if (!PART_SHARES[p.parts.length]) throw new Error(`${p.id} needs 1 to 3 parts`);
+    for (const part of p.parts) {
+      if (!["who", "where", "when"].includes(part.ask)) throw new Error(`${p.id}: a part must ask who, where or when`);
+      if (!part.label) throw new Error(`${p.id}: every part needs a label`);
+      if (part.ask === "when") {
+        if (!Number.isInteger(part.year)) throw new Error(`${p.id}: bad year ${part.year}`);
+        continue;
+      }
+      validateAnswers(p.id, part.answers);
+      const top = part.answers.filter((a) => a.tier === TOP_LEVEL);
+      if (top.length !== 1) throw new Error(`${p.id}: each who/where part needs exactly one ${TOP_LEVEL} answer`);
+    }
+  }
+}
+
+function validatePacks() {
+  for (const pack of PACKS) {
+    for (const round of [...pack.lists, ...pack.singles]) validateChartRound(round);
+    validateYears(pack.years);
+    validatePictures(pack.pictures);
+    const ids = [...pack.lists, ...pack.singles, ...pack.years, ...pack.pictures].map((r) => r.id);
+    if (new Set(ids).size !== ids.length) throw new Error(`Duplicate prompt id in pack ${pack.id}`);
+    if (pack.lists.length < 2 || pack.singles.length < 2 || pack.pictures.length < 2 || pack.years.length < 1) {
+      throw new Error(`Pack ${pack.id} needs 2 lists, 2 one-answer charts, 2 pictures and 1 year`);
+    }
+  }
+}
+
+function validateChartRound(round) {
+  validateAnswers(round.id, round.answers);
+  const keys = new Set(round.answers.flatMap((a) => [a.name, ...(a.aliases ?? [])].map(normalize)));
+  if (!keys.has(normalize(round.gem))) throw new Error(`Gem ${round.gem} missing from ${round.id}`);
+  const top = round.answers.filter((a) => a.tier === TOP_LEVEL);
+  if (top.length < 1 || top.length > 2) throw new Error(`${round.id} needs 1 or 2 ${TOP_LEVEL} answers, has ${top.length}`);
+  if (!top.some((a) => a.name === round.gem)) throw new Error(`Gem ${round.gem} in ${round.id} must be ${TOP_LEVEL}`);
+}
+
+function validate() {
+  const ids = [...LIST_ROUNDS, ...SINGLE_ROUNDS, ...GAUGE_ROUNDS, ...YEAR_ROUNDS].map((r) => r.id);
+  if (new Set(ids).size !== ids.length) throw new Error("Duplicate prompt id");
+  for (const round of [...LIST_ROUNDS, ...SINGLE_ROUNDS]) validateChartRound(round);
+  validateYears(YEAR_ROUNDS);
+  validatePacks();
   for (const g of GAUGE_ROUNDS) {
     if (g.targets.length < 3 || g.items.length < 8) throw new Error(`Thin chart ${g.id}`);
     const names = new Set();

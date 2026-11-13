@@ -1,0 +1,26 @@
+{
+  "topic": "Ice Hockey World Championship winners",
+  "gem": "Great Britain",
+  "rounds": [
+    {
+      "kind": "rare",
+      "id": "sp-hockey-champs",
+      "prompt": "Name a country that has won the men's Ice Hockey World Championship.",
+      "blurb": "One country. Canada is the obvious answer. Think further back.",
+      "seconds": 24,
+      "fact": "Great Britain won in 1936, at the Winter Olympics in Garmisch-Partenkirchen, which also counted as the world championship."
+    }
+  ],
+  "answers": [
+    {"name": "Canada", "level": "sky"},
+    {"name": "Sweden", "level": "sky"},
+    {"name": "Finland", "level": "sky"},
+    {"name": "Russia", "level": "orbit"},
+    {"name": "Soviet Union", "level": "orbit", "also": ["USSR"]},
+    {"name": "Czech Republic", "level": "deepspace", "also": ["Czechia"]},
+    {"name": "United States", "level": "deepspace", "also": ["USA", "US", "America"]},
+    {"name": "Czechoslovakia", "level": "nebula"},
+    {"name": "Slovakia", "level": "nebula"},
+    {"name": "Great Britain", "level": "galaxy", "also": ["Britain", "United Kingdom", "UK"]}
+  ]
+}

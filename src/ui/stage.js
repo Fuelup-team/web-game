@@ -3,6 +3,7 @@
 // stays on screen, and a worse answer does not pull it back down.
 import { h, asset } from "./dom.js";
 import { STAGES, PERFECT_SCORE, stageFor, progressFor, TIER_RANK } from "../game/engine.js";
+import { themeOf } from "../game/packs.js";
 
 const CLIMB_MS = 2200;
 const RATE = { drift: 14, sky: 18, orbit: 26, deepspace: 36, nebula: 46, galaxy: 58 };
@@ -13,30 +14,45 @@ function heightFor(tier) {
   return rank / 5;
 }
 
-export function createStage() {
+/**
+ * The climb meter and the scene behind the questions. The space theme flies
+ * Eeli's rocket past the station; the sports theme kicks a ball up out of a
+ * floodlit stadium. Same points either way: 1,000 is the top.
+ */
+export function createStage(themeId = "space") {
+  const words = themeOf(themeId);
+  const sports = themeId === "sports";
+  const flameColors = sports ? words.sparks : FLAME;
+  const stageLabel = (score) => words.stages[stageFor(score).id];
   const points = h("p", { className: "climb-points" });
   const stageName = h("p", { className: "climb-stage" });
   const fill = h("div", { className: "climb-fill" });
 
   const ticks = STAGES.filter((s) => s.from % 200 === 0).map((s) => {
     const tick = h("li", { className: "climb-tick" },
-      h("span", { className: "climb-tick-label" }, s.from === 0 ? "Pad" : s.from === PERFECT_SCORE ? "Moon" : s.from),
+      h("span", { className: "climb-tick-label" }, words.ticks[s.from] ?? s.from),
     );
     tick.style.setProperty("--at", s.from / PERFECT_SCORE);
     return tick;
   });
 
-  const sky = h("img", { className: "launch-sky", src: asset("art/stars.jpg"), alt: "" });
+  const sky = sports
+    ? h("div", { className: "launch-sky stadium-sky" }, h("span", { className: "flood flood-l" }), h("span", { className: "flood flood-r" }))
+    : h("img", { className: "launch-sky", src: asset("art/stars.jpg"), alt: "" });
   const dark = h("div", { className: "launch-dark" });
-  const station = h("img", { className: "launch-station", src: asset("art/station.png"), alt: "" });
-  const rocket = h("img", { className: "launch-rocket", src: asset("art/rocket-pixel.png"), alt: "" });
+  const station = sports
+    ? h("div", { className: "launch-station stadium-ground" }, h("div", { className: "stadium-stands" }), h("div", { className: "stadium-pitch" }))
+    : h("img", { className: "launch-station", src: asset("art/station.png"), alt: "" });
+  const rocket = sports
+    ? h("img", { className: "launch-rocket stadium-ball", src: asset("art/ball-pixel.svg"), alt: "" })
+    : h("img", { className: "launch-rocket", src: asset("art/rocket-pixel.png"), alt: "" });
   const ship = h("div", { className: "launch-ship" }, rocket);
-  const scene = h("div", { className: "launch-scene", attrs: { "aria-hidden": "true" } }, sky, dark, station, ship);
+  const scene = h("div", { className: `launch-scene${sports ? " is-stadium" : ""}`, attrs: { "aria-hidden": "true" } }, sky, dark, station, ship);
 
   const el = h("aside", { className: "climb", attrs: { "aria-label": "Your altitude" } },
     scene,
     h("div", { className: "climb-readout" },
-      h("p", { className: "climb-label" }, "Altitude"),
+      h("p", { className: "climb-label" }, words.meter),
       points,
       stageName,
     ),
@@ -72,7 +88,7 @@ export function createStage() {
         : [4, 4, 4, 8][Math.floor(Math.random() * 4)];
       bit.style.width = `${size}px`;
       bit.style.height = `${size}px`;
-      bit.style.background = FLAME[Math.floor(Math.random() * FLAME.length)];
+      bit.style.background = flameColors[Math.floor(Math.random() * flameColors.length)];
       bit.style.marginLeft = `${Math.round((Math.random() - 0.5) * (burst ? 22 : 10))}px`;
       bit.style.setProperty("--fall", `${(burst ? 36 : 16) + Math.round(Math.random() * (burst ? 70 : 36))}px`);
       ship.append(bit);
@@ -115,8 +131,8 @@ export function createStage() {
       h("strong", {}, score.toLocaleString("en-US")),
       h("span", {}, ` / ${PERFECT_SCORE.toLocaleString("en-US")}`),
     );
-    stageName.textContent = stageFor(score).name;
-    el.setAttribute("aria-label", `Altitude ${score} of ${PERFECT_SCORE} points. ${stageFor(score).name}.`);
+    stageName.textContent = stageLabel(score);
+    el.setAttribute("aria-label", `${words.meter} ${score} of ${PERFECT_SCORE} points. ${stageLabel(score)}.`);
   }
 
   /**
