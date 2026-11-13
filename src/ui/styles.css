@@ -1627,3 +1627,71 @@ p {
     animation: none;
   }
 }
+
+/* Rocket, station, and thrust. The questions stay on top. */
+.launch-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #06122e;
+}
+.launch-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.launch-dark {
+  position: absolute;
+  inset: 0;
+  background: #01030a;
+  opacity: 0;
+}
+.launch-station {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(100vw, 560px);
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 1;
+  image-rendering: pixelated;
+}
+.launch-ship {
+  position: absolute;
+  left: 42%;
+  width: min(28vw, 150px);
+  z-index: 2;
+}
+.launch-rocket {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.launch-rocket.is-burning {
+  animation: rocket-burn 0.18s steps(2, end) 6;
+}
+@keyframes rocket-burn {
+  50% { filter: brightness(1.35); }
+}
+.flame-bit {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 1;
+  image-rendering: pixelated;
+  animation: flame-fall 0.5s steps(4, end) forwards;
+}
+@keyframes flame-fall {
+  to { transform: translateY(var(--fall, 28px)); opacity: 0; }
+}
+.flight-grid,
+.topbar {
+  position: relative;
+  z-index: 2;
+}
