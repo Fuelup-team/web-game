@@ -63,6 +63,9 @@ Keep to this layout so the two maintainers rarely edit the same files:
   Matching already ignores case, accents, spaces, plurals and category words like "cat" or "river".
 - Every list and single round needs a `gem` that is one of its answers. Every year round needs a
   `year` (negative for BC) and an `aside` fact.
+- **Year questions scale with age** (`yearBands` in `engine.js`): exact is Galaxy, and each lower level
+  allows a share of how long ago it was (3%, 7.5%, 18%, 40%, with floors of 1, 2, 5, 10 years). Google
+  (1998) is 1/2/5/11 years; Shakespeare's death (1616) is 12/31/74/164. Each question shows its scale.
 
 ### Theme packs
 

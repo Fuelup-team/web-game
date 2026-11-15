@@ -354,14 +354,42 @@ function foundGem(hits, gem) {
 
 // ---------- Year burns ("When did it happen?") ----------
 
-/** How many years off each level allows. Exact year is the only Galaxy. */
-export const YEAR_BANDS = [
-  { tier: "galaxy", within: 0, label: "exact year" },
-  { tier: "nebula", within: 2, label: "within 2 years" },
-  { tier: "deepspace", within: 5, label: "within 5 years" },
-  { tier: "orbit", within: 15, label: "within 15 years" },
-  { tier: "sky", within: 40, label: "within 40 years" },
+/**
+ * How close counts depends on how long ago it was. Missing the founding of
+ * Google by 10 years means you didn't know; missing something from 700
+ * years ago by 30 is a good answer. Each level allows a share of the
+ * event's age (with a floor for recent events), and the exact year is the
+ * only Galaxy. Ages are counted from a fixed year so a question's scale
+ * never changes from day to day.
+ */
+export const YEAR_REFERENCE = 2026;
+const YEAR_SHARES = [
+  // [level, share of the event's age, at least this many years]
+  ["nebula", 0.03, 1],
+  ["deepspace", 0.075, 2],
+  ["orbit", 0.18, 5],
+  ["sky", 0.4, 10],
 ];
+
+/**
+ * The bands for one year question, closest first:
+ * [{ tier, within, label }]. 1998 → exact, 1, 2, 5, 11; 1616 → exact, 12, 31, 74, 164.
+ */
+export function yearBands(year) {
+  const age = Math.max(1, YEAR_REFERENCE - year);
+  // Beyond 1,000 years the scale grows half as fast, so ancient dates don't get absurdly wide.
+  const span = age <= 1000 ? age : 1000 + (age - 1000) / 2;
+  return [
+    { tier: "galaxy", within: 0, label: "exact year" },
+    ...YEAR_SHARES.map(([tier, share, min]) => {
+      const within = Math.max(min, Math.round(span * share));
+      return { tier, within, label: `within ${within} year${within === 1 ? "" : "s"}` };
+    }),
+  ];
+}
+
+/** The old fixed scale, kept for reference in How to play: a question from about 100 years ago. */
+export const YEAR_BANDS = yearBands(YEAR_REFERENCE - 100);
 
 /** "1616" → 1616, "44 BC" or "-44" → -44. Returns null if it is not a year. */
 export function parseYear(text) {
@@ -382,7 +410,7 @@ export function formatYear(year) {
 /** Score a guessed year against the real one. */
 export function yearScore(guess, year) {
   const off = Math.abs(guess - year);
-  const band = YEAR_BANDS.find((b) => off <= b.within);
+  const band = yearBands(year).find((b) => off <= b.within);
   const tier = band ? band.tier : OFF_COURSE.id;
   return { tier, points: pointsFor(tier), yearsOff: off, direction: guess < year ? "early" : guess > year ? "late" : "exact" };
 }

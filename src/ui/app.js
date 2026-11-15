@@ -5,7 +5,7 @@ import {
   todayUtc, flightNumber, formatDay, formatDelta, formatYearsOff,
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
   splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, TOP_LEVEL,
-  LEVELS, OFF_COURSE, GAUGE_BANDS, YEAR_BANDS, levelOf, stageFor, toTheMoon,
+  LEVELS, OFF_COURSE, GAUGE_BANDS, yearBands, levelOf, stageFor, toTheMoon,
   buildPackFlight, scorePicturePart, PART_CREDIT, STAGES, blendedAverage,
 } from "../game/engine.js";
 import { PACKS, packById, themeOf } from "../game/packs.js";
@@ -773,6 +773,14 @@ function renderPackLobby(pack) {
   );
 }
 
+/** "Exact is Galaxy. For this one: Nebula within 12 years, Deep Space 31, Orbit 74, Sky 164." */
+function yearHint(year) {
+  const [, ...bands] = yearBands(year);
+  return `Exact is ${lvName(TOP_LEVEL)}. Older events give more room. For this one: ${bands
+    .map((b, i) => (i === 0 ? `${lvName(b.tier)} within ${b.within} year${b.within === 1 ? "" : "s"}` : `${lvName(b.tier)} ${b.within}`))
+    .join(", ")}.`;
+}
+
 // ----- Burn (one timed question) -----
 
 function renderBurn() {
@@ -946,7 +954,7 @@ function renderBurn() {
     ),
     h("div", { className: "timebar", attrs: { "aria-hidden": "true" } }, timeFill),
     h("h2", { className: "prompt" }, round.prompt),
-    h("p", { className: "hint", id: "burn-hint" }, round.blurb || kind.how),
+    h("p", { className: "hint", id: "burn-hint" }, round.kind === "year" ? yearHint(round.year) : round.blurb || kind.how),
     round.kind === "list" && chips,
     h("div", { className: "answer-row" },
       h("label", { className: "sr-only", attrs: { for: "burn-answer" } }, "Your answer"),
@@ -1254,6 +1262,10 @@ function renderBetween() {
     "You said ", h("b", {}, first.canonical),
     just.kind === "closest" && first.deltaPct != null ? `, ${formatDelta(first.deltaPct)}` : "",
     just.kind === "year" && first.yearsOff != null ? `, ${formatYearsOff(first.yearsOff, first.direction)}` : "",
+    just.kind === "year" && first.yearsOff ? (() => {
+      const band = yearBands(Number(just.gemDetail.replace(/ BC$/, "")) * (just.gemDetail.endsWith(" BC") ? -1 : 1)).find((b) => b.tier === first.tier);
+      return band ? ` (${lvName(band.tier)} is ${band.label} here)` : ` (more than ${yearBands(Number(just.gemDetail.replace(/ BC$/, "")) * (just.gemDetail.endsWith(" BC") ? -1 : 1)).at(-1).within} years off)`;
+    })() : "",
   );
 
   return h("article", { className: `panel reveal tier-${tier}`, attrs: { "aria-live": "polite" } },
@@ -1475,7 +1487,7 @@ function howToPlay() {
     h("section", {},
       h("h3", {}, "How close counts"),
       h("p", {}, `Closest number: only the single closest answer is ${lvName(TOP_LEVEL)}, then ${GAUGE_BANDS.map((b) => `${lvName(b.tier)} ${b.label}`).join(", ")}.`),
-      h("p", {}, `Guess the year: ${YEAR_BANDS.map((b) => `${lvName(b.tier)} ${b.label}`).join(", ")}.`),
+      h("p", {}, `Guess the year: the exact year is ${lvName(TOP_LEVEL)}. How close counts depends on how long ago it was, and each question shows its scale. Google's founding (1998): ${lvName("nebula")} within 1 year, ${lvName("sky")} within 11. Shakespeare's death (1616): ${lvName("nebula")} within 12 years, ${lvName("sky")} within 164.`),
       h("p", {}, `Anything further off is ${lvName(OFF_COURSE.id)}, ${OFF_COURSE.points} points.`),
       h("p", {}, "Picture: each part (who, where, when) is an equal share of 100. The exact answer gets the full share; the right city instead of the stadium gets half, and a near year gets part of it."),
     ),

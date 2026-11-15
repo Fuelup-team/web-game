@@ -156,7 +156,8 @@ export const LIST_ROUNDS = roundsFrom(CHARTS, "list");
 /** "One answer" rounds. */
 export const SINGLE_ROUNDS = roundsFrom(CHARTS, "rare");
 
-const YEAR_BLURB = "Type the year. Exact is Galaxy, within 2 years is Nebula, and every year further off costs height.";
+// The year rounds' hint is written by the game from each question's own scale (yearBands in engine.js).
+const YEAR_BLURB = "";
 
 /** "Guess the year" rounds from a years file. Years before 1 AD are negative (-44 = 44 BC). */
 export const yearRoundsFrom = (list) => list.map((y) => ({

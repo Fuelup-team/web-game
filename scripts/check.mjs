@@ -114,6 +114,19 @@ if (engine) {
     if (bad.length) throw new Error(bad.slice(0, 8).join("\n"));
   });
 
+  // 5b. Year bands: wider for older events, always growing from level to level.
+  check("year bands grow with age and from level to level", () => {
+    let last = 0;
+    for (const year of [2026, 2020, 1998, 1969, 1900, 1616, 1326, 1000, 1, -44, -753, -3000]) {
+      const widths = engine.yearBands(year).map((b) => b.within);
+      if (widths.some((w, i) => i && w <= widths[i - 1])) throw new Error(`${year}: bands don't grow: ${widths}`);
+      if (widths[1] < last) throw new Error(`${year}: older event got a tighter scale`);
+      last = widths[1];
+    }
+    if (engine.yearScore(1948, 1998).tier !== "drift") throw new Error("50 years off Google should score nothing special");
+    if (!["deepspace", "nebula"].includes(engine.yearScore(1376, 1326).tier)) throw new Error("50 years off a 700-year-old event should still score well");
+  });
+
   // 6. A perfect flight is exactly the advertised maximum.
   check(`a perfect flight scores ${engine.PERFECT_SCORE}`, () => {
     for (const day of ["2026-01-01", "2026-06-15", "2026-11-12"]) {

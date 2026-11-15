@@ -43,7 +43,8 @@ special top-answer effect.
 ## Burn types
 
 - **One answer** (3 per flight): retry until one locks. Up to 100.
-- **Guess the year** (1 per flight): exact year is Galaxy, then within 2, 5, 15 and 40 years.
+- **Guess the year** (1 per flight): exact year is Galaxy. How close counts depends on how long ago it
+  was: Google's founding (1998) allows 1, 2, 5 and 11 years; Shakespeare's death (1616) 12, 31, 74 and 164.
 - **Name as many as you can** (2 per flight): name as many as you can (elements, dog breeds…). Each answer adds its
   points, up to 250.
 - **Closest number** (1 per flight): name the thing whose number is closest to a target (mountain height, river
