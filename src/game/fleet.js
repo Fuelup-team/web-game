@@ -17,13 +17,26 @@ export async function fetchFleet(day, pilotKey) {
   return res.json();
 }
 
-export async function submitFlight(day, pilotKey, rounds) {
+/**
+ * Send a finished flight. With `friend` ({ code, name }) the answers are also
+ * kept for friends who have this pilot's code.
+ */
+export async function submitFlight(day, pilotKey, rounds, friend = null) {
   if (!fleetEnabled) return null;
   const res = await fetch(FLEET_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ day, pilotKey, rounds }),
+    body: JSON.stringify({ day, pilotKey, rounds, ...(friend ? { friendCode: friend.code, name: friend.name } : {}) }),
   });
   if (!res.ok) throw new Error(`Fleet ${res.status}`);
+  return res.json();
+}
+
+/** Friends' flights for a day. Their answers come back only once you have played. */
+export async function fetchFriends(day, pilotKey, codes) {
+  if (!fleetEnabled || !codes.length) return null;
+  const url = `/api/friends?day=${encodeURIComponent(day)}&pilotKey=${encodeURIComponent(pilotKey)}&codes=${codes.map(encodeURIComponent).join(",")}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Friends ${res.status}`);
   return res.json();
 }

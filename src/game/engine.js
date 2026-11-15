@@ -708,6 +708,26 @@ export function buildPackFlight(packId, seed) {
   return { seed, day: todayUtc(), number: 0, practice: true, pack: pack.id, theme: pack.theme, rounds };
 }
 
+// ---------- Today's average ----------
+//
+// Early in the day there are few real scores, so the average starts from an
+// estimate for the day (made up, seeded from the date like the flight) and
+// real scores take over as pilots finish. The UI marks it "est." while the
+// estimate still counts.
+
+/** Starting estimate for a day: between 340 and 460, the same for everyone. */
+export function estimatedAverage(day) {
+  return 340 + Math.round(seededRandom(hash(`average:${day}`))() * 120);
+}
+/** How many pilots the estimate counts as. */
+export const ESTIMATE_WEIGHT = 12;
+
+/** Today's average: real scores blended with the day's estimate. */
+export function blendedAverage(day, scores = []) {
+  const real = scores.reduce((sum, s) => sum + s, 0);
+  return Math.round((real + estimatedAverage(day) * ESTIMATE_WEIGHT) / (scores.length + ESTIMATE_WEIGHT));
+}
+
 /** Summary of a finished flight. */
 export function finishFlight(day, mission, rounds, pack = null) {
   const score = rounds.reduce((sum, r) => sum + r.points, 0);

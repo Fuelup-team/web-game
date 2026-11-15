@@ -6,12 +6,12 @@ import {
   buildFlight, tryAnswer, scoreRound, finishFlight, shareText, suggest,
   splitEntries, TIER_RANK, LIST_CAP, PERFECT_SCORE, TOP_LEVEL,
   LEVELS, OFF_COURSE, GAUGE_BANDS, YEAR_BANDS, levelOf, stageFor, toTheMoon,
-  buildPackFlight, scorePicturePart, PART_CREDIT, STAGES,
+  buildPackFlight, scorePicturePart, PART_CREDIT, STAGES, blendedAverage,
 } from "../game/engine.js";
 import { PACKS, packById, themeOf } from "../game/packs.js";
-import { loadProfile, saveProfile, logFlight, logPackRun } from "../game/storage.js";
+import { loadProfile, saveProfile, logFlight, logPackRun, addFriend, removeFriend } from "../game/storage.js";
 import { audio, playHit, playMiss } from "../game/sound.js";
-import { fetchFleet, submitFlight, fleetEnabled } from "../game/fleet.js";
+import { fetchFleet, submitFlight, fetchFriends, fleetEnabled } from "../game/fleet.js";
 
 // ---------- Burn types, in plain words ----------
 
@@ -132,6 +132,7 @@ const state = {
   profile: loadProfile(),
   fleet: null,
   fleetStatus: fleetEnabled ? "loading" : "off", // loading | ready | error | off
+  friends: { status: "idle", data: null }, // idle | loading | ready | error
   callsign: "",
   menu: null, // null | "root" | "leave" | "how" | "terms" | "privacy"
   screen: { name: "pad" }, // pad | pack | play | between | report
@@ -170,6 +171,49 @@ if (fleetEnabled) {
     .finally(() => {
       if (state.screen.name === "pad") render();
     });
+}
+
+// ---------- Friends ----------
+
+/** Fetch today's flights from the friends on this device's list. */
+async function loadFriends() {
+  const codes = state.profile.friends.map((f) => f.code);
+  if (!fleetEnabled || !codes.length) return;
+  state.friends = { ...state.friends, status: "loading" };
+  try {
+    state.friends = { status: "ready", data: await fetchFriends(day, state.profile.pilotKey, codes) };
+  } catch {
+    state.friends = { ...state.friends, status: "error" };
+  }
+  if (["pad", "report", "friend"].includes(state.screen.name)) rerenderKeepScroll();
+}
+loadFriends();
+
+/** The friend part of a submit, when sharing is on. */
+const friendShare = () => (state.profile.shareWithFriends ? { code: state.profile.friendCode, name: callsignLabel() } : null);
+
+/** A friend's display name: their own name, the name you gave them, or their code. */
+function friendName(code) {
+  const mine = state.profile.friends.find((f) => f.code === code);
+  const theirs = state.friends.data?.friends?.find((f) => f.code === code);
+  return mine?.name || (theirs?.name && theirs.name !== "Pilot" ? theirs.name : "") || code;
+}
+
+function rerenderKeepScroll() {
+  const y = window.scrollY;
+  render();
+  window.scrollTo(0, y);
+}
+
+/** Today's average, with the made-up estimate blended in (marked "est."). */
+function averageStat(score) {
+  if (state.fleetStatus === "loading") return stat("Today's average", "...", "Checking the fleet");
+  const scores = (state.fleet?.board ?? []).map((x) => x.score);
+  const avg = blendedAverage(day, scores);
+  const who = scores.length ? `${scores.length} pilot${scores.length === 1 ? "" : "s"} + est.` : "Estimate for today";
+  if (score == null) return stat("Today's average", fmt(avg), who);
+  const diff = score - avg;
+  return stat("Today's average", fmt(avg), `You're ${diff >= 0 ? `${diff} above` : `${-diff} below`} · ${scores.length ? "incl. est." : "est."}`);
 }
 
 // ---------- Mobile keyboard handling ----------
@@ -259,7 +303,9 @@ async function recordFlight(flight) {
       flight.day,
       next.pilotKey,
       flight.rounds.map((r) => ({ id: r.id, inputs: r.hits.map((x) => x.canonical) })),
+      friendShare(),
     );
+    loadFriends();
     state.fleetStatus = "ready";
   } catch {
     state.fleetStatus = "error";
@@ -319,9 +365,9 @@ function render() {
   applyTheme(themeId);
 
   const children = [];
-  if (s.name === "pad" || s.name === "pack") {
+  if (s.name === "pad" || s.name === "pack" || s.name === "friend") {
     stage = null;
-    children.push(renderTopBar(), s.name === "pad" ? renderPad() : renderPackLobby(pack));
+    children.push(renderTopBar(), s.name === "pad" ? renderPad() : s.name === "pack" ? renderPackLobby(pack) : renderFriendFlight(s.code));
   } else {
     if (!stage) stage = createStage(themeId);
     stage.setScore(stageScore());
@@ -352,7 +398,7 @@ function renderTopBar() {
     h("div", { className: "topbar-left" },
       s.name === "pad"
         ? h("p", { className: "logo" }, "Fuelup")
-        : s.name === "pack"
+        : s.name === "pack" || s.name === "friend"
           ? h("button", {
             className: "btn-icon",
             attrs: { type: "button", "aria-label": "Back to start" },
@@ -443,14 +489,7 @@ function renderPad() {
   const streak = state.profile.streak;
   const lineup = buildFlight(day).rounds;
 
-  const fleetStat = (() => {
-    const f = state.fleet;
-    if (state.fleetStatus === "loading") return stat("Today's average", "...", "Checking the fleet");
-    if (state.fleetStatus === "off") return stat("Today's average", "-", "Live on the real site");
-    if (state.fleetStatus === "error") return stat("Today's average", "-", "Couldn't reach the fleet");
-    if (!f || f.pilots === 0) return stat("Today's average", "-", "Be the first today");
-    return stat("Today's average", fmt(f.averageScore), `${f.pilots} pilot${f.pilots === 1 ? "" : "s"} today`);
-  })();
+  const fleetStat = averageStat();
 
   return h("main", { className: "pad-grid", id: "main" },
     h("section", { className: "panel pad-panel" },
@@ -473,7 +512,7 @@ function renderPad() {
       ),
       renderPackShelf(),
       h("label", { className: "field" },
-        h("span", { className: "field-label" }, "Pilot name (optional)"),
+        h("span", { className: "field-label" }, "Pilot name"),
         h("input", {
           value: state.callsign,
           maxLength: 18,
@@ -481,8 +520,9 @@ function renderPad() {
           attrs: { autocomplete: "off", "aria-describedby": "callsign-help" },
           onInput: (e) => (state.callsign = e.target.value),
         }),
-        h("small", { id: "callsign-help" }, "Shown only on this device. Scores on the board are anonymous."),
+        h("small", { id: "callsign-help" }, state.profile.shareWithFriends ? "Shown on this device and to friends you share with. The board stays anonymous." : "Shown only on this device. Scores on the board are anonymous."),
       ),
+      renderFriends(),
       h("section", { className: "lineup", attrs: { "aria-label": "Today's seven burns" } },
         h("h2", {}, "Today's 7 burns"),
         h("ol", {}, lineup.map((round, i) =>
@@ -501,6 +541,156 @@ function renderPad() {
     h("div", { className: "pad-art", attrs: { "aria-hidden": "true" } },
       h("img", { className: "pad-rocket", src: asset("art/rocket-pixel.png"), alt: "" }),
     ),
+  );
+}
+
+// ----- Friends -----
+
+/**
+ * Friends block (start screen and result): your code, a switch to share your
+ * flights, adding a friend's code, and today's result for each friend.
+ */
+function renderFriends() {
+  const p = state.profile;
+  const data = state.friends.data;
+  const byCode = new Map((data?.friends ?? []).map((f) => [f.code, f]));
+  const note = h("p", { className: "friend-note", attrs: { "aria-live": "polite" } });
+
+  const toggleShare = () => {
+    setProfile({ ...p, shareWithFriends: !p.shareWithFriends });
+    // Already flown today? Send it again so friends can see it (the score stays the first one).
+    const flight = todaysFlight();
+    if (state.profile.shareWithFriends && flight && fleetEnabled) {
+      submitFlight(flight.day, p.pilotKey, flight.rounds.map((r) => ({ id: r.id, inputs: r.hits.map((x) => x.canonical) })), friendShare())
+        .catch(() => {});
+    }
+    rerenderKeepScroll();
+  };
+
+  const codeInput = h("input", {
+    attrs: { placeholder: "Friend code", maxlength: "6", autocapitalize: "characters", autocomplete: "off", spellcheck: "false", "aria-label": "Friend code" },
+  });
+  const nameInput = h("input", {
+    attrs: { placeholder: "Name (optional)", maxlength: "18", autocomplete: "off", "aria-label": "Friend's name" },
+  });
+  const add = (e) => {
+    e.preventDefault();
+    const r = addFriend(state.profile, codeInput.value, nameInput.value);
+    if (r.error) {
+      note.textContent = r.error;
+      note.className = "friend-note is-bad";
+      return;
+    }
+    setProfile(r.profile);
+    loadFriends();
+    rerenderKeepScroll();
+  };
+
+  const copyBtn = h("button", { className: "btn btn-line btn-small", attrs: { type: "button" } }, icon("copy"), "Copy");
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(`Add me on Fuelup: my friend code is ${p.friendCode}. ${location.origin}`);
+      copyBtn.replaceChildren(icon("check"), "Copied");
+    } catch {
+      copyBtn.replaceChildren(icon("copy"), "Copy");
+    }
+  });
+
+  return h("section", { className: "friends", attrs: { "aria-label": "Friends" } },
+    h("h2", {}, "Friends"),
+    h("div", { className: "friend-me" },
+      h("p", {}, "Your code ", h("b", { className: "friend-code" }, p.friendCode)),
+      copyBtn,
+    ),
+    h("button", {
+      className: "friend-share",
+      attrs: { type: "button", "aria-pressed": String(p.shareWithFriends) },
+      onClick: toggleShare,
+    },
+      h("span", { className: `switch ${p.shareWithFriends ? "is-on" : ""}`, attrs: { "aria-hidden": "true" } }, h("span", {})),
+      h("span", {},
+        h("b", {}, p.shareWithFriends ? "Sharing with friends" : "Share my flights with friends"),
+        h("small", {}, p.shareWithFriends
+          ? "Friends with your code see your name, score and answers, after they've played too."
+          : "Off: nothing is shared. Turn on so friends with your code can see your flights."),
+      ),
+    ),
+    p.friends.length > 0 && h("ul", { className: "friend-list" }, p.friends.map((f) => {
+      const today = byCode.get(f.code);
+      const status = !fleetEnabled ? "Live on the real site"
+        : state.friends.status === "loading" && !today ? "Checking..."
+          : today?.played ? `${fmt(today.score)} · ${stageName(today.score)}`
+            : "Hasn't played today";
+      return h("li", {},
+        h("button", {
+          className: "friend-row",
+          attrs: { type: "button", disabled: today?.played ? null : "" },
+          onClick: () => go({ name: "friend", code: f.code }),
+        },
+          icon("user"),
+          h("span", { className: "friend-row-text" }, h("b", {}, friendName(f.code)), h("small", {}, status)),
+          today?.played && icon("chevron-right"),
+        ),
+        h("button", {
+          className: "btn-icon friend-remove",
+          attrs: { type: "button", "aria-label": `Remove ${friendName(f.code)}` },
+          onClick: () => {
+            setProfile(removeFriend(state.profile, f.code));
+            rerenderKeepScroll();
+          },
+        }, icon("close")),
+      );
+    })),
+    h("form", { className: "friend-add", onSubmit: add },
+      codeInput, nameInput,
+      h("button", { className: "btn btn-line btn-small", attrs: { type: "submit" } }, "Add friend"),
+    ),
+    note,
+  );
+}
+
+/** A friend's flight today, next to yours, burn by burn. */
+function renderFriendFlight(code) {
+  const friend = state.friends.data?.friends?.find((f) => f.code === code);
+  const name = friendName(code);
+  const mine = todaysFlight();
+  const panel = (...kids) => h("main", { className: "pad-grid", id: "main" }, h("section", { className: "panel pad-panel friend-flight" }, ...kids));
+  if (!friend?.played) {
+    return panel(
+      h("p", { className: "flight-tag" }, `Flight ${flightNumber(day)}, ${formatDay(day)}`),
+      h("h1", {}, name),
+      h("p", { className: "lead" }, state.friends.status === "loading" ? "Checking..." : `${name} hasn't finished today's flight yet.`),
+    );
+  }
+  const head = [
+    h("p", { className: "flight-tag" }, `${name}'s flight · Flight ${flightNumber(day)}, ${formatDay(day)}`),
+    h("div", { className: "report-score" }, h("strong", {}, fmt(friend.score)), h("span", {}, `/ ${fmt(PERFECT_SCORE)} points`)),
+    h("p", { className: "report-stage" }, h("b", {}, stageName(friend.score)), mine ? `. You scored ${fmt(mine.score)}.` : "."),
+  ];
+  if (!friend.rounds) {
+    return panel(...head,
+      h("p", { className: "lead" }, `Finish today's flight to see ${name}'s answers. No peeking first.`),
+      h("div", { className: "cta-row" },
+        h("button", { className: "btn btn-gold", attrs: { type: "button" }, onClick: () => startFlight(false) }, icon("play"), "Start today's flight")),
+    );
+  }
+  const flight = buildFlight(day);
+  const answers = (result) => result.hits.length
+    ? h("span", { className: "vs-answers" }, result.hits.map((x) => h("span", { className: `vs-hit tier-${x.tier}` }, x.canonical, " ", levelTag(x.tier, `+${x.points}`))))
+    : h("span", { className: "vs-answers vs-none" }, "No answer");
+  return panel(...head,
+    h("h2", { className: "section-title" }, `Burn by burn`),
+    h("ol", { className: "vs-list" }, flight.rounds.map((round, i) => {
+      const theirs = scoreRound(round, friend.rounds[i]?.inputs ?? []);
+      const yours = mine?.rounds[i];
+      return h("li", {},
+        h("p", { className: "vs-prompt" }, h("span", { className: "burn-row-num" }, i + 1), round.prompt),
+        h("div", { className: "vs-row" }, h("b", {}, name), answers(theirs), h("strong", { className: `tier-${bestTier(theirs.hits) ?? "drift"}` }, theirs.points)),
+        yours && h("div", { className: "vs-row is-you" }, h("b", {}, "You"), answers(yours), h("strong", { className: `tier-${bestTier(yours.hits) ?? "drift"}` }, yours.points)),
+      );
+    })),
+    h("div", { className: "cta-row" },
+      h("button", { className: "btn-text", attrs: { type: "button" }, onClick: () => go({ name: "pad" }) }, icon("home"), "Back to start")),
   );
 }
 
@@ -1092,23 +1282,14 @@ function renderReport() {
   const { flight, practice } = state.screen;
   if (flight.pack) return renderPackReport(flight);
   const fleet = state.fleet;
-  const average = !practice && fleet && fleet.pilots > 0 ? fleet.averageScore : null;
-  const diff = average == null ? null : flight.score - average;
+  const average = practice ? null : blendedAverage(flight.day, (fleet?.board ?? []).map((x) => x.score));
   const board = fleet?.board ?? [];
   const yourIndex = board.findIndex((x) => x.yours);
   const shown = board.slice(0, 8);
   if (yourIndex >= 8 && board[yourIndex]) shown.push(board[yourIndex]);
   let openId = null;
 
-  const fleetStat = practice
-    ? stat("Today's average", "-", "Practice isn't counted")
-    : state.fleetStatus === "off"
-      ? stat("Today's average", "-", "Live on the real site")
-      : state.fleetStatus === "error"
-        ? stat("Today's average", "-", "Couldn't reach the fleet")
-        : average == null
-          ? stat("Today's average", "...", "Sending your flight")
-          : stat("Today's average", fmt(average), `You're ${diff >= 0 ? `${diff} above` : `${-diff} below`}`);
+  const fleetStat = practice ? stat("Today's average", "-", "Practice isn't counted") : averageStat(flight.score);
 
   const list = h("ol", { className: "burn-list" });
   const drawList = () =>
@@ -1166,6 +1347,7 @@ function renderReport() {
     h("h2", { className: "section-title" }, "Your burns"),
     h("p", { className: "section-hint" }, "Tap a burn to see the top answer and a fact."),
     list,
+    !practice && renderFriends(),
     !practice && shown.length > 0 &&
       h("section", { className: "board" },
         h("h2", { className: "section-title" }, "Today's pilots"),
@@ -1371,7 +1553,8 @@ function renderMenu() {
     content = [h("div", { className: "menu-text" },
       h("p", {}, "You can play without a name, an email or a sign-in."),
       h("p", {}, "Your pilot name stays in this browser and is never sent with your score. A random id, made on this device, tells today's pilots apart. It says nothing about who you are."),
-      h("p", {}, "When you finish today's flight, your answers are checked so the score is real, then thrown away. What's kept is the day, that random id and your score. Practice stays on this device."),
+      h("p", {}, "When you finish today's flight, your answers are checked so the score is real. What's kept for the board is the day, that random id and your score. Practice and theme packs stay on this device."),
+      h("p", {}, "Friends: only if you turn on \"Share my flights with friends\", your pilot name, score and answers for the day are kept too, under your friend code, so friends who have your code can see them after they've played. Turn it off any time; flights already shared stay for up to a month."),
       h("p", {}, "There are no ads and nothing is sold. Clearing this site's data removes your pilot name and id. A score already on the board stays there as a number with no name."),
     )];
   }

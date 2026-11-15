@@ -234,6 +234,34 @@ try {
   let refused = false;
   try { await fleet.submitFlight(store, { day, pilotKey: "x", rounds: perfect }, now); } catch { refused = true; }
   check("a bad pilot id is refused", () => { if (!refused) throw new Error("accepted a bad pilot id"); });
+
+  // Friends: answers are kept only with a friend code, and only shown to someone who has played.
+  const c = "c".repeat(32), d = "d".repeat(32);
+  await fleet.submitFlight(store, { day, pilotKey: c, rounds: perfect, friendCode: "K7QF2M", name: "Eeli" }, now);
+  let friends = await fleet.readFriends(store, day, d, "K7QF2M,ABCDEF,bad!", now);
+  check("a friend's score shows, but not their answers before you play", () => {
+    const f = friends.friends.find((x) => x.code === "K7QF2M");
+    if (!f?.played || f.score !== 1000 || f.name !== "Eeli" || f.rounds) throw new Error(JSON.stringify(friends));
+    if (friends.friends.find((x) => x.code === "ABCDEF")?.played !== false) throw new Error("unknown code should be not played");
+    if (friends.friends.some((x) => x.code === "BAD!")) throw new Error("bad code was not dropped");
+  });
+  await fleet.submitFlight(store, { day, pilotKey: d, rounds: empty }, now);
+  friends = await fleet.readFriends(store, day, d, "K7QF2M", now);
+  check("after you play, a friend's answers show and re-score to their score", () => {
+    const f = friends.friends[0];
+    if (!f.rounds || f.rounds.length !== 7) throw new Error(JSON.stringify(friends));
+    const rescored = flight.rounds.reduce((sum, r, i) => sum + engine.scoreRound(r, f.rounds[i].inputs).points, 0);
+    if (rescored !== f.score) throw new Error(`re-scored ${rescored}, saved ${f.score}`);
+  });
+  check("no friend code, no answers kept", () => {
+    if ([...memory.keys()].some((k) => k.startsWith("friends/") && !k.endsWith("K7QF2M"))) throw new Error([...memory.keys()].join(", "));
+  });
+  check("the day's average estimate blends with real scores", () => {
+    const est = engine.estimatedAverage(day);
+    if (est < 340 || est > 460 || engine.blendedAverage(day, []) !== est) throw new Error(`estimate ${est}`);
+    const many = Array(500).fill(900);
+    if (engine.blendedAverage(day, many) < 880) throw new Error("real scores should take over");
+  });
 } catch (err) {
   failures++;
   console.log(`  ✗ fleet board logic failed\n      ${err.message}`);

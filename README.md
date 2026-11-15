@@ -81,6 +81,16 @@ Today's average and the list of pilots come from a small Cloudflare Worker
 It re-scores every flight itself, keeps only the day, a random pilot id and the score, and allows one
 flight per pilot per day.
 
+## Friends and today's average
+
+- **Friends:** every player has a 6-letter friend code (start screen, under the pilot name). Add a
+  friend's code to see their score today. Once you've finished today's flight you also see their
+  answers, burn by burn, next to yours. A player's flights are only shared if they turn on "Share my
+  flights with friends". Stored in Workers KV under `friends/<day>/<code>` (`/api/friends`).
+- **Today's average** starts from a made-up estimate for the day (340 to 460, seeded from the date)
+  and real scores take over as pilots finish (`blendedAverage` in `engine.js`). It's marked "est."
+  while the estimate still counts.
+
 ## Daily workflow
 
 Both of us push straight to `main`. Every push deploys the live site.

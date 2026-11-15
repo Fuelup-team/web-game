@@ -7,10 +7,19 @@
 //
 // Storage: one entry per pilot per day, key "YYYY-MM-DD/<pilotKey>",
 // value { score, at }. Only the day, the random pilot id and the score are
-// kept; answers are re-scored here and then thrown away.
+// kept for the board; answers are re-scored here.
+//
+// Friends: a pilot who turns on "share with friends" also sends a public
+// friend code and a name. Then that day's answers are kept under
+// "friends/YYYY-MM-DD/<code>" (value { name, score, rounds, at }) so friends
+// can see them. Answers are only handed out to a pilot who has finished
+// that day's flight too, so nobody can copy a friend's answers.
 import { buildFlight, scoreRound, finishFlight, todayUtc, previousDay } from "../game/engine.js";
 
 const PILOT_KEY = /^[a-f0-9]{32}$/;
+/** Friend codes: 6 letters and digits, no look-alikes (0/O, 1/I/L). */
+export const FRIEND_CODE = /^[A-HJ-KM-NP-Z2-9]{6}$/;
+const MAX_FRIENDS = 30;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export class FleetError extends Error {
@@ -54,7 +63,7 @@ export async function readFleet(store, day, pilotKey, now = new Date()) {
  * One flight per pilot per day: a second submit keeps the first score.
  */
 export async function submitFlight(store, body, now = new Date()) {
-  const { day, pilotKey, rounds } = body ?? {};
+  const { day, pilotKey, rounds, friendCode, name } = body ?? {};
   checkDay(day, now);
   checkPilot(pilotKey);
   const flight = buildFlight(day);
@@ -73,6 +82,17 @@ export async function submitFlight(store, body, now = new Date()) {
   const existing = await store.get(key, { type: "json" });
   const saved = existing ?? { score, at: now.toISOString() };
   if (!existing) await store.setJSON(key, saved);
+  if (typeof friendCode === "string" && FRIEND_CODE.test(friendCode)) {
+    const friendKey = `friends/${day}/${friendCode}`;
+    if (!(await store.get(friendKey, { type: "json" }))) {
+      await store.setJSON(friendKey, {
+        name: typeof name === "string" ? name.trim().slice(0, 18) : "",
+        score: saved.score,
+        rounds: results.map((r, i) => ({ id: r.id, inputs: rounds[i].inputs.slice(0, 120) })),
+        at: now.toISOString(),
+      });
+    }
+  }
   const fleet = await readFleet(store, day, pilotKey, now);
   // Some stores take a moment before a new entry shows up in list(): make sure
   // the pilot always sees their own score on the board they get back.
@@ -82,4 +102,24 @@ export async function submitFlight(store, body, now = new Date()) {
     fleet.averageScore = Math.round(fleet.board.reduce((sum, x) => sum + x.score, 0) / fleet.pilots);
   }
   return fleet;
+}
+
+/**
+ * Friends' flights for a day: [{ code, played, name, score, rounds? }].
+ * `rounds` (their answers) only comes back if the asking pilot has finished
+ * that day's flight, so answers can't be copied before playing.
+ */
+export async function readFriends(store, day, pilotKey, codes, now = new Date()) {
+  checkDay(day, now);
+  checkPilot(pilotKey);
+  const list = [...new Set(String(codes ?? "").split(",").map((c) => c.trim().toUpperCase()))]
+    .filter((c) => FRIEND_CODE.test(c))
+    .slice(0, MAX_FRIENDS);
+  const youPlayed = !!(await store.get(`${day}/${pilotKey}`, { type: "json" }));
+  const friends = await Promise.all(list.map(async (code) => {
+    const data = await store.get(`friends/${day}/${code}`, { type: "json" });
+    if (!data) return { code, played: false };
+    return { code, played: true, name: data.name, score: data.score, ...(youPlayed ? { rounds: data.rounds } : {}) };
+  }));
+  return { day, youPlayed, friends };
 }

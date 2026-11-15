@@ -2316,3 +2316,206 @@ p {
 .climb-tick-label {
   white-space: nowrap;
 }
+
+/* ---------- Friends ---------- */
+
+.friends {
+  display: grid;
+  gap: 12px;
+}
+.friends h2 {
+  font-size: 17px;
+  color: var(--dim);
+}
+.friend-me {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.friend-code {
+  margin-left: 6px;
+  font-family: var(--font-pixel);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.btn-small {
+  min-height: 44px;
+  padding: 6px 14px 8px;
+  font-size: 19px;
+}
+.friend-share {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  text-align: left;
+}
+.friend-share .switch {
+  flex: none;
+  margin: var(--px);
+}
+.friend-share > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+.friend-share b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+}
+.friend-share small,
+.friend-row small {
+  color: var(--faint);
+  font-size: 15px;
+}
+.friend-list {
+  display: grid;
+  gap: 10px;
+}
+.friend-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.friend-row {
+  --bc: var(--line);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  margin: var(--px);
+  padding: 8px 14px;
+  background: var(--raise);
+  text-align: left;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--bc),
+    0 var(--px) 0 0 var(--bc),
+    calc(var(--px) * -1) 0 0 0 var(--bc),
+    var(--px) 0 0 0 var(--bc);
+}
+.friend-row:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+.friend-row:disabled {
+  cursor: default;
+}
+.friend-row-text {
+  flex: 1;
+  display: grid;
+}
+.friend-row-text b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 21px;
+}
+.friend-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.friend-add input {
+  --bc: var(--line);
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 46px;
+  margin: var(--px);
+  padding: 0 12px;
+  background: var(--night-0);
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  font-size: 19px;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--bc),
+    0 var(--px) 0 0 var(--bc),
+    calc(var(--px) * -1) 0 0 0 var(--bc),
+    var(--px) 0 0 0 var(--bc);
+}
+.friend-add input:first-child {
+  flex: 0 1 150px;
+  text-transform: uppercase;
+  font-family: var(--font-pixel);
+  font-size: 15px;
+}
+.friend-add input:focus {
+  outline: none;
+  --bc: var(--accent);
+}
+.friend-add input::placeholder {
+  color: var(--faint);
+  font-family: var(--font-body);
+  font-size: 17px;
+  text-transform: none;
+}
+.friend-note:empty {
+  display: none;
+}
+.friend-note.is-bad {
+  color: var(--danger);
+}
+
+/* A friend's flight next to yours */
+.vs-list {
+  display: grid;
+  gap: 14px;
+}
+.vs-list > li {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--raise);
+}
+.vs-prompt {
+  display: flex;
+  gap: 10px;
+  color: var(--dim);
+  font-size: 16px;
+}
+.vs-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+.vs-row > b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 19px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vs-row.is-you > b {
+  color: var(--accent);
+}
+.vs-row > strong {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--lv);
+}
+.vs-answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+.vs-none {
+  color: var(--faint);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+@media (max-width: 520px) {
+  .vs-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .vs-row > b {
+    grid-column: 1 / -1;
+  }
+}
